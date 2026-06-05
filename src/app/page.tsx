@@ -115,7 +115,7 @@ export default function LandingPage() {
             Summer Business · Édition 2026 · avec Max Piccinini
           </span>
           <h1 className="display reveal reveal-delay-1">
-            Cet été, reprenez le contrôle de votre entreprise pour atteindre vos objectifs d&apos;ici décembre.
+            Cet été, reprenez le contrôle de votre entreprise et jouez pour doubler vos résultats d&apos;ici décembre.
             <span className="accent">Pendant que vos concurrents lèvent le pied.</span>
           </h1>
           <p className="sub reveal reveal-delay-2">
