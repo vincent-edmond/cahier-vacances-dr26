@@ -116,13 +116,35 @@ h1, h2, h3, h4, h5, h6 {
   50%      { box-shadow: 0 8px 32px rgba(0, 70, 255, 0.62); }
 }
 .cta-glow {
+  background-image: linear-gradient(135deg, #0046FF 0%, #2563FF 100%);
   animation: ctaGlowPulse 2.8s ease-in-out infinite;
-  transition: transform 0.22s cubic-bezier(.22,.61,.36,1), box-shadow 0.25s ease, background-color 0.2s ease;
+  transition: transform 0.22s cubic-bezier(.22,.61,.36,1), box-shadow 0.25s ease, filter 0.2s ease;
 }
 .cta-glow:hover {
   transform: translateY(-2px) scale(1.03);
   box-shadow: 0 12px 42px rgba(0, 70, 255, 0.6);
+  filter: brightness(1.08) saturate(1.05);
   animation: none;
+}
+
+/* ── Gradients réutilisables (garde la palette navy + bleu) ── */
+.bg-grad-blue { background-image: linear-gradient(135deg, #0046FF 0%, #2563FF 100%); }
+.text-grad-blue {
+  background-image: linear-gradient(90deg, #2563FF 0%, #6B9FFF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+/* Profondeur de carte (light) : ombre douce teintée navy + survol bleuté */
+.card-elev {
+  box-shadow: 0 1px 2px rgba(0, 25, 76, 0.04), 0 4px 16px rgba(0, 25, 76, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+}
+.card-elev:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 34px rgba(0, 70, 255, 0.13);
+  border-color: rgba(0, 70, 255, 0.5);
 }
 .cta-glow:active { transform: translateY(-1px) scale(0.99); }
 .cta-glow .arrow { display: inline-block; transition: transform 0.22s cubic-bezier(.22,.61,.36,1); }

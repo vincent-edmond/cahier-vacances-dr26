@@ -57,12 +57,12 @@ export function AppShell({ active, children }: { active?: number; children: Reac
   return (
     <div className="min-h-screen bg-[#F7F8FA]">
       {/* Sidebar desktop */}
-      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 bg-[#000D2B] text-white">
+      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 bg-gradient-to-b from-[#000D2B] to-[#00112e] text-white">
         {sidebar}
       </aside>
 
       {/* Barre du haut — mobile */}
-      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-[#000D2B] text-white">
+      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-gradient-to-b from-[#000D2B] to-[#00112e] text-white">
         <button onClick={() => setDrawer(true)} aria-label="Ouvrir le menu" className="p-1 -ml-1">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
@@ -78,7 +78,7 @@ export function AppShell({ active, children }: { active?: number; children: Reac
       {drawer && (
         <div className="lg:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/50" onClick={() => setDrawer(false)} />
-          <aside className="absolute inset-y-0 left-0 w-72 max-w-[85%] bg-[#000D2B] text-white flex flex-col overflow-y-auto">
+          <aside className="absolute inset-y-0 left-0 w-72 max-w-[85%] bg-gradient-to-b from-[#000D2B] to-[#00112e] text-white flex flex-col overflow-y-auto">
             <button
               onClick={() => setDrawer(false)}
               aria-label="Fermer le menu"
@@ -151,7 +151,9 @@ function SidebarContent({
           href="/espace"
           onClick={onNavigate}
           className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-            active === 0 ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"
+            active === 0
+              ? "bg-gradient-to-r from-[#0046FF]/30 to-transparent text-white ring-1 ring-inset ring-[#0046FF]/30"
+              : "text-white/70 hover:bg-white/5 hover:text-white"
           }`}
         >
           <span>🏠</span> Mon espace
@@ -201,7 +203,7 @@ function SidebarContent({
               key={c.num}
               href={`/espace/capsule/${c.num}`}
               onClick={onNavigate}
-              className={`${base} ${isActive ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"}`}
+              className={`${base} ${isActive ? "bg-gradient-to-r from-[#0046FF]/30 to-transparent text-white ring-1 ring-inset ring-[#0046FF]/30" : "text-white/70 hover:bg-white/5 hover:text-white"}`}
             >
               {body}
             </Link>

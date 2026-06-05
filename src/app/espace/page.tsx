@@ -98,7 +98,7 @@ function CapsuleCard({
       <div className="flex items-center justify-between">
         <div
           className={`w-9 h-9 rounded-lg flex items-center justify-center font-display font-extrabold text-sm ${
-            unlocked ? "bg-[#0046FF] text-white" : "bg-[#E2E4EA] text-[#9096A5]"
+            unlocked ? "bg-grad-blue text-white shadow-[0_3px_10px_rgba(0,70,255,0.35)]" : "bg-[#E2E4EA] text-[#9096A5]"
           }`}
         >
           {unlocked ? capsule.num : "🔒"}
