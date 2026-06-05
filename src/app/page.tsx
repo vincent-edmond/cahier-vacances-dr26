@@ -20,11 +20,11 @@ export default function LandingPage() {
 
         .lp-hero { position: relative; overflow: hidden; background: #000D2B; padding: 64px 0 74px; text-align: center; }
         .lp-hero::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,70,255,0.32) 0%, transparent 70%); pointer-events:none; }
-        .lp-hero-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+        .lp-hero-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 22px; }
         .lp-kicker { display:inline-flex; align-items:center; gap:8px; background: rgba(0,70,255,0.16); border:1px solid rgba(0,70,255,0.4); color:#6B9FFF; border-radius:100px; padding:8px 18px; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; }
         .lp-hero h1 { font-family: var(--font-poppins); font-weight: 800; color:#fff; font-size: clamp(28px, 3.6vw, 42px); line-height: 1.06; letter-spacing: -0.015em; max-width: 700px; text-wrap: balance; }
-        .lp-hero h1 .accent { color:#6B9FFF; display:block; font-size: 0.56em; font-weight: 700; letter-spacing: 0; margin-top: 16px; text-wrap: balance; }
-        .lp-hero p.sub { color: rgba(255,255,255,0.74); font-size: clamp(16px,1.7vw,18px); max-width: 660px; line-height: 1.65; }
+        .lp-hero h1 .accent { color:#6B9FFF; display:block; font-size: 0.5em; font-weight: 700; letter-spacing: 0; margin-top: 10px; text-wrap: balance; }
+        .lp-hero p.sub { color: rgba(255,255,255,0.66); font-size: clamp(15px,1.4vw,16.5px); max-width: 520px; line-height: 1.6; margin-top: 2px; }
         .lp-cta { position:relative; display:inline-flex; align-items:center; gap:10px; background:#0046FF; color:#fff; padding:18px 40px; border-radius:100px; font-size:17px; font-weight:700; text-decoration:none; box-shadow:0 6px 28px rgba(0,70,255,0.45); transition: transform .22s cubic-bezier(.22,.61,.36,1), box-shadow .25s ease, background .25s ease; animation: ctaPulse 2.8s ease-in-out infinite; }
         .lp-cta:hover { background:#2563FF; transform: translateY(-3px) scale(1.035); box-shadow:0 12px 44px rgba(0,70,255,0.65); animation: none; }
         .lp-cta:active { transform: translateY(-1px) scale(0.99); }
@@ -110,9 +110,8 @@ export default function LandingPage() {
             <span className="accent">Pendant que vos concurrents lèvent le pied.</span>
           </h1>
           <p className="sub reveal reveal-delay-2">
-            La moitié de l&apos;année est passée. En 9 étapes guidées par Max Piccinini, à votre rythme,
-            vous faites le point sans complaisance, vous corrigez les 1 ou 2 leviers qui vous freinent
-            vraiment, et vous repartez avec une feuille de route claire pour vos six derniers mois.
+            9 étapes guidées par Max Piccinini pour faire le point, corriger vos vrais leviers
+            et repartir avec un plan d&apos;action clair pour vos six derniers mois.
           </p>
           <Link href="/espace" className="lp-cta reveal reveal-delay-2">Je commence gratuitement <span className="arrow">→</span></Link>
           <p className="reassure reveal reveal-delay-3">Accès libre · à votre rythme · pour chefs d&apos;entreprise établis</p>
