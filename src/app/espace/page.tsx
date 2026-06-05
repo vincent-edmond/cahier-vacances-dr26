@@ -85,7 +85,7 @@ function CapsuleCard({
     ? { label: "Terminé", cls: "bg-green-100 text-green-700" }
     : seen
       ? { label: "En cours", cls: "bg-amber-100 text-amber-700" }
-      : { label: "À découvrir", cls: "bg-[#0046FF]/10 text-[#0046FF]" };
+      : { label: "À découvrir", cls: "bg-[#00194C]/[0.06] text-[#555B6E]" };
 
   const inner = (
     <div
@@ -98,7 +98,7 @@ function CapsuleCard({
       <div className="flex items-center justify-between">
         <div
           className={`w-9 h-9 rounded-lg flex items-center justify-center font-display font-extrabold text-sm ${
-            unlocked ? "bg-grad-blue text-white shadow-[0_3px_10px_rgba(0,70,255,0.35)]" : "bg-[#E2E4EA] text-[#9096A5]"
+            unlocked ? "bg-[#00194C] text-white" : "bg-[#E2E4EA] text-[#9096A5]"
           }`}
         >
           {unlocked ? capsule.num : "🔒"}
