@@ -11,7 +11,21 @@ import {
   isPreview,
   setPreview,
 } from "@/lib/session";
+import type { CSSProperties } from "react";
 import type { Capsule, CapsuleProgress } from "@/lib/types";
+
+// Palette douce et moderne : une teinte par levier (parcours frais et coloré).
+const ACCENTS = [
+  "#0046FF", // 1 · bleu
+  "#6366F1", // 2 · indigo
+  "#8B5CF6", // 3 · violet
+  "#0EA5B7", // 4 · cyan
+  "#0D9488", // 5 · teal
+  "#10B981", // 6 · émeraude
+  "#F59E0B", // 7 · ambre
+  "#FB7185", // 8 · corail
+  "#EC4899", // 9 · rose
+];
 
 export default function HubPage() {
   const capsules = getCapsules();
@@ -59,6 +73,7 @@ export default function HubPage() {
                 capsule={c}
                 unlocked={isUnlocked(c, { preview })}
                 progress={progressFor(c.num)}
+                accent={ACCENTS[(c.num - 1) % ACCENTS.length]}
               />
             ) : (
               <div key={c.num} className="h-[136px] rounded-2xl bg-white border border-[#E2E4EA] animate-pulse" />
@@ -74,10 +89,12 @@ function CapsuleCard({
   capsule,
   unlocked,
   progress,
+  accent,
 }: {
   capsule: Capsule;
   unlocked: boolean;
   progress?: CapsuleProgress;
+  accent: string;
 }) {
   const done = !!progress?.reponses;
   const seen = !!progress?.vu;
@@ -90,18 +107,17 @@ function CapsuleCard({
 
   const inner = (
     <div
-      className={`group flex flex-col h-full gap-2.5 rounded-2xl border p-4 transition-all ${
+      style={unlocked ? ({ "--accent": accent } as CSSProperties) : undefined}
+      className={`group flex flex-col h-full gap-2.5 rounded-2xl border p-4 ${
         unlocked
-          ? "bg-white border-[#E2E4EA] hover:border-[#0046FF] hover:shadow-[0_10px_30px_rgba(0,70,255,0.08)] hover:-translate-y-0.5 cursor-pointer"
+          ? "lever-card bg-white border-[#E2E4EA] cursor-pointer"
           : "bg-[#F0F1F5] border-[#E2E4EA] opacity-80"
       }`}
     >
       <div className="flex items-center justify-between">
         <div
-          className={`w-9 h-9 rounded-lg flex items-center justify-center font-display font-extrabold text-sm transition-colors ${
-            unlocked
-              ? "bg-[#E8EEFF] text-[#0046FF] group-hover:bg-[#0046FF] group-hover:text-white"
-              : "bg-[#EEF0F4] text-[#9096A5]"
+          className={`w-9 h-9 rounded-lg flex items-center justify-center font-display font-extrabold text-sm ${
+            unlocked ? "lever-chip" : "bg-[#EEF0F4] text-[#9096A5]"
           }`}
         >
           {unlocked ? capsule.num : "🔒"}

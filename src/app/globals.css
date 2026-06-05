@@ -146,6 +146,20 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 10px 34px rgba(0, 70, 255, 0.13);
   border-color: rgba(0, 70, 255, 0.5);
 }
+
+/* Accent par carte (palette multi-couleurs douce et moderne) — pilotée par --accent */
+.lever-card { transition: transform .2s ease, box-shadow .25s ease, border-color .2s ease; }
+.lever-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent, #0046FF);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--accent, #0046FF) 24%, transparent);
+}
+.lever-chip {
+  color: var(--accent, #0046FF);
+  background: color-mix(in srgb, var(--accent, #0046FF) 14%, #fff);
+  transition: background-color .2s ease, color .2s ease;
+}
+.group:hover .lever-chip { background: var(--accent, #0046FF); color: #fff; }
 .cta-glow:active { transform: translateY(-1px) scale(0.99); }
 .cta-glow .arrow { display: inline-block; transition: transform 0.22s cubic-bezier(.22,.61,.36,1); }
 .cta-glow:hover .arrow { transform: translateX(4px); }

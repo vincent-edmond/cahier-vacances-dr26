@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { getCapsules, formatDateFr } from "@/lib/capsules";
 
@@ -51,10 +52,10 @@ export default function LandingPage() {
         .lp-results-grid { display:grid; grid-template-columns: repeat(2,1fr); gap:18px; max-width:880px; margin:0 auto; }
         @media (max-width:720px){ .lp-results-grid{ grid-template-columns:1fr; } }
         .lp-result { position:relative; display:flex; gap:16px; align-items:flex-start; background:#fff; border:1px solid #E6E9F0; border-radius:18px; padding:24px; box-shadow: 0 2px 6px rgba(0,25,76,0.05), 0 14px 30px rgba(0,25,76,0.08); transition: transform .2s ease, box-shadow .25s ease, border-color .2s ease; }
-        .lp-result::before { content:''; position:absolute; inset:0 0 auto 0; height:3px; border-radius:18px 18px 0 0; background:linear-gradient(90deg,#0046FF,#2563FF); opacity:0; transition:opacity .25s ease; }
-        .lp-result:hover { transform: translateY(-4px); box-shadow: 0 18px 44px rgba(0,70,255,0.18); border-color: rgba(0,70,255,0.45); }
+        .lp-result::before { content:''; position:absolute; inset:0 0 auto 0; height:3px; border-radius:18px 18px 0 0; background: var(--accent, #0046FF); opacity:0; transition:opacity .25s ease; }
+        .lp-result:hover { transform: translateY(-4px); box-shadow: 0 18px 44px color-mix(in srgb, var(--accent,#0046FF) 24%, transparent); border-color: color-mix(in srgb, var(--accent,#0046FF) 55%, #fff); }
         .lp-result:hover::before { opacity:1; }
-        .lp-result .ic { flex-shrink:0; width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; background: linear-gradient(135deg, rgba(0,70,255,0.14) 0%, rgba(37,99,255,0.06) 100%); border:1px solid rgba(0,70,255,0.12); }
+        .lp-result .ic { flex-shrink:0; width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; background: color-mix(in srgb, var(--accent,#0046FF) 14%, #fff); border:1px solid color-mix(in srgb, var(--accent,#0046FF) 24%, transparent); }
         .lp-result h4 { font-weight:700; color:#00194C; font-size:16px; margin-bottom:5px; }
         .lp-result p { color:#555B6E; font-size:14.5px; line-height:1.55; }
 
@@ -64,7 +65,8 @@ export default function LandingPage() {
         @media (max-width:720px){ .lp-steps{ grid-template-columns:1fr; } }
         .lp-step { background:#fff; border:1px solid #E6E9F0; border-radius:18px; padding:24px 22px; text-align:center; box-shadow: 0 2px 6px rgba(0,25,76,0.05), 0 12px 26px rgba(0,25,76,0.06); transition: transform .2s ease, box-shadow .25s ease, border-color .2s ease; }
         .lp-step:hover { transform: translateY(-4px); box-shadow: 0 16px 38px rgba(0,70,255,0.14); border-color: rgba(0,70,255,0.4); }
-        .lp-step .ic { font-size:26px; margin: 0 auto 12px; width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg, rgba(0,70,255,0.12) 0%, rgba(37,99,255,0.05) 100%); border:1px solid rgba(0,70,255,0.1); }
+        .lp-step .ic { font-size:26px; margin: 0 auto 12px; width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; background: color-mix(in srgb, var(--accent,#0046FF) 12%, #fff); border:1px solid color-mix(in srgb, var(--accent,#0046FF) 18%, transparent); }
+        .lp-step:hover { border-color: color-mix(in srgb, var(--accent,#0046FF) 50%, #fff); }
         .lp-step h3 { font-weight:700; color:#00194C; font-size:15px; margin-bottom:6px; }
         .lp-step p { color:#555B6E; font-size:13.5px; line-height:1.5; }
 
@@ -156,12 +158,12 @@ export default function LandingPage() {
           <h2 className="lp-section-title display reveal">À la fin de l&apos;été, vous repartez avec :</h2>
           <div className="lp-results-grid">
             {[
-              { ic: "🎯", t: "Un bilan sans complaisance", d: "Où vous en êtes vraiment face à vos objectifs. Les chiffres en main, pas les impressions." },
-              { ic: "🔑", t: "Vos 1 ou 2 vrais leviers", d: "On isole ce qui change la donne pour vous. Le reste, c'est du bruit." },
-              { ic: "💬", t: "Un regard direct sur vos décisions", d: "Un retour franc sur chacun de vos choix, pour avancer sans angle mort." },
-              { ic: "🗺️", t: "Un plan que vous n'avez plus qu'à exécuter", d: "Concret, priorisé, daté. En septembre, vous savez exactement quoi faire." },
+              { ic: "🎯", t: "Un bilan sans complaisance", d: "Où vous en êtes vraiment face à vos objectifs. Les chiffres en main, pas les impressions.", accent: "#0046FF" },
+              { ic: "🔑", t: "Vos 1 ou 2 vrais leviers", d: "On isole ce qui change la donne pour vous. Le reste, c'est du bruit.", accent: "#0D9488" },
+              { ic: "💬", t: "Un regard direct sur vos décisions", d: "Un retour franc sur chacun de vos choix, pour avancer sans angle mort.", accent: "#8B5CF6" },
+              { ic: "🗺️", t: "Un plan que vous n'avez plus qu'à exécuter", d: "Concret, priorisé, daté. En septembre, vous savez exactement quoi faire.", accent: "#F59E0B" },
             ].map((r) => (
-              <div key={r.t} className="lp-result">
+              <div key={r.t} className="lp-result" style={{ "--accent": r.accent } as CSSProperties}>
                 <span className="ic">{r.ic}</span>
                 <div>
                   <h4>{r.t}</h4>
@@ -184,11 +186,11 @@ export default function LandingPage() {
           </p>
           <div className="lp-steps">
             {[
-              { ic: "💡", t: "Une idée qui remet les choses en perspective", d: "Le levier de la semaine, expliqué droit au but par Max." },
-              { ic: "✍️", t: "Un exercice sur VOS chiffres", d: "Vous appliquez à votre situation réelle. C'est là que ça compte." },
-              { ic: "🤝", t: "Un retour personnalisé", d: "Une analyse de ce que vous avez écrit, pour décider juste." },
+              { ic: "💡", t: "Une idée qui remet les choses en perspective", d: "Le levier de la semaine, expliqué droit au but par Max.", accent: "#0046FF" },
+              { ic: "✍️", t: "Un exercice sur VOS chiffres", d: "Vous appliquez à votre situation réelle. C'est là que ça compte.", accent: "#8B5CF6" },
+              { ic: "🤝", t: "Un retour personnalisé", d: "Une analyse de ce que vous avez écrit, pour décider juste.", accent: "#0D9488" },
             ].map((s) => (
-              <div key={s.t} className="lp-step">
+              <div key={s.t} className="lp-step" style={{ "--accent": s.accent } as CSSProperties}>
                 <div className="ic">{s.ic}</div>
                 <h3>{s.t}</h3>
                 <p>{s.d}</p>
