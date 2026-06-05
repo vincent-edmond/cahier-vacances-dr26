@@ -107,13 +107,13 @@ export default function LandingPage() {
           <span className="lp-kicker reveal">Summer Business · Édition 2026 · avec Max Piccinini</span>
           <h1 className="display reveal reveal-delay-1">
             Votre plan d&apos;action pour finir 2026 en force.
-            <span className="accent">En 9 étapes, cet été.</span>
+            <span className="accent">Pendant que vos concurrents lèvent le pied.</span>
           </h1>
           <p className="sub reveal reveal-delay-2">
-            La moitié de l&apos;année est passée. Summer Business vous aide à faire le point sans
-            complaisance, à corriger les 1 ou 2 leviers qui vous freinent vraiment, et à transformer
-            tout ça en feuille de route claire pour vos six derniers mois. Guidé par Max Piccinini,
-            avec un retour personnalisé à chaque étape.
+            La moitié de l&apos;année est passée. En 9 étapes guidées par Max Piccinini, cet été et à
+            votre rythme, vous faites le point sans complaisance, vous corrigez les 1 ou 2 leviers
+            qui vous freinent vraiment, et vous repartez avec une feuille de route claire pour vos
+            six derniers mois.
           </p>
           <Link href="/espace" className="lp-cta reveal reveal-delay-2">Je commence gratuitement <span className="arrow">→</span></Link>
           <p className="reassure reveal reveal-delay-3">Accès libre · à votre rythme · pour chefs d&apos;entreprise établis</p>
