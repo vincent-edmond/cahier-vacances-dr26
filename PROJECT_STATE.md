@@ -103,7 +103,8 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
   - Envoi d'email : **différé** (décision : pas d'email pour l'instant). Quand on l'active : N8N/HubSpot (déjà en place) ou Resend.
 
 ### Phase 3
-- [ ] Page synthèse finale `/espace/plan` (utiliser `generatePlanFinal`, déjà prête).
+- [x] Synthèse finale : intégrée **dans la C9** (pas une page séparée). `/api/plan` + `generatePlanFinal` compilent tout le cahier (C1→C9) ; `ExerciceForm` mode `plan` sauve les derniers champs puis génère, plan persisté en localStorage (`cdv_plan_*`).
+- [x] Coquille SaaS : `AppShell` (sidebar gauche desktop = nav 9 leviers + états + progression + démo + CTA DR, drawer mobile) + `Footer` partagé, responsive.
 - [ ] Back-office léger `/admin` (inscrits, modération commentaires).
 - [ ] Tracking (opt-in, progression, clics CTA DR → HubSpot / Hyros).
 
