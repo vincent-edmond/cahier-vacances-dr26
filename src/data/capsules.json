@@ -1,0 +1,256 @@
+[
+  {
+    "num": 1,
+    "slug": "bilan-mi-annee",
+    "titre": "Le bilan de mi-année",
+    "accroche": "Vous avez fait la moitié de votre année. Et la moitié de vos résultats ?",
+    "levier": "Faire le point sans complaisance face à ses objectifs 2026.",
+    "dateUnlock": "2026-06-30",
+    "dureeMin": 10,
+    "videoUrl": null,
+    "ficheHtml": "<p class=\"lead\">Vous avez consommé la moitié de votre année. Avez-vous fait la moitié de vos résultats ? Le bilan de mi-année est le point de contrôle le plus rentable : il vous reste six mois pour corriger.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Pendant que les autres lèvent le pied, c'est le moment de regarder vos chiffres en face.</li><li>Quatre chiffres suffisent : CA réalisé vs objectif, marge, trésorerie, pipeline.</li><li>La brutale honnêteté d'abord : où en êtes-vous vraiment, sans vous raconter d'histoires.</li><li>Un bilan ne sert à rien sans un levier prioritaire et une action.</li></ul>",
+    "exercice": {
+      "intro": "Posez noir sur blanc votre bilan de mi-année. C'est le cœur de votre cahier de vacances.",
+      "champs": [
+        { "id": "objectif_ca", "label": "Mon objectif de CA 2026", "type": "number", "suffix": "€", "placeholder": "Ex : 800000", "required": true },
+        { "id": "ca_realise", "label": "Mon CA réalisé au 30/06", "type": "number", "suffix": "€", "placeholder": "Ex : 320000", "required": true },
+        { "id": "avancement", "label": "% d'avancement sur l'objectif", "type": "computed", "computeFrom": ["ca_realise", "objectif_ca"], "suffix": "%" },
+        { "id": "marge", "label": "Ma marge ressentie", "type": "select", "options": ["En hausse", "Stable", "En baisse"], "required": true },
+        { "id": "tresorerie", "label": "Ma trésorerie", "type": "select", "options": ["Confortable", "Juste", "Tendue"], "required": true },
+        { "id": "levier_faible", "label": "Le levier où ça coince le plus", "type": "select", "options": ["Stratégie", "Offre", "Différenciation", "Acquisition", "Vente", "Opérationnel", "Rentabilité", "Équipe"], "required": true },
+        { "id": "correction", "label": "En une phrase, ce que je dois absolument corriger d'ici décembre", "type": "textarea", "placeholder": "D'ici décembre, je dois absolument…", "required": true }
+      ]
+    },
+    "feedbackPrompt": "Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Réponds en 4 à 6 phrases, vouvoiement, ton punchy, sans jargon ni tirets cadratins. Consigne : fais un constat honnête sur l'écart objectif/réalisé (en utilisant le %), désigne le levier prioritaire au vu de ce qu'il a coché, propose une action concrète pour cette semaine, et finis sur une phrase 'contre-pied de l'été'.",
+    "defi": "Posez votre chiffre d'affaires réalisé face à votre objectif annuel, et nommez votre levier le plus faible.",
+    "cta": {
+      "texte": "Ce bilan, on le transforme en plan d'action complet, ensemble, à Destination Réussite, du 25 au 27 septembre.",
+      "bouton": "Réserver ma place",
+      "url": "https://www.maxpiccinini.com/destination-reussite/"
+    }
+  },
+  {
+    "num": 2,
+    "slug": "cap-second-semestre",
+    "titre": "Votre cap pour le second semestre",
+    "accroche": "Votre stratégie tient-elle en une phrase ?",
+    "levier": "La priorité n°1, votre « one thing ».",
+    "dateUnlock": "2026-07-07",
+    "dureeMin": 10,
+    "videoUrl": null,
+    "ficheHtml": "<p class=\"lead\">On ne développe pas la complexité, on développe la simplicité. Votre second semestre se gagne sur UNE priorité, pas sur quinze.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Quinze priorités, c'est aucune priorité. La dispersion tue les résultats, surtout l'été.</li><li>Les entreprises qui passent un cap simplifient (Steve Jobs a tué 70% des projets d'Apple pour se concentrer).</li><li>Votre cap doit tenir en une phrase : « Voici comment on gagne d'ici décembre. »</li><li>On trouve son cap par la douleur du marché, ou par son propre goulot d'étranglement.</li></ul>",
+    "exercice": {
+      "intro": "Votre cap du second semestre, en une phrase. Et ce que vous arrêtez pour le protéger.",
+      "champs": [
+        { "id": "priorites_liste", "label": "Listez toutes vos priorités actuelles, sans filtre", "type": "textarea", "placeholder": "Une par ligne…", "required": true },
+        { "id": "priorite_une", "label": "Si vous ne pouviez en garder qu'UNE pour le semestre, laquelle change le plus la donne ?", "type": "textarea", "placeholder": "La priorité qui change tout…", "required": true },
+        { "id": "cap_phrase", "label": "Votre cap en une phrase : « D'ici décembre, on gagne en… »", "type": "textarea", "placeholder": "D'ici décembre, on gagne en…", "required": true },
+        { "id": "a_arreter", "label": "Quelles 2 ou 3 choses allez-vous ARRÊTER pour protéger ce cap ?", "type": "textarea", "placeholder": "J'arrête de…", "required": true }
+      ]
+    },
+    "feedbackPrompt": "Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Réponds en 4 à 6 phrases, vouvoiement, ton punchy, sans jargon ni tirets cadratins. Consigne : challenge la priorité retenue (est-elle assez focalisée, est-ce un vrai levier ou une fausse priorité confortable ?). Si la phrase de cap est floue, pousse-le à trancher. Valide ce qu'il a décidé d'arrêter.",
+    "defi": "Écrivez votre stratégie du second semestre en une seule phrase, et nommez ce que vous arrêtez.",
+    "cta": {
+      "texte": "On affûte votre cap et on lève vos objections à Destination Réussite.",
+      "bouton": "Réserver ma place",
+      "url": "https://www.maxpiccinini.com/destination-reussite/"
+    }
+  },
+  {
+    "num": 3,
+    "slug": "fondations",
+    "titre": "Des fondations qui tiennent la charge",
+    "accroche": "Votre offre de 2022 tient-elle encore en 2026 ?",
+    "levier": "Modèle économique, offre, positionnement.",
+    "dateUnlock": "2026-07-14",
+    "dureeMin": 10,
+    "videoUrl": null,
+    "ficheHtml": "<p class=\"lead\">Une offre irrésistible, c'est une offre où le client se dit « je serais fou de refuser ». Un seul changement d'offre peut doubler vos ventes.</p><h3>Ce qu'il faut comprendre</h3><ul><li>C'est la valeur perçue qui décide de l'achat, pas le prix.</li><li>Même catégorie, perception opposée : comparez Dell et Apple.</li><li>Une offre se construit : promesse, preuve, garantie, bonus, urgence.</li><li>Si vos clients négocient tout, c'est souvent l'offre qui est faible, pas le marché.</li></ul>",
+    "exercice": {
+      "intro": "Passez votre offre au test de l'irrésistible.",
+      "champs": [
+        { "id": "offre_phrase", "label": "Décrivez votre offre principale en une phrase", "type": "textarea", "placeholder": "Mon offre, c'est…", "required": true },
+        { "id": "note_irresistible", "label": "De 1 à 10, à quel point un prospect se dit « je serais fou de refuser » ?", "type": "number", "suffix": "/10", "placeholder": "Ex : 6", "required": true },
+        { "id": "pourquoi_note", "label": "Pourquoi ce chiffre ?", "type": "textarea", "placeholder": "Ce qui justifie la note…", "required": true },
+        { "id": "changement", "label": "Quel UN changement (garantie, bonus, reformulation de la promesse) la rendrait nettement plus irrésistible ?", "type": "textarea", "placeholder": "Le changement qui change tout…", "required": true }
+      ]
+    },
+    "feedbackPrompt": "Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Réponds en 4 à 6 phrases, vouvoiement, ton punchy, sans jargon ni tirets cadratins. Consigne : évalue la solidité de l'offre à partir de sa note et de sa justification, pointe le maillon faible (promesse, preuve, garantie, bonus, urgence), valide ou muscle le changement proposé.",
+    "defi": "Notez votre offre sur 10, et trouvez le UN changement qui la rend irrésistible. Testez-le sur 3 prospects.",
+    "cta": {
+      "texte": "On reconstruit des fondations solides à Destination Réussite.",
+      "bouton": "Réserver ma place",
+      "url": "https://www.maxpiccinini.com/destination-reussite/"
+    }
+  },
+  {
+    "num": 4,
+    "slug": "avantage-concurrentiel",
+    "titre": "Votre avantage concurrentiel",
+    "accroche": "Un concurrent vous copie à -20%. Il vous reste quoi ?",
+    "levier": "La différenciation, sortir de la guerre des prix.",
+    "dateUnlock": "2026-07-21",
+    "dureeMin": 10,
+    "videoUrl": null,
+    "ficheHtml": "<p class=\"lead\">La stratégie, c'est une phrase qui dit comment vous allez gagner. Et on gagne en étant différent (océan bleu), pas en baissant les prix (océan rouge).</p><h3>Ce qu'il faut comprendre</h3><ul><li>Océan rouge : tout le monde se ressemble, on se bat sur le prix, tout le monde saigne.</li><li>Océan bleu : un positionnement où personne n'est, et vous prenez le marché.</li><li>Partez de la douleur du marché (Dyson : l'électroménager qui ne nettoie pas vraiment).</li><li>Votre différenciation doit être incopiable. Interdit : « la qualité », « le service », « le sérieux ».</li></ul>",
+    "exercice": {
+      "intro": "Nommez ce qui vous rend vraiment incopiable.",
+      "champs": [
+        { "id": "douleur_marche", "label": "Quelle est LA douleur n°1 mal résolue de votre marché ?", "type": "textarea", "placeholder": "Ce que le marché subit encore…", "required": true },
+        { "id": "diff_1", "label": "Différenciation n°1 (sans les mots interdits)", "type": "text", "placeholder": "Ce que vous seul faites…", "required": true },
+        { "id": "diff_2", "label": "Différenciation n°2", "type": "text", "placeholder": "…", "required": true },
+        { "id": "diff_3", "label": "Différenciation n°3", "type": "text", "placeholder": "…", "required": true },
+        { "id": "reste_si_copie", "label": "Si un concurrent vous copie et casse le prix de 20%, qu'est-ce qui vous reste ?", "type": "textarea", "placeholder": "Ce qui reste, intact…", "required": true },
+        { "id": "phrase_strategie", "label": "Votre phrase : « On gagne parce que nous sommes les seuls à… »", "type": "textarea", "placeholder": "On gagne parce que nous sommes les seuls à…", "required": true }
+      ]
+    },
+    "feedbackPrompt": "Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Réponds en 4 à 6 phrases, vouvoiement, ton punchy, sans jargon ni tirets cadratins. Consigne : teste si les différenciateurs sont réellement incopiables ou des banalités déguisées, challenge la robustesse face au concurrent à -20%, aide à resserrer la phrase stratégique.",
+    "defi": "Listez trois différenciations incopiables (interdit : qualité, service, sérieux) et écrivez votre phrase stratégique.",
+    "cta": {
+      "texte": "On construit votre avantage incopiable à Destination Réussite.",
+      "bouton": "Réserver ma place",
+      "url": "https://www.maxpiccinini.com/destination-reussite/"
+    }
+  },
+  {
+    "num": 5,
+    "slug": "operationnel",
+    "titre": "Reprendre la main sur l'opérationnel",
+    "accroche": "Votre entreprise tourne-t-elle sans vous cet été ?",
+    "levier": "Les systèmes et process, se libérer de l'opérationnel.",
+    "dateUnlock": "2026-07-28",
+    "dureeMin": 10,
+    "videoUrl": null,
+    "ficheHtml": "<p class=\"lead\">On peut gagner plus en travaillant moins, à condition de travailler intelligemment. Si votre entreprise ne tourne pas sans vous, vous n'avez pas une entreprise, vous avez un emploi.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Le dirigeant homme-orchestre est le plafond de son entreprise.</li><li>Les vacances révèlent toutes vos dépendances.</li><li>Documenter puis déléguer : sortir un process de votre tête.</li><li>Le temps libéré sert au stratégique, pas à plus d'opérationnel.</li></ul>",
+    "exercice": {
+      "intro": "Sortez un process de votre tête et déléguez-le.",
+      "champs": [
+        { "id": "taches_seul", "label": "Listez les tâches que vous seul faites encore", "type": "textarea", "placeholder": "Une par ligne…", "required": true },
+        { "id": "tache_couteuse", "label": "Celle qui vous coûte le plus de temps", "type": "text", "placeholder": "La tâche chronophage…", "required": true },
+        { "id": "mode_operatoire", "label": "Documentez-la en 5 étapes (le mode opératoire)", "type": "textarea", "placeholder": "1. … 2. … 3. … 4. … 5. …", "required": true },
+        { "id": "delegue_a", "label": "À qui la déléguez-vous, et pour quelle date ?", "type": "text", "placeholder": "Ex : à Léa, avant le 15/08", "required": true }
+      ]
+    },
+    "feedbackPrompt": "Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Réponds en 4 à 6 phrases, vouvoiement, ton punchy, sans jargon ni tirets cadratins. Consigne : vérifie que la tâche choisie est vraiment délégable (et pas une excuse), challenge la clarté du mode opératoire en 5 étapes, pousse à fixer une date ferme de délégation.",
+    "defi": "Documentez en 5 étapes le process que vous seul savez faire, et déléguez-le cette semaine.",
+    "cta": {
+      "texte": "On bâtit l'entreprise qui tourne sans vous, à Destination Réussite.",
+      "bouton": "Réserver ma place",
+      "url": "https://www.maxpiccinini.com/destination-reussite/"
+    }
+  },
+  {
+    "num": 6,
+    "slug": "leviers-croissance",
+    "titre": "Vos leviers de croissance",
+    "accroche": "Il vous reste cinq mois. D'où vient le chiffre d'affaires ?",
+    "levier": "Où aller chercher du chiffre d'affaires d'ici décembre.",
+    "dateUnlock": "2026-08-04",
+    "dureeMin": 10,
+    "videoUrl": null,
+    "ficheHtml": "<p class=\"lead\">Il n'y a que 3 façons d'augmenter votre CA : plus de clients, un panier moyen plus élevé, une fréquence d'achat plus grande. La plupart ne travaillent que la première.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Levier 1 : plus de clients (acquisition). Le plus visible, le plus cher.</li><li>Levier 2 : panier moyen (montée en gamme, ventes additionnelles).</li><li>Levier 3 : fréquence (récurrence, fidélisation).</li><li>Augmenter le CA sans gonfler les coûts passe souvent par les leviers 2 et 3, négligés.</li></ul>",
+    "exercice": {
+      "intro": "Trouvez votre levier le plus sous-exploité, et chiffrez-le.",
+      "champs": [
+        { "id": "nb_clients", "label": "Mon nombre de clients (estimation)", "type": "number", "placeholder": "Ex : 120", "required": true },
+        { "id": "panier_moyen", "label": "Mon panier moyen", "type": "number", "suffix": "€", "placeholder": "Ex : 2500", "required": true },
+        { "id": "frequence", "label": "Ma fréquence d'achat (achats par client et par an)", "type": "number", "placeholder": "Ex : 2", "required": true },
+        { "id": "levier_sous_exploite", "label": "Le levier le plus sous-exploité chez moi", "type": "select", "options": ["Plus de clients (acquisition)", "Panier moyen", "Fréquence d'achat"], "required": true },
+        { "id": "action", "label": "Une action concrète sur ce levier cet été", "type": "textarea", "placeholder": "Concrètement, je…", "required": true },
+        { "id": "projection_ca", "label": "Projetez : +10% sur ce levier, ça fait combien de CA en plus ?", "type": "text", "placeholder": "Ex : +X €", "required": true }
+      ]
+    },
+    "feedbackPrompt": "Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Réponds en 4 à 6 phrases, vouvoiement, ton punchy, sans jargon ni tirets cadratins. Consigne : identifie le levier à plus fort potentiel au vu de ses chiffres (clients, panier, fréquence), challenge si l'action choisie attaque le bon levier, fais ressortir l'impact chiffré pour créer le déclic.",
+    "defi": "Identifiez votre levier de croissance le plus sous-exploité et une action pour y mettre +20% cet été.",
+    "cta": {
+      "texte": "On cartographie vos leviers de croissance à Destination Réussite.",
+      "bouton": "Réserver ma place",
+      "url": "https://www.maxpiccinini.com/destination-reussite/"
+    }
+  },
+  {
+    "num": 7,
+    "slug": "fuites-rentabilite",
+    "titre": "Stopper les fuites de rentabilité",
+    "accroche": "Vous faites du chiffre d'affaires mais il ne reste rien ?",
+    "levier": "Marges, prix, trésorerie.",
+    "dateUnlock": "2026-08-11",
+    "dureeMin": 10,
+    "videoUrl": null,
+    "ficheHtml": "<p class=\"lead\">Faire du CA ne sert à rien si la trésorerie fuit. 7 leviers pilotent votre cash : prix, volume, coûts directs, masse salariale, créances, dettes fournisseurs, stock.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Le CA n'est pas la rentabilité. La marge et le cash, oui.</li><li>Le prix est le levier le plus rapide sur la marge.</li><li>Créances clients et stock immobilisent du cash invisible.</li><li>Les amateurs supposent, les pros mesurent.</li></ul>",
+    "exercice": {
+      "intro": "Traquez votre plus grosse fuite, et chiffrez le cash récupérable.",
+      "champs": [
+        { "id": "indicateurs", "label": "Notez vos 7 indicateurs, même approximatifs (prix moyen, volume, coûts directs, masse salariale, créances, dettes fournisseurs, stock)", "type": "textarea", "placeholder": "Prix moyen : … · Volume : … · Coûts directs : … · Masse salariale : … · Créances : … · Dettes fournisseurs : … · Stock : …", "required": true },
+        { "id": "fuite_principale", "label": "Où est votre plus grosse fuite ?", "type": "select", "options": ["Prix", "Volume", "Coûts directs", "Masse salariale", "Créances clients", "Dettes fournisseurs", "Stock"], "required": true },
+        { "id": "action", "label": "Une action cette semaine (ex : +10% sur un prix, relancer une créance, alléger un stock)", "type": "textarea", "placeholder": "Cette semaine, je…", "required": true },
+        { "id": "cash_libere", "label": "Combien de cash cette action libère-t-elle ?", "type": "text", "placeholder": "Ex : ~ X €", "required": true }
+      ]
+    },
+    "feedbackPrompt": "Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Réponds en 4 à 6 phrases, vouvoiement, ton punchy, sans jargon ni tirets cadratins. Consigne : pointe la fuite prioritaire au vu de ses chiffres, valide que l'action attaque bien la plus grosse fuite, chiffre le cash récupérable.",
+    "defi": "Repérez votre plus grosse fuite parmi les 7 indicateurs, et lancez une action de cash cette semaine.",
+    "cta": {
+      "texte": "On colmate les fuites et on muscle la rentabilité à Destination Réussite.",
+      "bouton": "Réserver ma place",
+      "url": "https://www.maxpiccinini.com/destination-reussite/"
+    }
+  },
+  {
+    "num": 8,
+    "slug": "vous-entourer",
+    "titre": "Vous entourer pour franchir un cap",
+    "accroche": "Vous êtes le plafond de votre entreprise.",
+    "levier": "Joueurs de Ligue A, recrutement, partenariats.",
+    "dateUnlock": "2026-08-18",
+    "dureeMin": 10,
+    "videoUrl": null,
+    "ficheHtml": "<p class=\"lead\">Vous êtes le plafond de votre entreprise. Un recrutement raté coûte de 30 à 150K€. Avant de recruter, passez le besoin au filtre des bons critères.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Recruter un Joueur de Ligue A change la trajectoire ; recruter par défaut la plombe.</li><li>Regardez les accomplissements passés prouvés, pas les promesses.</li><li>Le mindset et les valeurs priment sur le CV.</li><li>Mieux vaut un poste vacant qu'un mauvais recrutement.</li></ul>",
+    "exercice": {
+      "intro": "Cadrez votre prochain recrutement clé (ou le partenariat qui en joue le rôle).",
+      "champs": [
+        { "id": "poste", "label": "Quel poste vous libérerait le plus aujourd'hui ?", "type": "text", "placeholder": "Le poste qui change tout…", "required": true },
+        { "id": "resultat_attendu", "label": "Le résultat attendu de ce poste, en une phrase (le résultat, pas la liste des tâches)", "type": "textarea", "placeholder": "Ce poste réussit s'il…", "required": true },
+        { "id": "accomplissements", "label": "Quels 3 accomplissements passés un bon candidat doit-il pouvoir prouver ?", "type": "textarea", "placeholder": "1. … 2. … 3. …", "required": true },
+        { "id": "valeurs", "label": "Vos 2 valeurs non négociables", "type": "text", "placeholder": "Ex : exigence, fiabilité", "required": true },
+        { "id": "partenariat", "label": "Si pas de recrutement maintenant : quel partenariat pourrait jouer ce rôle ?", "type": "textarea", "placeholder": "Le partenaire qui couvre ce besoin…" }
+      ]
+    },
+    "feedbackPrompt": "Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Réponds en 4 à 6 phrases, vouvoiement, ton punchy, sans jargon ni tirets cadratins. Consigne : vérifie que le poste vise un résultat (pas une liste de tâches), challenge si les critères d'accomplissement sont assez exigeants, valide la piste partenariat le cas échéant.",
+    "defi": "Définissez le poste qui vous libère le plus, son résultat attendu et 3 accomplissements à prouver.",
+    "cta": {
+      "texte": "On construit l'équipe qui vous fait changer d'échelle, à Destination Réussite.",
+      "bouton": "Réserver ma place",
+      "url": "https://www.maxpiccinini.com/destination-reussite/"
+    }
+  },
+  {
+    "num": 9,
+    "slug": "plan-h2",
+    "titre": "Votre plan des six derniers mois",
+    "accroche": "Le plan qui sauve votre second semestre.",
+    "levier": "Transformer l'audit en plan d'action, et basculer vers DR.",
+    "dateUnlock": "2026-08-25",
+    "dureeMin": 10,
+    "videoUrl": null,
+    "ficheHtml": "<p class=\"lead\">Une entreprise prospère tient sur 9 piliers. Là où un pilier est faible, c'est souvent là qu'est votre plafond actuel. Votre plan H2, c'est renforcer 2 ou 3 piliers, pas les 9.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Les 9 piliers : mindset, vision, équipe, stratégie, marketing, finances, optimisation, protection, exécution.</li><li>Un diagnostic pilier par pilier révèle le maillon faible.</li><li>On ne corrige pas tout : on choisit 2 ou 3 chantiers et on exécute.</li><li>Sans exécution, le meilleur plan ne vaut rien.</li></ul>",
+    "exercice": {
+      "intro": "La synthèse de l'été : transformez votre audit en plan d'action H2.",
+      "champs": [
+        { "id": "piliers_notes", "label": "Notez chaque pilier de 1 à 10 (mindset, vision, équipe, stratégie, marketing, finances, optimisation, protection, exécution)", "type": "textarea", "placeholder": "Mindset : … / Vision : … / Équipe : … / Stratégie : … / Marketing : … / Finances : … / Optimisation : … / Protection : … / Exécution : …", "required": true },
+        { "id": "leviers_recurrents", "label": "Reprenez vos réponses des capsules C1 à C8 : quels leviers reviennent le plus ?", "type": "textarea", "placeholder": "Les leviers qui reviennent…", "required": true },
+        { "id": "chantier_1", "label": "Chantier prioritaire n°1", "type": "text", "placeholder": "…", "required": true },
+        { "id": "chantier_2", "label": "Chantier prioritaire n°2", "type": "text", "placeholder": "…", "required": true },
+        { "id": "chantier_3", "label": "Chantier prioritaire n°3 (optionnel)", "type": "text", "placeholder": "…" },
+        { "id": "action_responsable_date", "label": "Pour chaque chantier : l'action n°1, le responsable, la date", "type": "textarea", "placeholder": "Chantier 1 : action / qui / quand…", "required": true },
+        { "id": "creneau_pilotage", "label": "Mes 2h de pilotage hebdo bloquées (jour + heure)", "type": "text", "placeholder": "Ex : vendredi 9h-11h", "required": true }
+      ]
+    },
+    "feedbackPrompt": "Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Réponds en 4 à 6 phrases, vouvoiement, ton punchy, sans jargon ni tirets cadratins. Consigne (mode synthèse) : à partir des piliers notés et des chantiers choisis, compile un plan d'action H2 personnalisé : confirme les 2-3 chantiers prioritaires, donne l'action n°1 de chacun, vérifie que le créneau de pilotage est réaliste et protégé, et termine sur un mot de bascule fort vers l'exécution à Destination Réussite.",
+    "defi": "Posez vos 3 chantiers prioritaires (action, responsable, date), bloquez 2h de pilotage par semaine, et réservez votre place à Destination Réussite.",
+    "cta": {
+      "texte": "Ce plan, on le construit et on l'exécute ensemble à Destination Réussite, du 25 au 27 septembre. Venez le transformer en résultats.",
+      "bouton": "Réserver ma place à Destination Réussite",
+      "url": "https://www.maxpiccinini.com/destination-reussite/"
+    }
+  }
+]

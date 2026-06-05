@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #0A0A0F;
+
+  /* Brand Max Piccinini */
+  --blue: #0046FF;
+  --blue-bright: #2563FF;
+  --blue-dark: #0033CC;
+  --blue-glow: rgba(0, 70, 255, 0.4);
+  --blue-subtle: rgba(0, 70, 255, 0.06);
+  --blue-border: rgba(0, 70, 255, 0.12);
+
+  --navy: #00194C;
+  --navy-deep: #000D2B;
+
+  --gray-50: #F8F9FB;
+  --gray-100: #F0F1F5;
+  --gray-200: #E2E4EA;
+  --gray-400: #9096A5;
+  --gray-600: #555B6E;
+  --gray-800: #2A2D35;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-blue: var(--blue);
+  --color-blue-bright: var(--blue-bright);
+  --color-blue-dark: var(--blue-dark);
+  --color-navy: var(--navy);
+  --color-navy-deep: var(--navy-deep);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-poppins);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #0046FF 0%, #2563FF 100%);
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 100px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 12px rgba(0, 70, 255, 0.35);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(90deg, #0033CC 0%, #0046FF 100%);
+  box-shadow: 0 4px 20px rgba(0, 70, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* ── Fiche (contenu HTML distillé d'une capsule) ── */
+.fiche {
+  color: #2A2D35;
+  line-height: 1.7;
+  font-size: 16px;
+}
+.fiche .lead {
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: #00194C;
+  line-height: 1.35;
+  margin-bottom: 18px;
+}
+.fiche h3 {
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  color: #0046FF;
+  margin: 26px 0 8px;
+}
+.fiche p { margin-bottom: 14px; }
+.fiche strong { color: #00194C; }
+.fiche ul { margin: 0 0 14px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.fiche ul li { position: relative; padding-left: 26px; }
+.fiche ul li::before {
+  content: ""; position: absolute; left: 6px; top: 11px;
+  width: 7px; height: 7px; border-radius: 50%; background: #0046FF;
+}
+.fiche blockquote {
+  margin: 24px 0 0;
+  padding: 18px 20px;
+  background: rgba(0, 70, 255, 0.06);
+  border-left: 3px solid #0046FF;
+  border-radius: 12px;
+  font-weight: 500;
+  color: #00194C;
+}
+
+/* ── Scroll reveal (CSS pur, React-safe) ── */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+.reveal { animation: revealUp 0.6s cubic-bezier(.22,.61,.36,1) both; }
+.reveal-delay-1 { animation-delay: 0.08s; }
+.reveal-delay-2 { animation-delay: 0.16s; }
+.reveal-delay-3 { animation-delay: 0.24s; }
