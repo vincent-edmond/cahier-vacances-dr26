@@ -103,8 +103,8 @@ export default function CapsulePage() {
           <section>
             <SectionTitle icon={isFinal ? "📋" : "✍️"} label={isFinal ? "Votre plan d'action H2" : "Votre exercice"} />
             <div className="rounded-2xl bg-white border border-[#E2E4EA] p-6 sm:p-8">
-              <div className="mb-5 rounded-xl bg-[#0046FF]/[0.05] border border-[#0046FF]/15 px-4 py-3">
-                <span className="text-xs font-bold uppercase tracking-wide text-[#0046FF]">Le défi</span>
+              <div className="mb-5 rounded-xl bg-[#FFB020]/[0.10] border border-[#FFB020]/35 px-4 py-3">
+                <span className="text-xs font-bold uppercase tracking-wide text-[#B45309]">🎯 Le défi</span>
                 <p className="text-[#00194C] font-medium mt-1">{capsule.defi}</p>
               </div>
               {isFinal && (

@@ -38,7 +38,8 @@ export default function HubPage() {
   return (
     <AppShell active={0}>
       <div className="max-w-5xl mx-auto px-5 py-8">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0046FF] mb-2">
+        <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#0046FF] mb-2">
+          <span aria-hidden className="w-1.5 h-1.5 rounded-full bg-[#FFB020] shadow-[0_0_8px_rgba(255,176,32,0.8)]" />
           Summer Business · Été 2026
         </p>
         <h1 className="font-display font-extrabold text-[#00194C] text-2xl sm:text-3xl mb-2">

@@ -19,7 +19,7 @@ export default function LandingPage() {
         .lp-nav-cta:hover { background: rgba(255,255,255,0.08); color: #fff; }
 
         .lp-hero { position: relative; overflow: hidden; background: linear-gradient(180deg, #000D2B 0%, #001233 100%); padding: 64px 0 74px; text-align: center; }
-        .lp-hero::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,70,255,0.34) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 85% 90%, rgba(37,99,255,0.16) 0%, transparent 60%); pointer-events:none; }
+        .lp-hero::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,70,255,0.34) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 85% 88%, rgba(37,99,255,0.16) 0%, transparent 60%), radial-gradient(ellipse 36% 32% at 10% 94%, rgba(255,176,32,0.13) 0%, transparent 60%); pointer-events:none; }
         .lp-hero::after { content:''; position:absolute; inset:0; background-image: repeating-linear-gradient(0deg, transparent 0 39px, rgba(255,255,255,0.022) 39px 40px), repeating-linear-gradient(90deg, transparent 0 39px, rgba(255,255,255,0.022) 39px 40px); -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 0%, transparent 78%); mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 0%, transparent 78%); pointer-events:none; }
         .lp-hero-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 22px; }
         .lp-kicker { display:inline-flex; align-items:center; gap:8px; background: rgba(0,70,255,0.16); border:1px solid rgba(0,70,255,0.4); color:#6B9FFF; border-radius:100px; padding:8px 18px; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; }
@@ -87,7 +87,7 @@ export default function LandingPage() {
 
         /* FINAL */
         .lp-final { position:relative; overflow:hidden; background:#000D2B; padding:88px 0; text-align:center; }
-        .lp-final::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse 70% 50% at 50% 100%, rgba(0,70,255,0.25) 0%, transparent 70%); }
+        .lp-final::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse 70% 50% at 50% 100%, rgba(0,70,255,0.25) 0%, transparent 70%), radial-gradient(ellipse 28% 30% at 88% 14%, rgba(255,176,32,0.12) 0%, transparent 60%); }
         .lp-final-inner { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:20px; }
         .lp-final h2 { font-family: var(--font-poppins); font-weight:800; color:#fff; font-size: clamp(26px,4vw,42px); max-width:680px; line-height:1.2; }
         .lp-final p { color: rgba(255,255,255,0.7); font-size:17px; max-width:560px; line-height:1.65; }
@@ -108,7 +108,10 @@ export default function LandingPage() {
       {/* HERO — la promesse, pas le format */}
       <header className="lp-hero">
         <div className="container lp-hero-inner">
-          <span className="lp-kicker reveal">Summer Business · Édition 2026 · avec Max Piccinini</span>
+          <span className="lp-kicker reveal">
+            <span aria-hidden style={{ width: 7, height: 7, borderRadius: "50%", background: "#FFB020", boxShadow: "0 0 10px rgba(255,176,32,0.85)", flexShrink: 0 }} />
+            Summer Business · Édition 2026 · avec Max Piccinini
+          </span>
           <h1 className="display reveal reveal-delay-1">
             Cet été, reprenez le contrôle de votre entreprise pour finir 2026 en force !
             <span className="accent">Pendant que vos concurrents lèvent le pied.</span>
