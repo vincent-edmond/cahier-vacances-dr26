@@ -121,7 +121,7 @@
     "dateUnlock": "2026-07-28",
     "dureeMin": 10,
     "videoUrl": null,
-    "ficheHtml": "<p class=\"lead\">On peut gagner plus en travaillant moins, à condition de travailler intelligemment. Si votre entreprise ne tourne pas sans vous, vous n'avez pas une entreprise, vous avez un emploi.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Le dirigeant homme-orchestre est le plafond de son entreprise.</li><li>Les vacances révèlent toutes vos dépendances.</li><li>Documenter puis déléguer : sortir un process de votre tête.</li><li>Le temps libéré sert au stratégique, pas à plus d'opérationnel.</li></ul>",
+    "ficheHtml": "<p class=\"lead\">On peut gagner plus en travaillant moins, à condition de travailler intelligemment. Si votre entreprise ne tourne pas sans vous, vous n'avez pas une entreprise, vous avez un emploi.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Le chef d'entreprise homme-orchestre est le plafond de son entreprise.</li><li>Les vacances révèlent toutes vos dépendances.</li><li>Documenter puis déléguer : sortir un process de votre tête.</li><li>Le temps libéré sert au stratégique, pas à plus d'opérationnel.</li></ul>",
     "exercice": {
       "intro": "Sortez un process de votre tête et déléguez-le.",
       "champs": [

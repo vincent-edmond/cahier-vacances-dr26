@@ -148,7 +148,7 @@ export function CommentsSection({ capsuleNum, sessionId }: CommentsSectionProps)
       {/* Liste */}
       {comments.length === 0 ? (
         <p className="text-sm text-[#9096A5] text-center py-4">
-          Soyez le premier à partager. Votre commentaire encourage les autres dirigeants.
+          Soyez le premier à partager. Votre commentaire encourage les autres chefs d&apos;entreprise.
         </p>
       ) : (
         <ul className="space-y-3">

@@ -18,7 +18,7 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Summer Business — Reprenez la main sur votre second semestre | Max Piccinini",
   description:
-    "Le contre-pied de l'été pour dirigeants établis : bilan lucide, vos vrais leviers, et un plan d'action clair pour finir 2026 en tête. Avec Max Piccinini.",
+    "Le contre-pied de l'été pour chefs d'entreprise établis : bilan lucide, vos vrais leviers, et un plan d'action clair pour finir 2026 en force. Avec Max Piccinini.",
 };
 
 export default function RootLayout({

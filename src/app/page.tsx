@@ -111,7 +111,7 @@ export default function LandingPage() {
             avec un retour personnalisé à chaque étape.
           </p>
           <Link href="/espace" className="lp-cta reveal reveal-delay-2">Je construis mon plan →</Link>
-          <p className="reassure reveal reveal-delay-3">Accès libre · à votre rythme · pour dirigeants établis</p>
+          <p className="reassure reveal reveal-delay-3">Accès libre · à votre rythme · pour chefs d&apos;entreprise établis</p>
         </div>
       </header>
 
@@ -122,7 +122,7 @@ export default function LandingPage() {
           <h2 className="display reveal">L&apos;été n&apos;est pas une parenthèse. C&apos;est votre meilleure fenêtre.</h2>
           <div className="lp-why-body reveal reveal-delay-1">
             <p>
-              La vérité, c&apos;est que la plupart des dirigeants traversent l&apos;été en pilote automatique,
+              La vérité, c&apos;est que la plupart des chefs d&apos;entreprise traversent l&apos;été en pilote automatique,
               puis découvrent en décembre qu&apos;il est trop tard pour rattraper l&apos;année. Ce n&apos;est pas
               un problème de travail : c&apos;est un manque de recul, au moment où il compte le plus.
             </p>
@@ -213,10 +213,10 @@ export default function LandingPage() {
       <section className="lp-who">
         <div className="container">
           <p className="lp-section-label">Pour qui c&apos;est fait</p>
-          <h2 className="lp-section-title display reveal">Pour les dirigeants qui savent qu&apos;ils valent mieux que leur premier semestre</h2>
+          <h2 className="lp-section-title display reveal">Pour les chefs d&apos;entreprise qui savent qu&apos;ils valent mieux que leur premier semestre</h2>
           <div className="lp-who-card reveal">
             <p>
-              Summer Business est pensé pour les <strong>dirigeants établis</strong> qui n&apos;ont pas
+              Summer Business est pensé pour les <strong>chefs d&apos;entreprise établis</strong> qui n&apos;ont pas
               besoin d&apos;un cours de plus, mais d&apos;un vrai moment de recul. Si vous êtes prêt à
               <strong> regarder vos chiffres en face</strong> et à agir sur ce qui compte vraiment,
               vous êtes exactement au bon endroit. C&apos;est gratuit, c&apos;est à votre rythme, et c&apos;est
