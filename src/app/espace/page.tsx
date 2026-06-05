@@ -90,7 +90,7 @@ function CapsuleCard({
 
   const inner = (
     <div
-      className={`flex flex-col h-full gap-2.5 rounded-2xl border p-4 transition-all ${
+      className={`group flex flex-col h-full gap-2.5 rounded-2xl border p-4 transition-all ${
         unlocked
           ? "bg-white border-[#E2E4EA] hover:border-[#0046FF] hover:shadow-[0_10px_30px_rgba(0,70,255,0.08)] hover:-translate-y-0.5 cursor-pointer"
           : "bg-[#F0F1F5] border-[#E2E4EA] opacity-80"
@@ -98,8 +98,10 @@ function CapsuleCard({
     >
       <div className="flex items-center justify-between">
         <div
-          className={`w-9 h-9 rounded-lg flex items-center justify-center font-display font-extrabold text-sm ${
-            unlocked ? "bg-[#00194C] text-white" : "bg-[#E2E4EA] text-[#9096A5]"
+          className={`w-9 h-9 rounded-lg flex items-center justify-center font-display font-extrabold text-sm transition-colors ${
+            unlocked
+              ? "bg-[#E8EEFF] text-[#0046FF] group-hover:bg-[#0046FF] group-hover:text-white"
+              : "bg-[#EEF0F4] text-[#9096A5]"
           }`}
         >
           {unlocked ? capsule.num : "🔒"}
