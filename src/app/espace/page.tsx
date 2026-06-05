@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { getCapsules, isUnlocked, formatDateFr, TOTAL_CAPSULES } from "@/lib/capsules";
+import { getCapsules, isUnlocked, formatDateFr } from "@/lib/capsules";
 import {
   getOrCreateSessionId,
   syncProgressFromServer,
@@ -35,54 +35,32 @@ export default function HubPage() {
     return progress.find((p) => p.capsuleNum === num);
   }
 
-  const doneCount = progress.filter((p) => p.reponses).length;
-  const pct = Math.round((doneCount / TOTAL_CAPSULES) * 100);
-
   return (
     <AppShell active={0}>
-      <div className="max-w-3xl mx-auto px-5 py-8 sm:py-10">
+      <div className="max-w-5xl mx-auto px-5 py-8">
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0046FF] mb-2">
           Summer Business · Été 2026
         </p>
-        <h1 className="font-display font-extrabold text-[#00194C] text-2xl sm:text-3xl mb-3">
+        <h1 className="font-display font-extrabold text-[#00194C] text-2xl sm:text-3xl mb-2">
           Reprenez la main sur votre second semestre
         </h1>
-        <p className="text-[#555B6E] mb-7 max-w-xl">
-          Neuf leviers à auditer et corriger, du bilan de mi-année au plan d&apos;action. Une étape
-          se débloque chaque semaine — chaque levier travaillé cet été compte double. Avancez à
-          votre rythme.
+        <p className="text-[#555B6E] mb-6 max-w-2xl">
+          Neuf leviers à auditer et corriger cet été, du bilan de mi-année au plan d&apos;action.
+          Avancez à votre rythme.
         </p>
 
-        {/* Progression */}
-        <div className="rounded-2xl bg-white border border-[#E2E4EA] p-5 mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-[#9096A5]">
-              Votre progression
-            </span>
-            <span className="text-sm font-bold text-[#0046FF]">
-              {doneCount}/{TOTAL_CAPSULES} exercices
-            </span>
-          </div>
-          <div className="h-2.5 bg-[#E2E4EA] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[#0046FF] rounded-full transition-all duration-700"
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Liste des capsules */}
-        <div className="space-y-3">
+        {/* Les 9 leviers — grille (tout visible sans scroll sur laptop) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {capsules.map((c) =>
             mounted ? (
-              <CapsuleRow
+              <CapsuleCard
                 key={c.num}
                 capsule={c}
                 unlocked={isUnlocked(c, { preview })}
                 progress={progressFor(c.num)}
               />
             ) : (
-              <div key={c.num} className="h-[88px] rounded-2xl bg-white border border-[#E2E4EA] animate-pulse" />
+              <div key={c.num} className="h-[136px] rounded-2xl bg-white border border-[#E2E4EA] animate-pulse" />
             )
           )}
         </div>
@@ -91,7 +69,7 @@ export default function HubPage() {
   );
 }
 
-function CapsuleRow({
+function CapsuleCard({
   capsule,
   unlocked,
   progress,
@@ -111,38 +89,37 @@ function CapsuleRow({
 
   const inner = (
     <div
-      className={`flex items-center gap-4 rounded-2xl border p-4 transition-all ${
+      className={`flex flex-col h-full gap-2.5 rounded-2xl border p-4 transition-all ${
         unlocked
-          ? "bg-white border-[#E2E4EA] hover:border-[#0046FF] hover:shadow-[0_10px_30px_rgba(0,70,255,0.08)] cursor-pointer"
+          ? "bg-white border-[#E2E4EA] hover:border-[#0046FF] hover:shadow-[0_10px_30px_rgba(0,70,255,0.08)] hover:-translate-y-0.5 cursor-pointer"
           : "bg-[#F0F1F5] border-[#E2E4EA] opacity-80"
       }`}
     >
-      <div
-        className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center font-display font-extrabold ${
-          unlocked ? "bg-[#0046FF] text-white" : "bg-[#E2E4EA] text-[#9096A5]"
-        }`}
-      >
-        {unlocked ? capsule.num : "🔒"}
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="font-bold text-[#00194C] truncate">{capsule.titre}</h3>
-          {unlocked && (
-            <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${statusBadge.cls}`}>
-              {statusBadge.label}
-            </span>
-          )}
+      <div className="flex items-center justify-between">
+        <div
+          className={`w-9 h-9 rounded-lg flex items-center justify-center font-display font-extrabold text-sm ${
+            unlocked ? "bg-[#0046FF] text-white" : "bg-[#E2E4EA] text-[#9096A5]"
+          }`}
+        >
+          {unlocked ? capsule.num : "🔒"}
         </div>
-        <p className="text-sm text-[#555B6E] truncate">
-          {unlocked ? capsule.accroche : `Disponible le ${formatDateFr(capsule.dateUnlock)}`}
-        </p>
+        {unlocked && (
+          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusBadge.cls}`}>
+            {statusBadge.label}
+          </span>
+        )}
       </div>
-
-      {unlocked && <span className="flex-shrink-0 text-[#0046FF] text-xl">→</span>}
+      <h3 className="font-bold text-[#00194C] leading-snug text-[15px]">{capsule.titre}</h3>
+      <p className="text-xs text-[#555B6E] leading-snug line-clamp-2">
+        {unlocked ? capsule.accroche : `Disponible le ${formatDateFr(capsule.dateUnlock)}`}
+      </p>
     </div>
   );
 
   if (!unlocked) return inner;
-  return <Link href={`/espace/capsule/${capsule.num}`}>{inner}</Link>;
+  return (
+    <Link href={`/espace/capsule/${capsule.num}`} className="h-full">
+      {inner}
+    </Link>
+  );
 }

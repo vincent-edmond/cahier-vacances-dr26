@@ -35,15 +35,17 @@ export function setPrenom(prenom: string): void {
 
 // ─── Mode preview (démo avant le drip réel) ─────────────────────────────────
 
+// Démo ON par défaut (tout débloqué) tant qu'on est en phase de prévisualisation,
+// avant le vrai lancement du drip (C1 le 30/06). Coupable explicitement via le toggle
+// (stocke "0") ou `?preview=0`. À repasser sur false par défaut avant le lancement.
 export function isPreview(): boolean {
-  if (typeof window === "undefined") return false;
-  return localStorage.getItem(PREVIEW_KEY) === "1";
+  if (typeof window === "undefined") return true;
+  return localStorage.getItem(PREVIEW_KEY) !== "0";
 }
 
 export function setPreview(on: boolean): void {
   if (typeof window === "undefined") return;
-  if (on) localStorage.setItem(PREVIEW_KEY, "1");
-  else localStorage.removeItem(PREVIEW_KEY);
+  localStorage.setItem(PREVIEW_KEY, on ? "1" : "0");
 }
 
 // ─── Progression locale ─────────────────────────────────────────────────────
