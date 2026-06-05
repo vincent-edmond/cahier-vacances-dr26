@@ -101,16 +101,16 @@ export default function LandingPage() {
         <div className="container lp-hero-inner">
           <span className="lp-kicker reveal">Summer Business · Édition 2026 · avec Max Piccinini</span>
           <h1 className="display reveal reveal-delay-1">
-            Soyons francs :
-            <span className="accent">vous pouviez faire mieux ce premier semestre.</span>
+            Votre plan d&apos;action pour finir 2026 en force.
+            <span className="accent">En 9 étapes, cet été, gratuitement.</span>
           </h1>
           <p className="sub reveal reveal-delay-2">
-            Vous le savez au fond. Trop de temps dans l&apos;opérationnel, des décisions repoussées,
-            un cap qui s&apos;est flouté. Ce n&apos;est pas un reproche : c&apos;est une bonne nouvelle. Ça veut
-            dire qu&apos;il vous reste une marge énorme pour les six mois qui viennent. Summer Business
-            est là pour la débloquer, pendant que vos concurrents décrochent.
+            La moitié de l&apos;année est passée. Summer Business vous aide à faire le point sans
+            complaisance, à corriger les 1 ou 2 leviers qui vous freinent vraiment, et à transformer
+            tout ça en feuille de route claire pour vos six derniers mois. Guidé par Max Piccinini,
+            avec un retour personnalisé à chaque étape.
           </p>
-          <Link href="/espace" className="lp-cta reveal reveal-delay-2">Je passe à l&apos;action →</Link>
+          <Link href="/espace" className="lp-cta reveal reveal-delay-2">Je construis mon plan →</Link>
           <p className="reassure reveal reveal-delay-3">Accès libre · à votre rythme · pour dirigeants établis</p>
         </div>
       </header>
@@ -234,7 +234,7 @@ export default function LandingPage() {
             Cinq minutes pour savoir où vous en êtes vraiment. Et, je l&apos;espère, l&apos;envie d&apos;en faire
             le meilleur semestre de votre année.
           </p>
-          <Link href="/espace" className="lp-cta">Reprendre la main →</Link>
+          <Link href="/espace" className="lp-cta">Je construis mon plan →</Link>
           <p className="bridge">
             Et à la fin de l&apos;été, on construit et on exécute votre plan ensemble, à
             Destination Réussite (25-27 septembre).
