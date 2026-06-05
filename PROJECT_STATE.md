@@ -16,7 +16,8 @@ de mi-année (C1, 30/06) au plan d'action H2 (C9, 25/08). Pont vers Destination 
 - **Retiré de Momentum** : Clerk (auth), MongoDB, Wistia, Pinecone, Notion, l'onboarding qualif.
 - **Accès ouvert** : pas d'auth, **session anonyme** (id en `localStorage`, `cdv_session`).
 
-Mécanique d'une capsule : **vidéo (embed) → fiche HTML → exercice sauvegardé → feedback IA Claude → commentaires → CTA DR**.
+Mécanique d'une capsule : **vidéo (embed) → fiche HTML → exercice sauvegardé → feedback IA Claude → CTA DR**.
+> Section commentaires/communauté **retirée** (jugée non pertinente, risque de défocus). Table `cdv.comments` laissée en base (inutilisée).
 
 ---
 
@@ -29,7 +30,7 @@ Mécanique d'une capsule : **vidéo (embed) → fiche HTML → exercice sauvegar
 | `/espace/capsule/[num]` | Capsule complète (`src/app/espace/capsule/[num]/page.tsx`) |
 | `POST /api/exercice` | Sauve l'exercice + feedback Claude |
 | `GET/POST /api/progression` | Progression d'une session |
-| `GET/POST /api/comments` | Commentaires d'une capsule |
+| `POST /api/plan` | Compile le plan H2 (synthèse C9) à partir de tout le cahier |
 
 > Routes Momentum supprimées : sign-in/up, qualify, diagnostic, chat, dashboard, guide-*, bibliotheque, plan, api/session, api/chat, etc.
 
@@ -43,7 +44,7 @@ Mécanique d'une capsule : **vidéo (embed) → fiche HTML → exercice sauvegar
 - `src/lib/session.ts` — session anonyme + progression locale + sync serveur best-effort + mode preview.
 - `src/lib/supabase.ts` — client serveur ; `null` si env absentes (→ bascule localStorage).
 - `src/lib/providers/anthropic.ts` — `generateExerciceFeedback` (model `claude-sonnet-4-6`) + `generatePlanFinal` (synthèse C9, prête, pas encore câblée à une page).
-- Composants : `VideoEmbed` (YouTube/Vimeo/mp4), `ExerciceForm` (champs + % calculé + feedback), `CommentsSection` (serveur + fallback local), `CtaDR`.
+- Composants : `AppShell` (sidebar SaaS + drawer mobile + footer), `VideoEmbed` (YouTube/Vimeo/mp4), `ExerciceForm` (champs + % calculé + feedback ou mode `plan` en C9), `CtaDR`, `Footer`.
 
 ---
 
@@ -68,7 +69,7 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 - Schéma + tables + RLS appliqués (`supabase/schema.sql`, miroir de la migration `cdv_cahier_vacances_schema`).
 - Schéma `cdv` exposé à PostgREST : `pgrst.db_schemas = 'public, graphql_public, cdv'` (additif).
 - `SUPABASE_URL` + `SUPABASE_ANON_KEY` dans `.env.local`. **À reporter sur Netlify** au déploiement.
-- Vérifié : `/api/comments` et `/api/progression` renvoient `configured: true` et persistent dans `cdv` (commentaires mutualisés actifs).
+- Vérifié : `/api/progression` et `/api/exercice` persistent dans le schéma `cdv` (`configured: true`).
 
 ---
 
@@ -85,7 +86,7 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 - [x] Stack simplifiée (Clerk/Mongo/Wistia/Pinecone retirés, Supabase ajouté).
 - [x] Landing adaptée (contre-pied de l'été).
 - [x] Hub public, 9 modules, drip + statuts (à découvrir / en cours / terminé) + progression.
-- [x] Capsule C1 de bout en bout : vidéo (placeholder, pas encore tournée), fiche, exercice (% auto), feedback IA Claude (testé OK), commentaires (fallback local), CTA DR.
+- [x] Capsule C1 de bout en bout : vidéo (placeholder, pas encore tournée), fiche, exercice (% auto), feedback IA Claude (testé OK), CTA DR.
 - [x] `build` vert, 0 erreur TS, 0 erreur console.
 
 ## 📋 Reste à faire
@@ -105,7 +106,7 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 ### Phase 3
 - [x] Synthèse finale : intégrée **dans la C9** (pas une page séparée). `/api/plan` + `generatePlanFinal` compilent tout le cahier (C1→C9) ; `ExerciceForm` mode `plan` sauve les derniers champs puis génère, plan persisté en localStorage (`cdv_plan_*`).
 - [x] Coquille SaaS : `AppShell` (sidebar gauche desktop = nav 9 leviers + états + progression + démo + CTA DR, drawer mobile) + `Footer` partagé, responsive.
-- [ ] Back-office léger `/admin` (inscrits, modération commentaires).
+- [ ] Back-office léger `/admin` (inscrits, suivi des cahiers).
 - [ ] Tracking (opt-in, progression, clics CTA DR → HubSpot / Hyros).
 
 ---

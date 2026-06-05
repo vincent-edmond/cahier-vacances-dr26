@@ -122,7 +122,7 @@ export default function LandingPage() {
       <section className="lp-why">
         <div className="container">
           <p className="lp-section-label">Pourquoi maintenant</p>
-          <h2 className="display reveal">L&apos;été n&apos;est pas une parenthèse. C&apos;est votre meilleure fenêtre.</h2>
+          <h2 className="display reveal">L&apos;été n&apos;est pas une parenthèse. C&apos;est le moment de prendre de l&apos;avance.</h2>
           <div className="lp-why-body reveal reveal-delay-1">
             <p>
               La vérité, c&apos;est que la plupart des chefs d&apos;entreprise traversent l&apos;été en pilote automatique,
@@ -197,7 +197,7 @@ export default function LandingPage() {
           <p className="lp-section-label">Le parcours de l&apos;été</p>
           <h2 className="lp-section-title display reveal">9 leviers, du bilan au plan d&apos;action</h2>
           <p className="lp-section-sub reveal">
-            Chaque semaine, un levier de votre business passé au crible. À la fin, tout se relie en
+            Chaque semaine, un levier de votre entreprise passé au crible. À la fin, tout se relie en
             un plan personnalisé pour vos six derniers mois.
           </p>
           <div className="lp-mods-grid">

@@ -15,7 +15,6 @@ import {
 } from "@/lib/session";
 import { VideoEmbed } from "@/components/VideoEmbed";
 import { ExerciceForm } from "@/components/ExerciceForm";
-import { CommentsSection } from "@/components/CommentsSection";
 import { CtaDR } from "@/components/CtaDR";
 import type { CapsuleProgress } from "@/lib/types";
 
@@ -128,12 +127,6 @@ export default function CapsulePage() {
 
           {/* CTA Destination Réussite */}
           <CtaDR cta={capsule.cta} strong={isFinal} />
-
-          {/* Commentaires */}
-          <section>
-            <SectionTitle icon="💬" label="La communauté" />
-            {mounted && sid && <CommentsSection capsuleNum={capsule.num} sessionId={sid} />}
-          </section>
         </div>
       )}
     </AppShell>

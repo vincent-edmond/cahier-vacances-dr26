@@ -2,7 +2,7 @@
 
 **Summer Business — Reprenez la main sur votre second semestre.** Espace web boosté à l'IA
 pour dirigeants établis : 9 leviers business qui se débloquent au fil de l'été (le « contre-pied
-de l'été »). Par étape : vidéo → fiche → exercice → retour IA (Claude) → commentaires → CTA
+de l'été »). Par étape : vidéo → fiche → exercice → retour IA (Claude) → CTA
 Destination Réussite. La 9ᵉ compile tout le parcours en un plan d'action H2 personnalisé.
 
 > Nom de code interne : « Cahier de Vacances DR26 » (modèle d'inspiration). Nom public : **Summer Business**.
@@ -22,8 +22,8 @@ npm run dev   # http://localhost:3000
 
 Variables d'env : voir `.env.local.example`.
 - `ANTHROPIC_API_KEY` — feedback IA des exercices (requis pour le retour de Max).
-- `SUPABASE_URL` / `SUPABASE_ANON_KEY` — progression + commentaires mutualisés.
-  Sans ces clés, l'app tourne en `localStorage` seul (commentaires locaux).
+- `SUPABASE_URL` / `SUPABASE_ANON_KEY` — persistance de la progression et des exercices.
+  Sans ces clés, l'app tourne en `localStorage` seul.
 
 ## Routes
 
@@ -31,10 +31,10 @@ Variables d'env : voir `.env.local.example`.
 |---|---|
 | `/` | Landing (dark navy) |
 | `/espace` | Hub : 9 modules, déblocage par date (drip) |
-| `/espace/capsule/[num]` | Capsule : vidéo, fiche, exercice + feedback IA, commentaires, CTA DR |
+| `/espace/capsule/[num]` | Capsule : vidéo, fiche, exercice + feedback IA, CTA DR (C9 : plan H2) |
 | `/api/exercice` (POST) | Sauve l'exercice + feedback Claude |
 | `/api/progression` (GET/POST) | Progression d'une session |
-| `/api/comments` (GET/POST) | Commentaires d'une capsule |
+| `/api/plan` (POST) | Compile le plan d'action H2 (synthèse C9) |
 
 ## Mode démo (avant le drip réel)
 
