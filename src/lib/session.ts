@@ -112,20 +112,22 @@ export function markVu(sid: string, num: number): CapsuleProgress {
 
 /**
  * Soumet l'exercice : appelle Claude (via l'API) pour le feedback, sauve tout.
- * Renvoie le feedback (ou null si l'IA est indisponible).
+ * `skipFeedback` : persiste seulement les réponses, sans appel IA (utilisé en C9,
+ * où le feedback est remplacé par la synthèse complète du plan H2).
+ * Renvoie le feedback (ou null si l'IA est indisponible / ignorée).
  */
 export async function submitExercice(
   sid: string,
   num: number,
   reponses: ExerciceReponses,
-  prenom?: string
+  opts?: { skipFeedback?: boolean }
 ): Promise<{ feedbackIA: string | null; progress: CapsuleProgress }> {
   let feedbackIA: string | null = null;
   try {
     const res = await fetch("/api/exercice", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: sid, capsuleNum: num, reponses, prenom }),
+      body: JSON.stringify({ sessionId: sid, capsuleNum: num, reponses, skipFeedback: opts?.skipFeedback }),
     });
     if (res.ok) {
       const data = (await res.json()) as { feedbackIA?: string | null };
@@ -138,8 +140,47 @@ export async function submitExercice(
   const progress = upsertLocal(sid, {
     capsuleNum: num,
     reponses,
-    feedbackIA,
+    ...(opts?.skipFeedback ? {} : { feedbackIA }),
     doneAt: new Date().toISOString(),
   });
   return { feedbackIA, progress };
+}
+
+// ─── Plan d'action final (synthèse C9) ──────────────────────────────────────
+
+const planKey = (sid: string) => `cdv_plan_${sid}`;
+
+export function getPlanLocal(sid: string): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(planKey(sid));
+}
+
+function savePlanLocal(sid: string, plan: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(planKey(sid), plan);
+}
+
+/**
+ * Compile le plan d'action H2 à partir de TOUT le cahier (réponses C1→C9).
+ * Récupère d'abord l'historique complet (serveur + local), puis l'envoie à Claude.
+ */
+export async function generatePlan(sid: string): Promise<string | null> {
+  const progress = await syncProgressFromServer(sid);
+  try {
+    const res = await fetch("/api/plan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ progress }),
+    });
+    if (res.ok) {
+      const data = (await res.json()) as { plan?: string | null };
+      if (data.plan) {
+        savePlanLocal(sid, data.plan);
+        return data.plan;
+      }
+    }
+  } catch {
+    /* indisponible */
+  }
+  return null;
 }

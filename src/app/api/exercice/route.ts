@@ -10,14 +10,14 @@ import type { ExerciceReponses } from "@/lib/types";
  * Body : { sessionId, capsuleNum, reponses, prenom? }
  */
 export async function POST(req: NextRequest) {
-  let body: { sessionId?: string; capsuleNum?: number; reponses?: ExerciceReponses; prenom?: string };
+  let body: { sessionId?: string; capsuleNum?: number; reponses?: ExerciceReponses; skipFeedback?: boolean };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Body invalide" }, { status: 400 });
   }
 
-  const { sessionId, capsuleNum, reponses } = body;
+  const { sessionId, capsuleNum, reponses, skipFeedback } = body;
   if (!sessionId || typeof capsuleNum !== "number" || !reponses) {
     return NextResponse.json({ error: "sessionId, capsuleNum et reponses requis" }, { status: 400 });
   }
@@ -27,7 +27,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Capsule introuvable" }, { status: 404 });
   }
 
-  const feedbackIA = await generateExerciceFeedback(capsule, reponses);
+  // skipFeedback : on persiste seulement les réponses (cas C9 → synthèse via /api/plan).
+  const feedbackIA = skipFeedback ? null : await generateExerciceFeedback(capsule, reponses);
 
   // Persistance best-effort (no-op si Supabase non configuré)
   const supabase = getSupabase();

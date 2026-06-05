@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { AppShell } from "@/components/AppShell";
 import { getCapsules, isUnlocked, formatDateFr, TOTAL_CAPSULES } from "@/lib/capsules";
 import {
   getOrCreateSessionId,
@@ -20,8 +21,6 @@ export default function HubPage() {
 
   useEffect(() => {
     const sid = getOrCreateSessionId();
-
-    // ?preview=1 active le mode démo (débloque tout) ; ?preview=0 le désactive.
     const params = new URLSearchParams(window.location.search);
     if (params.get("preview") === "1") setPreview(true);
     if (params.get("preview") === "0") setPreview(false);
@@ -39,39 +38,13 @@ export default function HubPage() {
   const doneCount = progress.filter((p) => p.reponses).length;
   const pct = Math.round((doneCount / TOTAL_CAPSULES) * 100);
 
-  function togglePreview() {
-    const next = !preview;
-    setPreview(next);
-    setPreviewState(next);
-  }
-
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
-      {/* Top bar */}
-      <header className="bg-[#000D2B] text-white">
-        <div className="max-w-3xl mx-auto px-5 py-4 flex items-center justify-between">
-          <Link href="/" className="font-display font-extrabold text-sm tracking-wide">
-            LE CAHIER DE <span className="text-[#6B9FFF]">VACANCES</span>
-          </Link>
-          <button
-            onClick={togglePreview}
-            className={`text-xs font-semibold rounded-full px-3 py-1.5 border transition-all ${
-              preview
-                ? "bg-[#0046FF] border-[#0046FF] text-white"
-                : "border-white/25 text-white/70 hover:text-white"
-            }`}
-            title="Mode démo : débloque toutes les capsules (avant le drip réel)"
-          >
-            {preview ? "Démo : ON" : "Démo : OFF"}
-          </button>
-        </div>
-      </header>
-
-      <main className="max-w-3xl mx-auto px-5 py-10">
+    <AppShell active={0}>
+      <div className="max-w-3xl mx-auto px-5 py-8 sm:py-10">
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0046FF] mb-2">
           Le contre-pied de l&apos;été
         </p>
-        <h1 className="font-display font-extrabold text-[#00194C] text-3xl mb-3">
+        <h1 className="font-display font-extrabold text-[#00194C] text-2xl sm:text-3xl mb-3">
           Votre cahier de l&apos;été
         </h1>
         <p className="text-[#555B6E] mb-7 max-w-xl">
@@ -112,8 +85,8 @@ export default function HubPage() {
             )
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
 
