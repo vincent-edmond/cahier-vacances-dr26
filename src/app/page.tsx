@@ -101,16 +101,17 @@ export default function LandingPage() {
         <div className="container lp-hero-inner">
           <span className="lp-kicker reveal">Summer Business · Édition 2026 · avec Max Piccinini</span>
           <h1 className="display reveal reveal-delay-1">
-            Reprenez la main sur votre second semestre.
-            <span className="accent">Pendant que les autres lèvent le pied.</span>
+            Soyons francs :
+            <span className="accent">vous pouviez faire mieux ce premier semestre.</span>
           </h1>
           <p className="sub reveal reveal-delay-2">
-            La moitié de 2026 est déjà derrière vous. Summer Business, c&apos;est l&apos;occasion de
-            prendre le recul que vos concurrents s&apos;interdisent en été : un bilan lucide, les 1 ou 2
-            leviers qui vous freinent vraiment, et un plan d&apos;action clair pour finir l&apos;année en tête.
+            Vous le savez au fond. Trop de temps dans l&apos;opérationnel, des décisions repoussées,
+            un cap qui s&apos;est flouté. Ce n&apos;est pas un reproche : c&apos;est une bonne nouvelle. Ça veut
+            dire qu&apos;il vous reste une marge énorme pour les six mois qui viennent. Summer Business
+            est là pour la débloquer, pendant que vos concurrents décrochent.
           </p>
-          <Link href="/espace" className="lp-cta reveal reveal-delay-2">Reprendre la main →</Link>
-          <p className="reassure reveal reveal-delay-3">Accès libre · à votre rythme · pensé pour les dirigeants établis</p>
+          <Link href="/espace" className="lp-cta reveal reveal-delay-2">Je passe à l&apos;action →</Link>
+          <p className="reassure reveal reveal-delay-3">Accès libre · à votre rythme · pour dirigeants établis</p>
         </div>
       </header>
 
@@ -121,9 +122,9 @@ export default function LandingPage() {
           <h2 className="display reveal">L&apos;été n&apos;est pas une parenthèse. C&apos;est votre meilleure fenêtre.</h2>
           <div className="lp-why-body reveal reveal-delay-1">
             <p>
-              Soyons honnêtes : la plupart des dirigeants traversent l&apos;été en pilote automatique,
+              La vérité, c&apos;est que la plupart des dirigeants traversent l&apos;été en pilote automatique,
               puis découvrent en décembre qu&apos;il est trop tard pour rattraper l&apos;année. Ce n&apos;est pas
-              un problème de travail. C&apos;est un manque de recul, au moment où il compte le plus.
+              un problème de travail : c&apos;est un manque de recul, au moment où il compte le plus.
             </p>
             <p>
               On a créé Summer Business pour une raison simple : <strong>vous offrir ce recul</strong>,
@@ -212,7 +213,7 @@ export default function LandingPage() {
       <section className="lp-who">
         <div className="container">
           <p className="lp-section-label">Pour qui c&apos;est fait</p>
-          <h2 className="lp-section-title display reveal">Si vous voulez finir l&apos;année plus haut que vous ne l&apos;avez commencée</h2>
+          <h2 className="lp-section-title display reveal">Pour les dirigeants qui savent qu&apos;ils valent mieux que leur premier semestre</h2>
           <div className="lp-who-card reveal">
             <p>
               Summer Business est pensé pour les <strong>dirigeants établis</strong> qui n&apos;ont pas
