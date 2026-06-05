@@ -69,7 +69,7 @@ export function AppShell({ active, children }: { active?: number; children: Reac
           </svg>
         </button>
         <Link href="/" className="font-display font-extrabold text-sm tracking-wide">
-          LE CAHIER DE <span className="text-[#6B9FFF]">VACANCES</span>
+          SUMMER <span className="text-[#6B9FFF]">BUSINESS</span>
         </Link>
         <span className="w-6" />
       </header>
@@ -130,7 +130,7 @@ function SidebarContent({
       {/* Logo */}
       <div className="px-5 h-16 flex items-center border-b border-white/[0.08]">
         <Link href="/" onClick={onNavigate} className="font-display font-extrabold text-sm tracking-wide">
-          LE CAHIER DE <span className="text-[#6B9FFF]">VACANCES</span>
+          SUMMER <span className="text-[#6B9FFF]">BUSINESS</span>
         </Link>
       </div>
 
@@ -154,7 +154,7 @@ function SidebarContent({
             active === 0 ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"
           }`}
         >
-          <span>🏖️</span> Mon cahier
+          <span>🏠</span> Mon espace
         </Link>
 
         <div className="pt-3 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-white/35">

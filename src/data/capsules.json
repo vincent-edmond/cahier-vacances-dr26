@@ -10,7 +10,7 @@
     "videoUrl": null,
     "ficheHtml": "<p class=\"lead\">Vous avez consommé la moitié de votre année. Avez-vous fait la moitié de vos résultats ? Le bilan de mi-année est le point de contrôle le plus rentable : il vous reste six mois pour corriger.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Pendant que les autres lèvent le pied, c'est le moment de regarder vos chiffres en face.</li><li>Quatre chiffres suffisent : CA réalisé vs objectif, marge, trésorerie, pipeline.</li><li>La brutale honnêteté d'abord : où en êtes-vous vraiment, sans vous raconter d'histoires.</li><li>Un bilan ne sert à rien sans un levier prioritaire et une action.</li></ul>",
     "exercice": {
-      "intro": "Posez noir sur blanc votre bilan de mi-année. C'est le cœur de votre cahier de vacances.",
+      "intro": "Posez noir sur blanc votre bilan de mi-année. C'est le point de départ de tout votre parcours.",
       "champs": [
         { "id": "objectif_ca", "label": "Mon objectif de CA 2026", "type": "number", "suffix": "€", "placeholder": "Ex : 800000", "required": true },
         { "id": "ca_realise", "label": "Mon CA réalisé au 30/06", "type": "number", "suffix": "€", "placeholder": "Ex : 320000", "required": true },

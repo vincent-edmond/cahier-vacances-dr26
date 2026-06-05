@@ -5,7 +5,7 @@ export function Footer() {
     <footer className="bg-[#000D2B] border-t border-white/[0.06]">
       <div className="max-w-5xl mx-auto px-5 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <Link href="/" className="font-display font-extrabold text-white text-sm tracking-wide">
-          LE CAHIER DE <span className="text-[#6B9FFF]">VACANCES</span>
+          SUMMER <span className="text-[#6B9FFF]">BUSINESS</span>
         </Link>
         <nav className="flex items-center gap-5">
           <a

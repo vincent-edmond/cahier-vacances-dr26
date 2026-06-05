@@ -16,9 +16,9 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Le Cahier de Vacances du Chef d'Entreprise",
+  title: "Summer Business — Reprenez la main sur votre second semestre | Max Piccinini",
   description:
-    "9 leviers business à auditer et corriger cet été. Le contre-pied de l'été : pendant que vos concurrents coupent, vous reprenez la main.",
+    "Le contre-pied de l'été pour dirigeants établis : bilan lucide, vos vrais leviers, et un plan d'action clair pour finir 2026 en tête. Avec Max Piccinini.",
 };
 
 export default function RootLayout({

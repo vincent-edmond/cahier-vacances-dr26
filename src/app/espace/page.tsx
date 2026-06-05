@@ -42,14 +42,15 @@ export default function HubPage() {
     <AppShell active={0}>
       <div className="max-w-3xl mx-auto px-5 py-8 sm:py-10">
         <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0046FF] mb-2">
-          Le contre-pied de l&apos;été
+          Summer Business · Été 2026
         </p>
         <h1 className="font-display font-extrabold text-[#00194C] text-2xl sm:text-3xl mb-3">
-          Votre cahier de l&apos;été
+          Reprenez la main sur votre second semestre
         </h1>
         <p className="text-[#555B6E] mb-7 max-w-xl">
-          Neuf leviers à auditer et corriger, du bilan de mi-année au plan d&apos;action. Une
-          capsule se débloque chaque semaine. Avancez à votre rythme.
+          Neuf leviers à auditer et corriger, du bilan de mi-année au plan d&apos;action. Une étape
+          se débloque chaque semaine — chaque levier travaillé cet été compte double. Avancez à
+          votre rythme.
         </p>
 
         {/* Progression */}

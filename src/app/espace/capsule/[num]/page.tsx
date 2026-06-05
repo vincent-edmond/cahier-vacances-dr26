@@ -65,7 +65,7 @@ export default function CapsulePage() {
           {/* Titre */}
           <div>
             <Link href="/espace" className="inline-flex items-center gap-1 text-sm font-semibold text-[#0046FF] hover:text-[#0033CC] mb-4">
-              ← Mon cahier
+              ← Mon espace
             </Link>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0046FF] mb-2">
               Module {capsule.num} / {TOTAL_CAPSULES} · {capsule.dureeMin} min · {capsule.levier}
@@ -110,7 +110,7 @@ export default function CapsulePage() {
               </div>
               {isFinal && (
                 <p className="text-sm text-[#555B6E] mb-5">
-                  Cet exercice reprend tout votre cahier : vos réponses des capsules précédentes sont
+                  Cet exercice reprend tout votre parcours : vos réponses des étapes précédentes sont
                   compilées avec ce que vous notez ici pour générer votre plan personnalisé.
                 </p>
               )}
@@ -176,7 +176,7 @@ function CenteredMessage({ title, text }: { title: string; text: string }) {
           href="/espace"
           className="inline-flex items-center gap-2 rounded-xl bg-[#0046FF] hover:bg-[#0033CC] text-white font-bold px-6 py-3 transition-all"
         >
-          ← Retour au cahier
+          ← Retour à mon espace
         </Link>
       </div>
     </div>

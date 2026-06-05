@@ -1,9 +1,11 @@
-# Le Cahier de Vacances du Chef d'Entreprise (DR26)
+# Summer Business (DR26)
 
-Espace web boosté à l'IA : 9 capsules business qui se débloquent au fil de l'été
-(le « contre-pied de l'été »). Par capsule : vidéo → fiche → exercice → retour IA
-(Claude) → commentaires → CTA Destination Réussite.
+**Summer Business — Reprenez la main sur votre second semestre.** Espace web boosté à l'IA
+pour dirigeants établis : 9 leviers business qui se débloquent au fil de l'été (le « contre-pied
+de l'été »). Par étape : vidéo → fiche → exercice → retour IA (Claude) → commentaires → CTA
+Destination Réussite. La 9ᵉ compile tout le parcours en un plan d'action H2 personnalisé.
 
+> Nom de code interne : « Cahier de Vacances DR26 » (modèle d'inspiration). Nom public : **Summer Business**.
 Dupliqué et simplifié depuis MOMENTUM.
 
 ## Stack
