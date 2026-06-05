@@ -146,13 +146,13 @@ export default function LandingPage() {
       <section className="lp-results">
         <div className="container">
           <p className="lp-section-label">Ce que vous en repartez avec</p>
-          <h2 className="lp-section-title display reveal">À la fin de l&apos;été, vous aurez</h2>
+          <h2 className="lp-section-title display reveal">À la fin de l&apos;été, vous repartez avec :</h2>
           <div className="lp-results-grid">
             {[
-              { ic: "🎯", t: "Un bilan sans complaisance", d: "Vous saurez exactement où vous en êtes face à vos objectifs, chiffres en main." },
-              { ic: "🔑", t: "Vos vrais leviers, identifiés", d: "Pas quinze chantiers. Les 1 ou 2 qui changent réellement la donne pour vous." },
-              { ic: "💬", t: "Un regard extérieur sur vos décisions", d: "Un retour personnalisé sur chacun de vos choix, pour avancer sans angle mort." },
-              { ic: "🗺️", t: "Un plan d'action prêt à exécuter", d: "Concret et priorisé, pour attaquer septembre avec une feuille de route claire." },
+              { ic: "🎯", t: "Un bilan sans complaisance", d: "Où vous en êtes vraiment face à vos objectifs. Les chiffres en main, pas les impressions." },
+              { ic: "🔑", t: "Vos 1 ou 2 vrais leviers", d: "On isole ce qui change la donne pour vous. Le reste, c'est du bruit." },
+              { ic: "💬", t: "Un regard direct sur vos décisions", d: "Un retour franc sur chacun de vos choix, pour avancer sans angle mort." },
+              { ic: "🗺️", t: "Un plan que vous n'avez plus qu'à exécuter", d: "Concret, priorisé, daté. En septembre, vous savez exactement quoi faire." },
             ].map((r) => (
               <div key={r.t} className="lp-result">
                 <span className="ic">{r.ic}</span>
@@ -232,10 +232,10 @@ export default function LandingPage() {
       {/* FINAL */}
       <section className="lp-final">
         <div className="container lp-final-inner">
-          <h2 className="display">Votre second semestre commence maintenant.</h2>
+          <h2 className="display">Votre année n&apos;est pas jouée. Elle se décide cet été.</h2>
           <p>
-            Cinq minutes pour savoir où vous en êtes vraiment. Et, je l&apos;espère, l&apos;envie d&apos;en faire
-            le meilleur semestre de votre année.
+            Cinq minutes pour savoir où vous en êtes vraiment. Et tout ce qu&apos;il faut pour faire de
+            vos six derniers mois les meilleurs de l&apos;année.
           </p>
           <Link href="/espace" className="lp-cta">Je commence gratuitement <span className="arrow">→</span></Link>
           <p className="bridge">

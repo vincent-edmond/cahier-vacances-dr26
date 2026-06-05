@@ -215,7 +215,7 @@ function SidebarContent({
           href="https://www.maxpiccinini.com/destination-reussite/"
           target="_blank"
           rel="noopener noreferrer"
-          className="block text-center rounded-lg bg-[#0046FF] hover:bg-[#0033CC] text-white text-xs font-bold py-2.5 transition-colors"
+          className="block text-center rounded-lg bg-[#0046FF] hover:bg-[#0033CC] text-white text-xs font-bold py-2.5 transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,70,255,0.5)]"
         >
           Destination Réussite →
         </a>

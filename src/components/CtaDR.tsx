@@ -40,10 +40,10 @@ export function CtaDR({ cta, strong = false }: CtaDRProps) {
           target="_blank"
           rel="noopener noreferrer"
           data-cta="destination-reussite"
-          className="inline-flex items-center gap-2 rounded-full bg-[#0046FF] hover:bg-[#0033CC] text-white font-bold transition-all"
-          style={{ padding: strong ? "18px 40px" : "15px 32px", fontSize: strong ? 18 : 16, boxShadow: "0 6px 28px rgba(0,70,255,0.45)" }}
+          className="cta-glow inline-flex items-center gap-2 rounded-full bg-[#0046FF] hover:bg-[#0033CC] text-white font-bold"
+          style={{ padding: strong ? "18px 40px" : "15px 32px", fontSize: strong ? 18 : 16 }}
         >
-          {cta.bouton} →
+          {cta.bouton} <span className="arrow">→</span>
         </a>
       </div>
     </section>

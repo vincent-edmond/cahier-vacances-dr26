@@ -151,11 +151,11 @@ export function ExerciceForm({
       <button
         onClick={handleSubmit}
         disabled={missing || loading}
-        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0046FF] hover:bg-[#0033CC] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-7 py-3.5 transition-all"
+        className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0046FF] hover:bg-[#0033CC] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-7 py-3.5 transition-all ${!missing && !loading ? "cta-glow" : ""}`}
       >
         {mode === "plan"
-          ? (loading ? "Max compile votre plan d'été…" : "Générer mon plan d'action H2 →")
-          : (loading ? "Max analyse votre bilan…" : "Obtenir le retour de Max →")}
+          ? (loading ? "Max compile votre plan d'été…" : <>Générer mon plan d&apos;action H2 <span className="arrow">→</span></>)
+          : (loading ? "Max analyse votre bilan…" : <>Obtenir le retour de Max <span className="arrow">→</span></>)}
       </button>
       {missing && (
         <p className="text-xs text-[#9096A5]">Complétez les champs obligatoires pour continuer.</p>
