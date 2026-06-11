@@ -95,7 +95,7 @@ export function ExerciceForm({
       // Réponses sauvées localement, mais l'IA n'a pas répondu.
       setFeedback(null);
       setEditing(false);
-      setError("Vos réponses sont enregistrées. Le retour de l'IA de Max est momentanément indisponible, réessayez plus tard.");
+      setError("Vos réponses sont enregistrées. Le retour de Max IA est momentanément indisponible, réessayez plus tard.");
       onSaved?.();
     }
   }
@@ -117,7 +117,7 @@ export function ExerciceForm({
             <div className="rounded-2xl border border-[#0046FF]/20 bg-[#0046FF]/[0.04] p-6">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">💬</span>
-                <h4 className="font-bold text-[#00194C]">Le retour de l&apos;IA de Max</h4>
+                <h4 className="font-bold text-[#00194C]">Le retour de Max IA</h4>
               </div>
               <p className="text-[#2A2D35] leading-relaxed whitespace-pre-line">{feedback}</p>
             </div>
@@ -154,8 +154,8 @@ export function ExerciceForm({
         className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0046FF] hover:bg-[#0033CC] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-7 py-3.5 transition-all ${!missing && !loading ? "cta-glow" : ""}`}
       >
         {mode === "plan"
-          ? (loading ? "L'IA de Max compile votre plan d'été…" : <>Générer mon plan d&apos;action H2 <span className="arrow">→</span></>)
-          : (loading ? "L'IA de Max analyse votre bilan…" : <>Obtenir le retour de l&apos;IA de Max <span className="arrow">→</span></>)}
+          ? (loading ? "Max IA compile votre plan d'été…" : <>Générer mon plan d&apos;action H2 <span className="arrow">→</span></>)
+          : (loading ? "Max IA analyse votre bilan…" : <>Obtenir le retour de Max IA <span className="arrow">→</span></>)}
       </button>
       {missing && (
         <p className="text-xs text-[#9096A5]">Complétez les champs obligatoires pour continuer.</p>
