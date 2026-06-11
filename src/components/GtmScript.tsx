@@ -11,6 +11,8 @@ import { trackPageView } from "@/lib/track";
  * conteneur server-side (meilleure résilience ad-blockers).
  * Pousse aussi un `page_view` sur changement de route (App Router = SPA).
  */
+// NEXT_PUBLIC_* est inliné au BUILD : toute modif de l'env GTM nécessite un vrai
+// rebuild de ce fichier (un commit « vide » garde le chunk en cache → non inliné).
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 const GTM_BASE = process.env.NEXT_PUBLIC_GTM_URL || "https://www.googletagmanager.com";
 
