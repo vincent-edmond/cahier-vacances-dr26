@@ -47,10 +47,13 @@ export interface LeadPayload {
   phone?: string;
   ca?: string;
   secteur?: string;
+  /** Attribution capturée à l'arrivée (first-touch) — pour Meta CAPI / Google côté GTM SS. */
+  attribution?: Record<string, string> | null;
 }
 
 /** Conversion d'opt-in. `lead_quality` → 2 conversions distinctes dans GTM SS. */
 export function trackLead(p: LeadPayload): void {
+  const a = p.attribution || {};
   push({
     event: "generate_lead",
     event_id: p.eventId,
@@ -61,5 +64,11 @@ export function trackLead(p: LeadPayload): void {
     phone: p.phone || undefined,
     ca_bracket: p.ca || undefined,
     secteur: p.secteur || undefined,
+    // Click-ids + UTM (depuis l'attribution first-touch) pour l'attribution server-side.
+    gclid: a.gclid || undefined,
+    fbclid: a.fbclid || undefined,
+    utm_source: a.utm_source || undefined,
+    utm_medium: a.utm_medium || undefined,
+    utm_campaign: a.utm_campaign || undefined,
   });
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { GtmScript } from "@/components/GtmScript";
+import { UtmCapture } from "@/components/UtmCapture";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -34,6 +35,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <GtmScript />
+        <UtmCapture />
         {children}
       </body>
     </html>

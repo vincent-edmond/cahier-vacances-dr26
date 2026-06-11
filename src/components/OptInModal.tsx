@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { CountryCode } from "libphonenumber-js";
-import { optinSignup, optinQualify, optinLogin } from "@/lib/session";
+import { optinSignup, optinQualify, optinLogin, getAttribution } from "@/lib/session";
 import { CA_OPTIONS, SECTEUR_OPTIONS, PHONE_COUNTRIES, caLeadQuality } from "@/lib/optin";
 import { validateEmailFormat, validatePhone } from "@/lib/validation";
 import { trackLead, newEventId } from "@/lib/track";
@@ -86,6 +86,7 @@ export function OptInModal({
       phone: phone.trim() || undefined,
       ca,
       secteur,
+      attribution: getAttribution(),
     });
     finish(false);
   }

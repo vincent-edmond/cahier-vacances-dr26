@@ -85,7 +85,7 @@ export function getQualif(): { ca?: string; secteur?: string } | null {
   }
 }
 
-function getAttribution(): Record<string, string> | null {
+export function getAttribution(): Record<string, string> | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(ATTR_KEY);

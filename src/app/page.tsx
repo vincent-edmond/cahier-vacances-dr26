@@ -1,14 +1,12 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { getCapsules, formatDateFr } from "@/lib/capsules";
-import { UtmCapture } from "@/components/UtmCapture";
 
 export default function LandingPage() {
   const capsules = getCapsules();
 
   return (
     <div className="lp">
-      <UtmCapture />
       <style>{`
         .lp { font-family: var(--font-inter), sans-serif; color: #0A0A0F; background: #fff; line-height: 1.6; }
         .lp .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
