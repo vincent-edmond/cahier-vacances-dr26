@@ -124,7 +124,7 @@ export default function LandingPage() {
 
       <nav className="lp-nav">
         <div className="container lp-nav-inner">
-          <span className="lp-logo">SUMMER <span>BUSINESS</span></span>
+          <span className="lp-brand"><span className="lp-logo">SUMMER <span>BUSINESS</span></span><span className="logo-by">by Max Piccinini</span></span>
           <Link href="/espace" className="lp-nav-cta">Entrer →</Link>
         </div>
       </nav>
@@ -320,7 +320,7 @@ export default function LandingPage() {
 
       <footer className="lp-footer">
         <div className="container lp-footer-inner">
-          <span className="lp-logo">SUMMER <span>BUSINESS</span></span>
+          <span className="lp-brand"><span className="lp-logo">SUMMER <span>BUSINESS</span></span><span className="logo-by">by Max Piccinini</span></span>
           <span className="copy">© 2026 Max Piccinini — Tous droits réservés</span>
         </div>
       </footer>
