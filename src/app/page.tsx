@@ -87,6 +87,26 @@ export default function LandingPage() {
         .lp-who-card p { color:#555B6E; font-size:16px; line-height:1.7; }
         .lp-who-card strong { color:#00194C; }
 
+        /* À PROPOS DE MAX */
+        .lp-about { background:#EDF1F8; padding: 84px 0; }
+        .lp-about-grid { display:grid; grid-template-columns: 0.82fr 1.18fr; gap:48px; align-items:center; max-width: 980px; margin:0 auto; }
+        @media (max-width:860px){ .lp-about-grid { grid-template-columns:1fr; gap:30px; text-align:center; } }
+        .lp-about-photo { position:relative; }
+        .lp-about-photo::before { content:''; position:absolute; inset:-12%; border-radius:30px; background: radial-gradient(circle at 32% 28%, rgba(0,70,255,0.22), transparent 62%), radial-gradient(circle at 78% 82%, rgba(255,176,32,0.20), transparent 60%); filter: blur(6px); z-index:0; }
+        .lp-about-photo img { position:relative; z-index:1; width:100%; aspect-ratio: 4 / 5; object-fit: cover; object-position: top center; border-radius:22px; display:block; box-shadow: 0 22px 54px rgba(0,25,76,0.22); }
+        .lp-about-eyebrow { font-size:12px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#0046FF; margin-bottom:6px; }
+        .lp-about h2 { font-family: var(--font-poppins); font-weight:800; color:#00194C; font-size: clamp(26px,3.4vw,38px); line-height:1.15; margin: 0 0 14px; }
+        .lp-about h2 .hl { color:#0046FF; }
+        .lp-about .bio { color:#555B6E; font-size:16.5px; line-height:1.7; margin-bottom:24px; }
+        .lp-about-stats { display:grid; grid-template-columns: repeat(2,1fr); gap:14px; margin-bottom:22px; }
+        .lp-about-stat { background:#fff; border:1px solid #E6E9F0; border-radius:14px; padding:16px 18px; box-shadow: 0 2px 6px rgba(0,25,76,0.05); text-align:left; }
+        .lp-about-stat .num { font-family: var(--font-poppins); font-weight:800; color:#00194C; font-size:22px; }
+        .lp-about-stat .label { color:#555B6E; font-size:12.5px; margin-top:2px; line-height:1.35; }
+        .lp-about-media { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        @media (max-width:860px){ .lp-about-media { justify-content:center; } }
+        .lp-about-media .tag { font-size:12px; color:#9096A5; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; }
+        .lp-about-media .name { background:#fff; border:1px solid #E6E9F0; border-radius:8px; padding:6px 14px; font-size:13px; font-weight:600; color:#2A2D35; }
+
         /* FINAL */
         .lp-final { position:relative; overflow:hidden; background:#000D2B; padding:88px 0; text-align:center; }
         .lp-final::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse 70% 50% at 50% 100%, rgba(0,70,255,0.25) 0%, transparent 70%), radial-gradient(ellipse 28% 30% at 88% 14%, rgba(255,176,32,0.12) 0%, transparent 60%); }
@@ -234,6 +254,51 @@ export default function LandingPage() {
               vous êtes exactement au bon endroit. C&apos;est gratuit, c&apos;est à votre rythme, et c&apos;est
               fait pour vous donner une longueur d&apos;avance.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* À PROPOS DE MAX */}
+      <section className="lp-about">
+        <div className="container">
+          <div className="lp-about-grid reveal">
+            <div className="lp-about-photo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://mc.maxpiccinini.com/wp-content/uploads/2025/07/DS_Mxp_Og_3_Max_DS.png"
+                alt="Max Piccinini"
+                loading="lazy"
+              />
+            </div>
+            <div className="lp-about-content">
+              <p className="lp-about-eyebrow">À propos de</p>
+              <h2 className="display"><span className="hl">Max</span> Piccinini</h2>
+              <p className="bio">
+                Nommé « Meilleur Coach Français » par le magazine Entreprendre, Max accompagne les
+                chefs d&apos;entreprise francophones depuis plus de 15 ans à passer au niveau supérieur :
+                faire le bon diagnostic, activer les bons leviers et faire grandir leur entreprise,
+                chiffres à l&apos;appui.
+              </p>
+              <div className="lp-about-stats">
+                {[
+                  { num: "170 000+", label: "Entrepreneurs accompagnés" },
+                  { num: "25+ pays", label: "Dans le monde" },
+                  { num: "100M€+", label: "de CA généré pour ses clients" },
+                  { num: "7M+", label: "Personnes touchées / mois" },
+                ].map((s) => (
+                  <div key={s.label} className="lp-about-stat">
+                    <div className="num">{s.num}</div>
+                    <div className="label">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="lp-about-media">
+                <span className="tag">Vu sur</span>
+                {["France 2", "BFM TV", "Forbes", "France Inter"].map((n) => (
+                  <span key={n} className="name">{n}</span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
