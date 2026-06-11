@@ -1,4 +1,4 @@
-import type { CapsuleProgress, ExerciceReponses } from "@/lib/types";
+import type { CapsuleProgress, ExerciceReponses, Participant } from "@/lib/types";
 
 // ─── Identité anonyme (localStorage) ────────────────────────────────────────
 // Pas d'auth : un id anonyme en localStorage suffit à sauver la progression.
@@ -6,6 +6,9 @@ import type { CapsuleProgress, ExerciceReponses } from "@/lib/types";
 const SID_KEY = "cdv_session";
 const PRENOM_KEY = "cdv_prenom";
 const PREVIEW_KEY = "cdv_preview";
+const PARTICIPANT_KEY = "cdv_participant";
+const QUALIF_KEY = "cdv_qualif";
+const ATTR_KEY = "cdv_attribution";
 const progressKey = (sid: string) => `cdv_progress_${sid}`;
 
 function uid(): string {
@@ -46,6 +49,127 @@ export function isPreview(): boolean {
 export function setPreview(on: boolean): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(PREVIEW_KEY, on ? "1" : "0");
+}
+
+// ─── Opt-in / identité durable ──────────────────────────────────────────────
+
+/** Participant identifié (après opt-in), ou null. */
+export function getParticipant(): Participant | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(PARTICIPANT_KEY);
+    return raw ? (JSON.parse(raw) as Participant) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** A déjà créé son espace (opt-in fait) ? Gate du retour Max IA. */
+export function hasOptedIn(): boolean {
+  return getParticipant() !== null;
+}
+
+function setParticipantLocal(p: Participant): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(PARTICIPANT_KEY, JSON.stringify(p));
+}
+
+/** Profil de qualif (CA + secteur) — sert à personnaliser le retour Max IA. */
+export function getQualif(): { ca?: string; secteur?: string } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(QUALIF_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function getAttribution(): Record<string, string> | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(ATTR_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Adopte une session canonique (reconnexion) : recharge si elle diffère du local. */
+function adoptSession(sessionId: string): boolean {
+  if (typeof window === "undefined" || !sessionId) return false;
+  const current = localStorage.getItem(SID_KEY);
+  if (current === sessionId) return false;
+  localStorage.setItem(SID_KEY, sessionId);
+  return true; // l'appelant déclenchera un reload pour recharger la progression
+}
+
+/** Étape 1 de l'opt-in : prénom + email → crée/retrouve l'espace. */
+export async function optinSignup(
+  prenom: string,
+  email: string,
+): Promise<{ ok: boolean; switched: boolean; existing: boolean }> {
+  const sessionId = getOrCreateSessionId();
+  try {
+    const res = await fetch("/api/optin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode: "signup", prenom, email, sessionId, attribution: getAttribution() }),
+    });
+    if (!res.ok) return { ok: false, switched: false, existing: false };
+    const data = (await res.json()) as { token: string; prenom: string; sessionId: string; existing?: boolean };
+    setParticipantLocal({ token: data.token, email: email.trim().toLowerCase(), prenom: data.prenom || prenom });
+    setPrenom(data.prenom || prenom);
+    const switched = data.sessionId ? adoptSession(data.sessionId) : false;
+    return { ok: true, switched, existing: !!data.existing };
+  } catch {
+    return { ok: false, switched: false, existing: false };
+  }
+}
+
+/** Étape 2 de l'opt-in : CA + secteur (+ tél) → qualif HubSpot + lead_quality. */
+export async function optinQualify(
+  ca: string,
+  secteur: string,
+  phone?: string,
+): Promise<boolean> {
+  const p = getParticipant();
+  if (!p) return false;
+  if (typeof window !== "undefined") {
+    localStorage.setItem(QUALIF_KEY, JSON.stringify({ ca, secteur }));
+  }
+  try {
+    const res = await fetch("/api/optin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode: "qualify", token: p.token, email: p.email, prenom: p.prenom, ca, secteur, phone }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Reconnexion par email (autre appareil / cache vidé). */
+export async function optinLogin(
+  email: string,
+): Promise<{ ok: boolean; found: boolean; switched: boolean }> {
+  try {
+    const res = await fetch("/api/optin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode: "login", email }),
+    });
+    if (!res.ok) return { ok: false, found: false, switched: false };
+    const data = (await res.json()) as { found: boolean; token?: string; prenom?: string; sessionId?: string };
+    if (!data.found || !data.token) return { ok: true, found: false, switched: false };
+    setParticipantLocal({ token: data.token, email: email.trim().toLowerCase(), prenom: data.prenom || "" });
+    if (data.prenom) setPrenom(data.prenom);
+    const switched = data.sessionId ? adoptSession(data.sessionId) : false;
+    return { ok: true, found: true, switched };
+  } catch {
+    return { ok: false, found: false, switched: false };
+  }
 }
 
 // ─── Progression locale ─────────────────────────────────────────────────────
@@ -129,7 +253,13 @@ export async function submitExercice(
     const res = await fetch("/api/exercice", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: sid, capsuleNum: num, reponses, skipFeedback: opts?.skipFeedback }),
+      body: JSON.stringify({
+        sessionId: sid,
+        capsuleNum: num,
+        reponses,
+        skipFeedback: opts?.skipFeedback,
+        profil: getQualif() ?? undefined,
+      }),
     });
     if (res.ok) {
       const data = (await res.json()) as { feedbackIA?: string | null };

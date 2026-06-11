@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import type { Capsule, ExerciceField, ExerciceReponses } from "@/lib/types";
-import { submitExercice, generatePlan } from "@/lib/session";
+import { submitExercice, generatePlan, hasOptedIn } from "@/lib/session";
+import { OptInModal } from "./OptInModal";
 
 interface ExerciceFormProps {
   capsule: Capsule;
@@ -36,6 +37,7 @@ export function ExerciceForm({
   const [editing, setEditing] = useState(!initialFeedback);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showOptin, setShowOptin] = useState(false);
 
   const champs = capsule.exercice.champs;
 
@@ -54,8 +56,17 @@ export function ExerciceForm({
     setReponses((prev) => ({ ...prev, [id]: value }));
   }
 
-  async function handleSubmit() {
+  // Gate opt-in : avant le 1ᵉʳ retour Max IA, on capte prénom+email (une seule fois).
+  function handleSubmit() {
     if (missing || loading) return;
+    if (!hasOptedIn()) {
+      setShowOptin(true);
+      return;
+    }
+    void runSubmit();
+  }
+
+  async function runSubmit() {
     setLoading(true);
     setError(null);
 
@@ -160,6 +171,15 @@ export function ExerciceForm({
       {missing && (
         <p className="text-xs text-[#9096A5]">Complétez les champs obligatoires pour continuer.</p>
       )}
+
+      <OptInModal
+        open={showOptin}
+        onClose={() => setShowOptin(false)}
+        onComplete={() => {
+          setShowOptin(false);
+          void runSubmit();
+        }}
+      />
     </div>
   );
 }

@@ -61,6 +61,17 @@ export interface CapsuleProgress {
   updatedAt: string;
 }
 
+// ─── Opt-in / identité durable ──────────────────────────────────────────────
+
+export type LeadQuality = "quali" | "classique";
+
+/** Participant identifié (stocké en localStorage `cdv_participant` côté client). */
+export interface Participant {
+  token: string;
+  email: string;
+  prenom: string;
+}
+
 export type CommentStatus = "approved" | "pending" | "rejected";
 
 export interface Comment {

@@ -37,9 +37,34 @@ create table if not exists cdv.comments (
 
 create index if not exists cdv_comments_capsule_idx on cdv.comments (capsule_num, created_at desc);
 
+-- Participant identifié (opt-in) : mémoire durable rattachée à l'email.
+-- `session_id` = clé canonique vers cdv.progress (on relie le cahier anonyme
+-- déjà commencé). Permet la reconnexion par email sur un autre appareil.
+create table if not exists cdv.participants (
+  token        text        primary key,
+  email        text        not null unique,
+  prenom       text,
+  phone        text,
+  ca           text,        -- tranche CA (chiffre_d_affaires_annuel_new)
+  secteur      text,        -- secteur_dactivite_summer_business
+  lead_quality text,        -- 'quali' (>=100K) | 'classique' (<100K)
+  session_id   text,        -- session anonyme rattachée → progression
+  attribution  jsonb,       -- utm_*, gclid, fbclid (first-touch)
+  created_at   timestamptz  not null default now(),
+  updated_at   timestamptz  not null default now()
+);
+create index if not exists cdv_participants_email_lower_idx on cdv.participants (lower(email));
+
 -- ─── RLS ─────────────────────────────────────────────────────────────────────
 alter table cdv.progress enable row level security;
 alter table cdv.comments enable row level security;
+alter table cdv.participants enable row level security;
+
+-- participants : insert/update ouverts (usage anonyme), mais PAS de SELECT large
+-- → on ne peut pas dumper les emails via la clé anon. La reconnexion passe par la
+-- fonction security-definer cdv.find_participant (ne renvoie qu'une ligne).
+create policy "participants_insert" on cdv.participants for insert to anon, authenticated with check (true);
+create policy "participants_update" on cdv.participants for update to anon, authenticated using (true) with check (true);
 
 create policy "progress_select" on cdv.progress for select to anon, authenticated using (true);
 create policy "progress_insert" on cdv.progress for insert to anon, authenticated with check (true);
@@ -52,7 +77,37 @@ create policy "comments_insert" on cdv.comments for insert to anon, authenticate
 grant usage on schema cdv to anon, authenticated, service_role;
 grant select, insert, update on cdv.progress to anon, authenticated;
 grant select, insert on cdv.comments to anon, authenticated;
-grant all on cdv.progress, cdv.comments to service_role;
+-- SELECT accordé pour le privilège-colonne requis par UPDATE ... WHERE email = … ;
+-- aucune policy RLS de SELECT n'existe → un SELECT direct renvoie 0 ligne (emails
+-- non dumpables via la clé anon). La reconnexion passe par cdv.find_participant.
+grant select, insert, update on cdv.participants to anon, authenticated;
+grant all on cdv.progress, cdv.comments, cdv.participants to service_role;
+
+-- Reconnexion par email (security definer : n'expose qu'une ligne).
+create or replace function cdv.find_participant(p_email text)
+returns table(token text, prenom text, session_id text)
+language sql security definer set search_path = cdv
+as $$
+  select p.token, p.prenom, p.session_id
+  from cdv.participants p
+  where lower(p.email) = lower(p_email)
+  limit 1;
+$$;
+grant execute on function cdv.find_participant(text) to anon, authenticated;
+
+-- Qualif via security-definer : un UPDATE direct serait filtré à 0 ligne faute de
+-- policy SELECT (choix volontaire). La fonction bypasse RLS proprement.
+create or replace function cdv.set_participant_qualif(
+  p_email text, p_ca text, p_secteur text, p_phone text, p_lead_quality text
+) returns void
+language sql security definer set search_path = cdv
+as $$
+  update cdv.participants
+     set ca = p_ca, secteur = p_secteur, phone = p_phone,
+         lead_quality = p_lead_quality, updated_at = now()
+   where lower(email) = lower(p_email);
+$$;
+grant execute on function cdv.set_participant_qualif(text,text,text,text,text) to anon, authenticated;
 
 -- ─── Exposer le schéma `cdv` à PostgREST (additif, garde public + graphql) ────
 -- À exécuter hors migration (alter role + reload de la config) :

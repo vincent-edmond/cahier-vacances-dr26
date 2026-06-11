@@ -57,12 +57,23 @@ async function callClaude(system: string, user: string, maxTokens = 600): Promis
   }
 }
 
+/** Profil du chef d'entreprise (issu de l'opt-in) — calibre le retour. */
+export interface ProfilFeedback {
+  ca?: string;
+  secteur?: string;
+}
+
 /** Feedback IA personnalisé sur l'exercice d'une capsule. */
 export async function generateExerciceFeedback(
   capsule: Capsule,
-  reponses: ExerciceReponses
+  reponses: ExerciceReponses,
+  profil?: ProfilFeedback
 ): Promise<string | null> {
-  const user = `Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`;
+  const contexte =
+    profil && (profil.ca || profil.secteur)
+      ? `Contexte du chef d'entreprise (pour calibrer ton retour à son échelle, sans le répéter mot pour mot)${profil.secteur ? ` : secteur ${profil.secteur}` : ""}${profil.ca ? `, ${profil.ca}` : ""}.\n\n`
+      : "";
+  const user = `${contexte}Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`;
   return callClaude(`${capsule.feedbackPrompt}\n\n${FEEDBACK_FORMAT}`, user, 600);
 }
 
