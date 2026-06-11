@@ -126,11 +126,11 @@ export function ExerciceForm({
             </div>
           ) : (
             <div className="rounded-2xl border border-[#0046FF]/20 bg-[#0046FF]/[0.04] p-6">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-4">
                 <span className="text-lg">💬</span>
                 <h4 className="font-bold text-[#00194C]">Le retour de Max IA</h4>
               </div>
-              <p className="text-[#2A2D35] leading-relaxed whitespace-pre-line">{feedback}</p>
+              <FeedbackBlocks text={feedback} />
             </div>
           )
         )}
@@ -274,6 +274,34 @@ function Field({
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── Retour Max IA en 3 blocs lisibles (constat / action / question) ───────────
+
+function FeedbackBlocks({ text }: { text: string }) {
+  const parts = (text || "").split(/\n*###\n*/).map((p) => p.trim()).filter(Boolean);
+  if (parts.length < 3) {
+    // Ancien format (ou réponse non structurée) : rendu simple.
+    return <p className="text-[#2A2D35] leading-relaxed whitespace-pre-line">{text}</p>;
+  }
+  const blocks = [
+    { icon: "🔍", label: "Le constat", body: parts[0], accent: "#00194C" },
+    { icon: "⚡", label: "Votre action cette semaine", body: parts[1], accent: "#0046FF" },
+    { icon: "🎯", label: "La question qui dérange", body: parts.slice(2).join(" "), accent: "#B45309" },
+  ];
+  return (
+    <div className="space-y-3">
+      {blocks.map((b) => (
+        <div key={b.label} className="rounded-xl bg-white/70 border border-[#0046FF]/10 px-4 py-3.5">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span>{b.icon}</span>
+            <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: b.accent }}>{b.label}</span>
+          </div>
+          <p className="text-[#2A2D35] leading-relaxed">{b.body}</p>
+        </div>
+      ))}
     </div>
   );
 }

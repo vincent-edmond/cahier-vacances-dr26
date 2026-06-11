@@ -15,6 +15,7 @@ import {
 } from "@/lib/session";
 import { VideoEmbed } from "@/components/VideoEmbed";
 import { ExerciceForm } from "@/components/ExerciceForm";
+import { CostOfInaction } from "@/components/CostOfInaction";
 import { CtaDR } from "@/components/CtaDR";
 import type { CapsuleProgress } from "@/lib/types";
 
@@ -98,6 +99,9 @@ export default function CapsulePage() {
               <div className="fiche" dangerouslySetInnerHTML={{ __html: capsule.ficheHtml }} />
             </div>
           </section>
+
+          {/* Coût de l'inaction (taxe stupide) — calé sur la taille de l'entreprise */}
+          {mounted && <CostOfInaction num={num} />}
 
           {/* Exercice + feedback IA (ou synthèse du plan en C9) */}
           <section>

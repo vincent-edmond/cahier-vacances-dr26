@@ -149,9 +149,11 @@ export async function optinQualify(
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       return { ok: false, error: data.error };
     }
-    // Persiste le profil seulement après validation serveur (sert au feedback Max IA).
+    // Persiste le profil seulement après validation serveur (sert au feedback Max IA
+    // et au calcul du coût de l'inaction). L'event rafraîchit les blocs coût en direct.
     if (typeof window !== "undefined") {
       localStorage.setItem(QUALIF_KEY, JSON.stringify({ ca, secteur }));
+      window.dispatchEvent(new Event("cdv:qualif"));
     }
     return { ok: true };
   } catch {

@@ -93,7 +93,13 @@ export async function generateExerciceFeedback(
 
 /** Consigne de forme partagée : un retour actionnable, sans code, voix de Max. */
 const FEEDBACK_FORMAT =
-  "Forme imposée : 1) un constat franc et concret sur ses réponses ; 2) UN quick win précis à lancer cette semaine (une action, pas trois) ; 3) un repère chiffré ou une question qui le fait avancer. 4 à 6 phrases au total. Parle à la 2e personne (vous), ton direct et bienveillant de Max. Ne cite jamais de code interne (pas de « C1 », « C6 », « capsule 7 ») : parle de l'étape par son nom. Pas de tirets cadratins, pas de jargon.";
+  "Structure ta réponse en EXACTEMENT 3 parties, séparées chacune par une ligne ne contenant que ###. " +
+  "Partie 1 : un constat franc et concret sur ses réponses (2 phrases). " +
+  "Partie 2 : UNE action précise à lancer cette semaine, une seule (1 à 2 phrases). " +
+  "Partie 3 : une question qui dérange ou un repère chiffré qui le fait avancer (1 phrase). " +
+  "N'écris AUCUN titre ni numéro, juste le texte de chaque partie. Parle à la 2e personne (vous), " +
+  "ton direct et bienveillant de Max. Ne cite jamais de code interne (pas de « C1 », « capsule 7 ») : " +
+  "nomme l'étape par son nom. Pas de tirets cadratins, pas de jargon.";
 
 /**
  * Synthèse finale (C9) : compile les exercices des capsules en un plan H2.
