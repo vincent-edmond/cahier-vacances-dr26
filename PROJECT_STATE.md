@@ -93,12 +93,8 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 
 ### Court terme
 - [x] **Supabase** : schéma `cdv` dans dietzone + clés branchées + testé OK.
-- [ ] **⚠️ Netlify env — À FAIRE MANUELLEMENT (UI), bloquant avant lancement.** Le connecteur Netlify (MCP) **ne persiste PAS** les écritures de variables (faux « success »). Seules `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ANTHROPIC_API_KEY` (ajoutées via l'UI) existent en prod. **Manquent en prod → à ajouter dans Site config → Environment variables :**
-  - `NEXT_PUBLIC_GTM_ID` = `GTM-MVH3FZ3` (non secret, inliné au build → **clear cache & deploy**)
-  - `HUBSPOT_PORTAL_ID` = `27215892` (non secret)
-  - `HUBSPOT_FORM_GUID` = `991c1d4e-41a7-4acd-946e-a5de913ee71f` (non secret)
-  - `HUBSPOT_TOKEN` = le token d'app privée `pat-eu1-…` (**secret** ; valeur dans `.env.local`, jamais commitée)
-  - Tant que non fait : opt-in prod alimente Supabase mais **pas HubSpot** (vérifié : contact 404 en prod), et **pas de tracking GTM**. Local OK (.env.local complet).
+- [x] **Netlify env — EN PLACE & PROD VÉRIFIÉE ✅** (ajoutées via l'UI : `NEXT_PUBLIC_GTM_ID`=GTM-MVH3FZ3, `HUBSPOT_PORTAL_ID`, `HUBSPOT_FORM_GUID`, `HUBSPOT_TOKEN` (secret), en plus de Supabase + Anthropic). Testé en prod 2026-06-11 : opt-in → **contact HubSpot créé** avec mapping complet (CA/secteur/tél E.164/gclid/fbclid/source/date) + **GTM-MVH3FZ3 inliné** dans le bundle + `generate_lead` ingéré.
+  - ⚠️ Note durable : le **connecteur Netlify (MCP) n'écrit PAS** les variables (faux « success ») → toute nouvelle var doit être ajoutée **dans l'UI Netlify**, puis *Clear cache and deploy* (les `NEXT_PUBLIC_*` sont inlinées au build).
 - [ ] **Vidéos C1→C9** : remplacer `videoUrl: null` par les embeds une fois tournées.
 - [ ] **Fiches C2→C9** : enrichir/distiller depuis les transcripts préconisés (cf. `_cahier-vacances-docs/Capsules-DR26-Plan-Detaille.md`).
 
