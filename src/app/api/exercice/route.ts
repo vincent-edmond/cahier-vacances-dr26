@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCapsule } from "@/lib/capsules";
 import { generateExerciceFeedback } from "@/lib/providers/anthropic";
+import { leverCost } from "@/lib/cost";
 import { getSupabase } from "@/lib/supabase";
 import type { ExerciceReponses } from "@/lib/types";
 
@@ -34,7 +35,9 @@ export async function POST(req: NextRequest) {
   }
 
   // skipFeedback : on persiste seulement les réponses (cas C9 → synthèse via /api/plan).
-  const feedbackIA = skipFeedback ? null : await generateExerciceFeedback(capsule, reponses, profil);
+  // Coût de l'inaction déterministe (calé sur la tranche de CA) injecté dans le retour.
+  const cout = skipFeedback ? null : leverCost(capsuleNum, profil?.ca);
+  const feedbackIA = skipFeedback ? null : await generateExerciceFeedback(capsule, reponses, profil, cout);
 
   // Persistance best-effort (no-op si Supabase non configuré)
   const supabase = getSupabase();

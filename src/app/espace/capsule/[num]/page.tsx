@@ -100,8 +100,9 @@ export default function CapsulePage() {
             </div>
           </section>
 
-          {/* Coût de l'inaction (taxe stupide) — calé sur la taille de l'entreprise */}
-          {mounted && <CostOfInaction num={num} />}
+          {/* C1-C8 : le coût de l'inaction est intégré au retour Max IA (cf. ExerciceForm).
+              C9 : carte du cumul des 9 leviers (« ce que vous récupérez »). */}
+          {mounted && isFinal && <CostOfInaction num={num} />}
 
           {/* Exercice + feedback IA (ou synthèse du plan en C9) */}
           <section>

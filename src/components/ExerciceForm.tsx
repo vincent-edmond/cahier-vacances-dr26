@@ -278,30 +278,58 @@ function Field({
   );
 }
 
-// ─── Retour Max IA en 3 blocs lisibles (constat / action / question) ───────────
+// ─── Retour Max IA en blocs balisés (constat / action / coût / question) ───────
+
+const FEEDBACK_META: Record<string, { icon: string; label: string; accent: string }> = {
+  CONSTAT: { icon: "🔍", label: "Le constat", accent: "#00194C" },
+  ACTION: { icon: "⚡", label: "Votre action cette semaine", accent: "#0046FF" },
+  COUT: { icon: "💸", label: "La taxe stupide", accent: "#DC2626" },
+  QUESTION: { icon: "🎯", label: "La question qui dérange", accent: "#B45309" },
+};
+const FEEDBACK_ORDER = ["CONSTAT", "ACTION", "COUT", "QUESTION"];
+
+function parseFeedback(text: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  const re = /##(CONSTAT|ACTION|COUT|QUESTION)##\s*([\s\S]*?)(?=##(?:CONSTAT|ACTION|COUT|QUESTION)##|$)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) out[m[1]] = m[2].trim();
+  return out;
+}
 
 function FeedbackBlocks({ text }: { text: string }) {
-  const parts = (text || "").split(/\n*###\n*/).map((p) => p.trim()).filter(Boolean);
-  if (parts.length < 3) {
-    // Ancien format (ou réponse non structurée) : rendu simple.
+  const sections = parseFeedback(text || "");
+  const present = FEEDBACK_ORDER.filter((k) => sections[k]);
+  if (present.length === 0) {
+    // Ancien format / réponse non balisée : rendu simple.
     return <p className="text-[#2A2D35] leading-relaxed whitespace-pre-line">{text}</p>;
   }
-  const blocks = [
-    { icon: "🔍", label: "Le constat", body: parts[0], accent: "#00194C" },
-    { icon: "⚡", label: "Votre action cette semaine", body: parts[1], accent: "#0046FF" },
-    { icon: "🎯", label: "La question qui dérange", body: parts.slice(2).join(" "), accent: "#B45309" },
-  ];
   return (
     <div className="space-y-3">
-      {blocks.map((b) => (
-        <div key={b.label} className="rounded-xl bg-white/70 border border-[#0046FF]/10 px-4 py-3.5">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span>{b.icon}</span>
-            <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: b.accent }}>{b.label}</span>
+      {present.map((k) =>
+        k === "COUT" ? (
+          <div
+            key={k}
+            className="rounded-xl border border-[#FECACA] px-4 py-3.5"
+            style={{ background: "linear-gradient(135deg, #FFF7ED 0%, #FEF2F2 100%)" }}
+          >
+            <div className="flex items-center gap-2 mb-1.5">
+              <span>💸</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#DC2626]">La taxe stupide</span>
+            </div>
+            <p className="text-[#7C2D12] leading-relaxed font-medium">{sections[k]}</p>
           </div>
-          <p className="text-[#2A2D35] leading-relaxed">{b.body}</p>
-        </div>
-      ))}
+        ) : (
+          <div key={k} className="rounded-xl bg-white/70 border border-[#0046FF]/10 px-4 py-3.5">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span>{FEEDBACK_META[k].icon}</span>
+              <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: FEEDBACK_META[k].accent }}>
+                {FEEDBACK_META[k].label}
+              </span>
+            </div>
+            <p className="text-[#2A2D35] leading-relaxed">{sections[k]}</p>
+          </div>
+        )
+      )}
     </div>
   );
 }

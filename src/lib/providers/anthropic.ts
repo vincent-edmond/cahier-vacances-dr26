@@ -1,4 +1,5 @@
 import type { Capsule, ExerciceReponses, CapsuleProgress } from "@/lib/types";
+import { formatEuro, type CostFigures } from "@/lib/cost";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
@@ -81,25 +82,38 @@ function profilContext(profil?: ProfilFeedback): string {
   return `Contexte du chef d'entreprise, pour calibrer ton retour à son échelle (sans le citer mot pour mot) : ${bits.join(" ; ")}.${guard}\n\n`;
 }
 
-/** Feedback IA personnalisé sur l'exercice d'une capsule. */
+/** Feedback IA personnalisé sur l'exercice d'une capsule. `cout` (déterministe,
+ * calculé en amont) est injecté tel quel : Max IA l'emballe en punchline sans
+ * inventer de chiffre. */
 export async function generateExerciceFeedback(
   capsule: Capsule,
   reponses: ExerciceReponses,
-  profil?: ProfilFeedback
+  profil?: ProfilFeedback,
+  cout?: CostFigures | null
 ): Promise<string | null> {
   const user = `${profilContext(profil)}Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`;
-  return callClaude(`${capsule.feedbackPrompt}\n\n${FEEDBACK_FORMAT}`, user, 600);
+  return callClaude(`${capsule.feedbackPrompt}\n\n${buildFeedbackFormat(cout)}`, user, 750);
 }
 
-/** Consigne de forme partagée : un retour actionnable, sans code, voix de Max. */
-const FEEDBACK_FORMAT =
-  "Structure ta réponse en EXACTEMENT 3 parties, séparées chacune par une ligne ne contenant que ###. " +
-  "Partie 1 : un constat franc et concret sur ses réponses (2 phrases). " +
-  "Partie 2 : UNE action précise à lancer cette semaine, une seule (1 à 2 phrases). " +
-  "Partie 3 : une question qui dérange ou un repère chiffré qui le fait avancer (1 phrase). " +
-  "N'écris AUCUN titre ni numéro, juste le texte de chaque partie. Parle à la 2e personne (vous), " +
-  "ton direct et bienveillant de Max. Ne cite jamais de code interne (pas de « C1 », « capsule 7 ») : " +
-  "nomme l'étape par son nom. Pas de tirets cadratins, pas de jargon.";
+/**
+ * Consigne de forme : retour balisé en 3 ou 4 sections (la section COÛT n'apparaît
+ * que si un montant déterministe est fourni). Voix de Max, sans code interne.
+ */
+function buildFeedbackFormat(cout?: CostFigures | null): string {
+  const coutSection = cout
+    ? `\n##COUT## Une punchline percutante, dans la voix de Max, sur le coût de l'inaction (la « taxe stupide » qu'il paie tant qu'il ne corrige pas ce point). Tu DOIS reprendre EXACTEMENT ces montants, sans les modifier ni en inventer d'autres : environ ${formatEuro(cout.annualLow)} à ${formatEuro(cout.annualHigh)} par an, soit ${formatEuro(cout.fiveLow)} à ${formatEuro(cout.fiveHigh)} sur 5 ans. Relie ce coût à SA situation concrète (ses réponses), pour que ça fasse mal tout en restant crédible. 1 à 2 phrases.`
+    : "";
+  return (
+    "Structure ta réponse avec ces balises EXACTES, chacune en début de ligne, suivie de son texte. " +
+    "N'écris aucun autre titre ni numéro.\n" +
+    "##CONSTAT## un constat franc et concret sur ses réponses (2 phrases).\n" +
+    "##ACTION## UNE action précise à lancer cette semaine, une seule (1 à 2 phrases)." +
+    coutSection +
+    "\n##QUESTION## une question qui dérange ou un repère chiffré qui le fait avancer (1 phrase).\n" +
+    "Parle à la 2e personne (vous), ton direct et bienveillant de Max. Ne cite jamais de code interne " +
+    "(pas de « C1 », « capsule 7 ») : nomme l'étape par son nom. Pas de tirets cadratins, pas de jargon."
+  );
+}
 
 /**
  * Synthèse finale (C9) : compile les exercices des capsules en un plan H2.
