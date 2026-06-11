@@ -93,7 +93,7 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 
 ### Court terme
 - [x] **Supabase** : schéma `cdv` dans dietzone + clés branchées + testé OK.
-- [x] **Netlify env** : `SUPABASE_URL` + `SUPABASE_ANON_KEY` + `ANTHROPIC_API_KEY` + `HUBSPOT_PORTAL_ID` (27215892) + `HUBSPOT_FORM_GUID` (991c1d4e…) + **`HUBSPOT_TOKEN`** (app privée, **en secret**) en place. **Reste : `NEXT_PUBLIC_GTM_ID`** (id conteneur GTM web). Note : `ANTHROPIC_API_KEY` encore non-marquée « secret » (server-only quand même ; flip manuel possible).
+- [x] **Netlify env** : `SUPABASE_URL` + `SUPABASE_ANON_KEY` + `ANTHROPIC_API_KEY` + `HUBSPOT_PORTAL_ID` (27215892) + `HUBSPOT_FORM_GUID` (991c1d4e…) + **`HUBSPOT_TOKEN`** (app privée, **en secret**) + **`NEXT_PUBLIC_GTM_ID`** (`GTM-MVH3FZ3`) en place. Note : `ANTHROPIC_API_KEY` encore non-marquée « secret » (server-only quand même ; flip manuel possible).
 - [ ] **Vidéos C1→C9** : remplacer `videoUrl: null` par les embeds une fois tournées.
 - [ ] **Fiches C2→C9** : enrichir/distiller depuis les transcripts préconisés (cf. `_cahier-vacances-docs/Capsules-DR26-Plan-Detaille.md`).
 
@@ -105,7 +105,7 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
   - **Mapping HubSpot** : prénom=`firstname`, tél=`phone` (normalisé **E.164**), CA=`chiffre_d_affaires_annuel_new`, secteur=`secteur_dactivite_summer_business` (le **\_summer\_business**, ≠ Max Piccinini), **gclid→`hs_google_click_id`**, **fbclid→`hs_facebook_click_id`**, **utm_source/medium/campaign concaténés→`source_summer_business`**, **date du 1er opt-in→`date_optin_summer_business`** (créée par l'app ; permet de filtrer les leads SB par source + date).
   - **Anti-bidon** (`src/lib/validation.ts`) : email syntaxe + blocage jetables/factices + **vérif MX** du domaine (serveur, fail-open) ; tél validé via **libphonenumber-js** (FR + intl). Inline dans la modale + contrôle serveur autoritaire.
   - Reste optionnel : envoi d'email (différé), page `/espace/[token]` (pas nécessaire, l'identité tient via localStorage + reconnexion email).
-- [x] **Tracking GTM server-side** : `dataLayer` → `page_view` + **`generate_lead`** segmenté `lead_quality` (**'quali' ≥100K = conversion optimisée** · 'classique' <100K). Hooks server-side prêts. **Reste : poser `NEXT_PUBLIC_GTM_ID`** (+ créer les 2 conversions dans GTM SS filtrées sur `lead_quality`, + brancher Meta CAPI / Google Ads côté conteneur).
+- [x] **Tracking GTM server-side** : conteneur **`GTM-MVH3FZ3`** chargé ; `dataLayer` → `page_view` + **`generate_lead`** segmenté `lead_quality` (**'quali' ≥100K = conversion optimisée** · 'classique' <100K), avec `event_id` de dédup. ✅ Testé : `generate_lead` ingéré par GTM (uniqueEventId). **Reste côté GTM SS (Vincent) : créer les 2 conversions filtrées sur `lead_quality` + brancher Meta CAPI / Google Ads.**
   - Quali = 4 tranches ≥100K (`100K–999K`, `300K–1M`, `1M–10M`, `+10M`). Voir `src/lib/optin.ts` (`caLeadQuality`).
 
 ### Phase 3
