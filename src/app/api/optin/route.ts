@@ -21,7 +21,76 @@ const HS_FORM = process.env.HUBSPOT_FORM_GUID; // 991c1d4e-41a7-4acd-946e-a5de91
 const HS_SUBMIT = (portal: string, form: string) =>
   `https://api-eu1.hsforms.com/submissions/v3/integration/submit/${portal}/${form}`;
 
+// CRM API (app privée) : permet « créer OU compléter uniquement les champs vides ».
+// api.hubapi.com est global (vaut aussi pour les portails EU).
+const HS_TOKEN = process.env.HUBSPOT_TOKEN; // pat-eu1-…  (secret, server-only)
+const HS_SOURCE_PROP = process.env.HUBSPOT_SOURCE_PROP || "source_summer_business";
+const HS_CRM = "https://api.hubapi.com";
+
 type Attribution = Record<string, string> | null | undefined;
+
+/** Concatène l'attribution UTM en une chaîne lisible pour la propriété « source ». */
+function buildSourceString(a?: Attribution): string | undefined {
+  if (!a) return undefined;
+  const parts = [a.utm_source, a.utm_medium, a.utm_campaign].map((x) => (x || "").trim()).filter(Boolean);
+  return parts.length ? parts.join(" / ") : undefined;
+}
+
+async function logIfError(label: string, res: Response): Promise<void> {
+  if (!res.ok) console.error(`HubSpot ${label} error:`, res.status, (await res.text()).slice(0, 250));
+}
+
+/**
+ * Upsert contact via CRM API : crée s'il n'existe pas, sinon ne complète QUE les
+ * propriétés actuellement vides côté HubSpot (jamais d'écrasement). No-op sans token.
+ */
+async function hubspotUpsertContact(email: string, desired: Record<string, string | undefined>): Promise<void> {
+  if (!HS_TOKEN) return;
+  const clean: Record<string, string> = {};
+  for (const [k, v] of Object.entries(desired)) if (v != null && v !== "") clean[k] = v;
+  if (Object.keys(clean).length === 0) return;
+
+  const headers = { Authorization: `Bearer ${HS_TOKEN}`, "Content-Type": "application/json" };
+  const propList = Object.keys(clean).join(",");
+
+  try {
+    const getRes = await fetch(
+      `${HS_CRM}/crm/v3/objects/contacts/${encodeURIComponent(email)}?idProperty=email&properties=${propList}`,
+      { headers },
+    );
+
+    if (getRes.status === 404) {
+      const res = await fetch(`${HS_CRM}/crm/v3/objects/contacts`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ properties: { email, ...clean } }),
+      });
+      await logIfError("create", res);
+      return;
+    }
+    if (!getRes.ok) {
+      console.error("HubSpot get error:", getRes.status, (await getRes.text()).slice(0, 250));
+      return;
+    }
+
+    const contact = (await getRes.json()) as { id: string; properties: Record<string, string | null> };
+    const patch: Record<string, string> = {};
+    for (const [k, v] of Object.entries(clean)) {
+      const existing = (contact.properties?.[k] ?? "").toString().trim();
+      if (!existing) patch[k] = v; // uniquement si vide côté HubSpot
+    }
+    if (Object.keys(patch).length === 0) return;
+
+    const res = await fetch(`${HS_CRM}/crm/v3/objects/contacts/${contact.id}`, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify({ properties: patch }),
+    });
+    await logIfError("patch", res);
+  } catch (e) {
+    console.error("HubSpot upsert failed:", (e as Error).message);
+  }
+}
 
 /** Soumission HubSpot Forms API (idempotente : dédoublonne le contact par email). */
 async function submitHubspot(
@@ -119,17 +188,30 @@ export async function POST(req: NextRequest) {
       if (error) console.error("set_participant_qualif error:", error.message);
     }
 
-    // Soumission HubSpot COMPLÈTE (firstname + CA requis ensemble par le formulaire).
-    await submitHubspot(
-      {
+    // HubSpot : via CRM API (créer ou compléter-les-vides) si token présent ;
+    // sinon repli Forms API (écrase, soumission complète car firstname+CA requis ensemble).
+    if (HS_TOKEN) {
+      await hubspotUpsertContact(email, {
         [HS_FIELD.firstname]: prenom,
-        [HS_FIELD.email]: email,
+        [HS_FIELD.phone]: phone,
         [HS_FIELD.ca]: ca,
         [HS_FIELD.secteur]: secteur,
-        [HS_FIELD.phone]: phone,
-      },
-      { hutk, pageUri },
-    );
+        hs_google_click_id: body.attribution?.gclid,
+        hs_facebook_click_id: body.attribution?.fbclid,
+        [HS_SOURCE_PROP]: buildSourceString(body.attribution),
+      });
+    } else {
+      await submitHubspot(
+        {
+          [HS_FIELD.firstname]: prenom,
+          [HS_FIELD.email]: email,
+          [HS_FIELD.ca]: ca,
+          [HS_FIELD.secteur]: secteur,
+          [HS_FIELD.phone]: phone,
+        },
+        { hutk, pageUri },
+      );
+    }
 
     return NextResponse.json({ ok: true, leadQuality });
   }
