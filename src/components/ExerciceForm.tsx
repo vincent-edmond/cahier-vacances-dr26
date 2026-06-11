@@ -149,27 +149,33 @@ export function ExerciceForm({
   // ─── Vue formulaire ────────────────────────────────────────────────────────
   return (
     <div className="space-y-5">
-      {capsule.exercice.intro && (
-        <p className="text-[#555B6E] text-sm leading-relaxed">{capsule.exercice.intro}</p>
-      )}
+      {loading ? (
+        <FeedbackLoading mode={mode} />
+      ) : (
+        <>
+          {capsule.exercice.intro && (
+            <p className="text-[#555B6E] text-sm leading-relaxed">{capsule.exercice.intro}</p>
+          )}
 
-      <div className="space-y-4">
-        {champs.map((c) => (
-          <Field key={c.id} field={c} reponses={reponses} onChange={update} />
-        ))}
-      </div>
+          <div className="space-y-4">
+            {champs.map((c) => (
+              <Field key={c.id} field={c} reponses={reponses} onChange={update} />
+            ))}
+          </div>
 
-      <button
-        onClick={handleSubmit}
-        disabled={missing || loading}
-        className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0046FF] hover:bg-[#0033CC] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-7 py-3.5 transition-all ${!missing && !loading ? "cta-glow" : ""}`}
-      >
-        {mode === "plan"
-          ? (loading ? "Max IA compile votre plan d'été…" : <>Générer mon plan d&apos;action H2 <span className="arrow">→</span></>)
-          : (loading ? "Max IA analyse votre bilan…" : <>Obtenir le retour de Max IA <span className="arrow">→</span></>)}
-      </button>
-      {missing && (
-        <p className="text-xs text-[#9096A5]">Complétez les champs obligatoires pour continuer.</p>
+          <button
+            onClick={handleSubmit}
+            disabled={missing}
+            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0046FF] hover:bg-[#0033CC] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-7 py-3.5 transition-all ${!missing ? "cta-glow" : ""}`}
+          >
+            {mode === "plan"
+              ? <>Générer mon plan d&apos;action H2 <span className="arrow">→</span></>
+              : <>Obtenir le retour de Max IA <span className="arrow">→</span></>}
+          </button>
+          {missing && (
+            <p className="text-xs text-[#9096A5]">Complétez les champs obligatoires pour continuer.</p>
+          )}
+        </>
       )}
 
       <OptInModal
@@ -274,6 +280,29 @@ function Field({
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── État de chargement pendant la génération Max IA ───────────────────────────
+
+function FeedbackLoading({ mode }: { mode: "feedback" | "plan" }) {
+  const msg = mode === "plan" ? "Max IA compile votre plan d'été…" : "Max IA analyse vos réponses…";
+  return (
+    <div className="rounded-2xl border border-[#0046FF]/20 bg-[#0046FF]/[0.04] p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <span
+          className="inline-block w-5 h-5 rounded-full border-2 border-[#0046FF]/25 border-t-[#0046FF] animate-spin"
+          aria-hidden
+        />
+        <span className="font-bold text-[#00194C]">{msg}</span>
+      </div>
+      <div className="space-y-2.5" aria-hidden>
+        <div className="h-3 rounded-full bg-[#0046FF]/10 animate-pulse w-11/12" />
+        <div className="h-3 rounded-full bg-[#0046FF]/10 animate-pulse w-full" />
+        <div className="h-3 rounded-full bg-[#0046FF]/10 animate-pulse w-4/5" />
+      </div>
+      <p className="text-xs text-[#9096A5] mt-4">Quelques secondes, Max IA rédige un retour sur-mesure.</p>
     </div>
   );
 }
