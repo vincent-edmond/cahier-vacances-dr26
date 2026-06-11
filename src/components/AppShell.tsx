@@ -129,11 +129,8 @@ function SidebarContent({
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="px-5 h-16 flex items-center border-b border-white/[0.08]">
-        <Link href="/" onClick={onNavigate} className="flex flex-col items-start leading-none">
-          <span className="font-display font-extrabold text-sm tracking-wide">
-            SUMMER <span className="text-[#6B9FFF]">BUSINESS</span>
-          </span>
-          <span className="logo-by">by Max Piccinini</span>
+        <Link href="/" onClick={onNavigate} className="font-display font-extrabold text-sm tracking-wide">
+          SUMMER <span className="text-[#6B9FFF]">BUSINESS</span>
         </Link>
       </div>
 

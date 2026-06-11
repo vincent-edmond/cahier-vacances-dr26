@@ -100,22 +100,6 @@ h1, h2, h3, h4, h5, h6 {
   color: #00194C;
 }
 
-/* ── Signature manuscrite « by Max Piccinini » sous le logo ── */
-.lp-brand { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; }
-.logo-by {
-  display: block;
-  font-family: var(--font-script), cursive;
-  font-weight: 700;
-  font-size: 1.15rem;
-  line-height: 1;
-  color: #8FB3FF;
-  transform: rotate(-2deg);
-  transform-origin: left center;
-  margin-top: 5px;
-  margin-left: 1px;
-  white-space: nowrap;
-}
-
 /* ── Scroll reveal (CSS pur, React-safe) ── */
 @keyframes revealUp {
   from { opacity: 0; transform: translateY(20px); }
