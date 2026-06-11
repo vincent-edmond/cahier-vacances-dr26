@@ -11,6 +11,12 @@
 | cahier (pour l'espace) | espace, parcours |
 | tirets cadratins « — » | deux-points, ou phrases courtes |
 
+## Max vs Max IA (à ne jamais confondre)
+
+- **Le vrai Max** : les **vidéos** des étapes (il les a tournées). → « expliqué par Max ».
+- **Max IA** : le **clone IA** entraîné sur ses méthodes et sa façon de penser. C'est lui qui **analyse les exercices et renvoie les retours/le plan**. → « le retour de **Max IA** », jamais « le retour de Max » (qui laisserait croire à une analyse perso).
+- Les prompts système peuvent dire « Tu es Max Piccinini » (Max IA **écrit dans sa voix**), mais le **label côté utilisateur** dit toujours **Max IA**.
+
 ## Voix de Max
 
 - **Vouvoiement** systématique.
