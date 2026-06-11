@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import type { CountryCode } from "libphonenumber-js";
 import { optinSignup, optinQualify, optinLogin } from "@/lib/session";
-import { CA_OPTIONS, SECTEUR_OPTIONS, caLeadQuality } from "@/lib/optin";
+import { CA_OPTIONS, SECTEUR_OPTIONS, PHONE_COUNTRIES, caLeadQuality } from "@/lib/optin";
 import { validateEmailFormat, validatePhone } from "@/lib/validation";
 import { trackLead, newEventId } from "@/lib/track";
 
@@ -28,6 +29,7 @@ export function OptInModal({
   const [ca, setCa] = useState("");
   const [secteur, setSecteur] = useState("");
   const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState<CountryCode>("FR");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +37,7 @@ export function OptInModal({
 
   const emailCheck = validateEmailFormat(email);
   const emailOk = emailCheck.ok;
-  const phoneOk = validatePhone(phone).ok;
+  const phoneOk = validatePhone(phone, country).ok;
   // Messages inline (uniquement quand le champ est non vide et invalide).
   const emailInline = email.trim() && !emailOk ? ("reason" in emailCheck ? emailCheck.reason : "Email invalide.") : null;
   const phoneInline = phone.trim() && !phoneOk ? "Ce numéro ne semble pas valide." : null;
@@ -70,7 +72,7 @@ export function OptInModal({
     if (!ca || !secteur || !phoneOk || loading) return;
     setLoading(true);
     setError(null);
-    const r = await optinQualify(ca, secteur, phone);
+    const r = await optinQualify(ca, secteur, phone, country);
     setLoading(false);
     if (!r.ok) {
       setError(r.error || "Un souci est survenu. Réessayez dans un instant.");
@@ -113,7 +115,7 @@ export function OptInModal({
         <div className="bg-gradient-to-br from-[#00194C] to-[#000D2B] px-6 pt-6 pb-5 text-white">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B9FFF]">
-              {view === "login" ? "Reconnexion" : step === 1 ? "Votre espace Summer Business" : "Personnalisez votre retour"}
+              {view === "login" ? "Reconnexion" : step === 1 ? "Votre espace Summer Business" : "Dernière étape"}
             </span>
             {!loading && (
               <button onClick={onClose} aria-label="Fermer" className="text-white/50 hover:text-white text-lg leading-none">
@@ -126,14 +128,14 @@ export function OptInModal({
               ? "Retrouvez votre espace"
               : step === 1
                 ? "Recevez le retour de Max IA"
-                : "Pour calibrer le retour à votre échelle"}
+                : "Parlez-nous de votre entreprise"}
           </h3>
           <p className="text-sm text-white/65 mt-1.5 leading-snug">
             {view === "login"
               ? "Entrez l'email utilisé pour créer votre espace."
               : step === 1
                 ? "Créez votre espace pour recevoir l'analyse de Max IA et garder votre progression tout l'été."
-                : "Max IA adapte son analyse à votre niveau de chiffre d'affaires et à votre secteur."}
+                : "Pour que Max IA vous réponde juste, à votre taille et dans votre métier. Pas du conseil générique."}
           </p>
         </div>
 
@@ -161,7 +163,7 @@ export function OptInModal({
             <>
               <FieldSelect label="Votre chiffre d'affaires annuel" value={ca} onChange={setCa} options={CA_OPTIONS} placeholder="Choisir…" />
               <FieldSelect label="Votre secteur" value={secteur} onChange={setSecteur} options={SECTEUR_OPTIONS} placeholder="Choisir…" />
-              <FieldInput label="Téléphone" type="tel" value={phone} onChange={setPhone} placeholder="06 12 34 56 78" />
+              <PhoneField country={country} onCountry={setCountry} value={phone} onChange={setPhone} />
               {phoneInline && <p className="text-xs text-red-600 -mt-1">{phoneInline}</p>}
               {error && <p className="text-sm text-red-600">{error}</p>}
               <PrimaryBtn disabled={!ca || !secteur || !phoneOk || loading} onClick={handleSignupStep2}>
@@ -219,8 +221,9 @@ function FieldSelect({
   label, value, onChange, options, placeholder,
 }: {
   label: string; value: string; onChange: (v: string) => void;
-  options: readonly string[]; placeholder: string;
+  options: readonly (string | { value: string; label: string })[]; placeholder: string;
 }) {
+  const norm = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
   return (
     <label className="block">
       <span className="block text-sm font-semibold text-[#00194C] mb-1.5">{label}</span>
@@ -230,9 +233,42 @@ function FieldSelect({
         className="w-full rounded-xl border border-[#E2E4EA] bg-white px-4 py-3 text-[#2A2D35] focus:border-[#0046FF] focus:outline-none focus:ring-2 focus:ring-[#0046FF]/20"
       >
         <option value="" disabled>{placeholder}</option>
-        {options.map((o) => <option key={o} value={o}>{o}</option>)}
+        {norm.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </label>
+  );
+}
+
+/** Téléphone avec sélecteur d'indicatif pays (France par défaut). */
+function PhoneField({
+  country, onCountry, value, onChange,
+}: {
+  country: CountryCode; onCountry: (c: CountryCode) => void; value: string; onChange: (v: string) => void;
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-semibold text-[#00194C] mb-1.5">Téléphone</label>
+      <div className="flex gap-2">
+        <select
+          value={country}
+          onChange={(e) => onCountry(e.target.value as CountryCode)}
+          aria-label="Indicatif pays"
+          className="shrink-0 rounded-xl border border-[#E2E4EA] bg-white px-2 py-3 text-[#2A2D35] focus:border-[#0046FF] focus:outline-none focus:ring-2 focus:ring-[#0046FF]/20"
+        >
+          {PHONE_COUNTRIES.map((c) => (
+            <option key={c.iso} value={c.iso}>{c.flag} {c.dial}</option>
+          ))}
+        </select>
+        <input
+          type="tel"
+          inputMode="tel"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="06 12 34 56 78"
+          className="flex-1 min-w-0 rounded-xl border border-[#E2E4EA] bg-white px-4 py-3 text-[#2A2D35] focus:border-[#0046FF] focus:outline-none focus:ring-2 focus:ring-[#0046FF]/20"
+        />
+      </div>
+    </div>
   );
 }
 

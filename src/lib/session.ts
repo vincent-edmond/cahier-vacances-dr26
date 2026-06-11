@@ -134,7 +134,8 @@ export async function optinSignup(
 export async function optinQualify(
   ca: string,
   secteur: string,
-  phone?: string,
+  phone: string,
+  country?: string,
 ): Promise<{ ok: boolean; error?: string }> {
   const p = getParticipant();
   if (!p) return { ok: false };
@@ -142,7 +143,7 @@ export async function optinQualify(
     const res = await fetch("/api/optin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode: "qualify", token: p.token, email: p.email, prenom: p.prenom, ca, secteur, phone, attribution: getAttribution() }),
+      body: JSON.stringify({ mode: "qualify", token: p.token, email: p.email, prenom: p.prenom, ca, secteur, phone, country, attribution: getAttribution() }),
     });
     if (!res.ok) {
       const data = (await res.json().catch(() => ({}))) as { error?: string };

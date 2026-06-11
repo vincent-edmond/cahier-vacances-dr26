@@ -1,4 +1,4 @@
-import { parsePhoneNumberFromString } from "libphonenumber-js";
+import { parsePhoneNumberFromString, type CountryCode } from "libphonenumber-js";
 
 // ─── Validation email / téléphone (anti-opt-in bidon) ───────────────────────
 // Utilisée côté client (UX inline) ET serveur (/api/optin, autoritaire).
@@ -44,7 +44,7 @@ export type PhoneCheck = { ok: true; e164: string } | { ok: false; reason: strin
  * Validation téléphone via libphonenumber (défaut FR, accepte l'international avec +).
  * Renvoie le format E.164 normalisé (ex. +33622961186) pour un stockage propre.
  */
-export function validatePhone(raw: string, defaultCountry: "FR" = "FR"): PhoneCheck {
+export function validatePhone(raw: string, defaultCountry: CountryCode = "FR"): PhoneCheck {
   const input = (raw || "").trim();
   if (!input) return { ok: false, reason: "Numéro de téléphone requis." };
   try {

@@ -4,6 +4,7 @@ import { resolveMx } from "node:dns/promises";
 import { getSupabase } from "@/lib/supabase";
 import { HS_FIELD, caLeadQuality } from "@/lib/optin";
 import { validateEmailFormat, emailDomain, validatePhone } from "@/lib/validation";
+import type { CountryCode } from "libphonenumber-js";
 
 /**
  * Le domaine email reçoit-il des emails (enregistrements MX) ?
@@ -169,6 +170,7 @@ export async function POST(req: NextRequest) {
     secteur?: string;
     phone?: string;
     token?: string;
+    country?: string;
     attribution?: Attribution;
   };
   // Le formulaire HubSpot exige firstname + CA ensemble : on soumet TOUT en une
@@ -210,8 +212,9 @@ export async function POST(req: NextRequest) {
     const secteur = body.secteur?.trim();
     const leadQuality = ca ? caLeadQuality(ca) : undefined;
 
-    // Téléphone : validé + normalisé E.164 (anti-bidon).
-    const phoneCheck = validatePhone(body.phone ?? "");
+    // Téléphone : validé selon l'indicatif pays choisi + normalisé E.164 (anti-bidon).
+    const country = (body.country || "FR") as CountryCode;
+    const phoneCheck = validatePhone(body.phone ?? "", country);
     if (!phoneCheck.ok) return NextResponse.json({ error: phoneCheck.reason }, { status: 400 });
     const phone = phoneCheck.e164;
 
