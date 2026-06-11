@@ -315,8 +315,8 @@ export default function LandingPage() {
           </p>
           <Link href="/espace" className="lp-cta">Je commence gratuitement <span className="arrow">→</span></Link>
           <p className="bridge">
-            Et à la fin de l&apos;été, on construit et on exécute votre plan ensemble, à
-            Destination Réussite (25-27 septembre).
+            Votre plan, vous le construisez ici. Le vrai saut, franchir votre plafond et passer au
+            niveau supérieur, c&apos;est à Destination Réussite qu&apos;il se joue (25 au 27 septembre).
           </p>
         </div>
       </section>
