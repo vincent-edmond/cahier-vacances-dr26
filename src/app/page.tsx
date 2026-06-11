@@ -314,10 +314,7 @@ export default function LandingPage() {
             vos six derniers mois les meilleurs de l&apos;année.
           </p>
           <Link href="/espace" className="lp-cta">Je commence gratuitement <span className="arrow">→</span></Link>
-          <p className="bridge">
-            Votre plan, vous le construisez ici. Le vrai saut, franchir votre plafond et passer au
-            niveau supérieur, c&apos;est à Destination Réussite qu&apos;il se joue (25 au 27 septembre).
-          </p>
+          <p className="bridge">Accès libre · à votre rythme · pour chefs d&apos;entreprise établis</p>
         </div>
       </section>
 

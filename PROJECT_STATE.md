@@ -98,7 +98,7 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 - [ ] **Fiches C2→C9** : enrichir/distiller depuis les transcripts préconisés (cf. `_cahier-vacances-docs/Capsules-DR26-Plan-Detaille.md`).
 
 ### Phase 2 — identité durable (décidé : à faire plus tard, pas maintenant)
-- [ ] **Lien magique (email, sans mot de passe)** — le point clé pour que chaque prospect ait un espace *durable et cross-device*.
+- [ ] **Opt-in + identité durable** (en attente : décisions HubSpot). Décidé : passerelle **HubSpot Forms API** (portail EU, CA=`chiffre_d_affaires_annuel_new`, tél=`phone`, secteur=`secteur_d_activite_max_piccinini`), capture UTM/hutk (faite), **reconnexion = email simple** (pas de lien magique, pas d'envoi d'email). Modèle : 1er opt-in → `cdv.participants(token,email,...)` clé=email → mémoire durable ; retour même appareil = auto (token localStorage) ; autre appareil = ressaisir l'email.
   - Limite actuelle : l'identité = id anonyme en `localStorage` (`cdv_session`). Espace bien isolé par utilisateur, mais perdu si cache vidé / autre navigateur / autre appareil, et pas d'email capté.
   - Cible (déjà dans la spec) : opt-in prénom+email → table `cdv.participants (token, email, prenom)` → page `/espace/[token]` → progression rattachée au **token** (récupérer le cahier anonyme déjà commencé via le `session_id` courant). Le lien = la clé d'accès.
   - Envoi d'email : **différé** (décision : pas d'email pour l'instant). Quand on l'active : N8N/HubSpot (déjà en place) ou Resend.
