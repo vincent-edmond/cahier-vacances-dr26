@@ -93,7 +93,7 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 
 ### Court terme
 - [x] **Supabase** : schéma `cdv` dans dietzone + clés branchées + testé OK.
-- [x] **Netlify env** : `SUPABASE_URL` + `SUPABASE_ANON_KEY` + `ANTHROPIC_API_KEY` + `HUBSPOT_PORTAL_ID` (27215892) + `HUBSPOT_FORM_GUID` (991c1d4e-41a7-4acd-946e-a5de913ee71f) en place. **Reste : `NEXT_PUBLIC_GTM_ID`** (id conteneur GTM web) à ajouter.
+- [x] **Netlify env** : `SUPABASE_URL` + `SUPABASE_ANON_KEY` + `ANTHROPIC_API_KEY` + `HUBSPOT_PORTAL_ID` (27215892) + `HUBSPOT_FORM_GUID` (991c1d4e…) + **`HUBSPOT_TOKEN`** (app privée, **en secret**) en place. **Reste : `NEXT_PUBLIC_GTM_ID`** (id conteneur GTM web). Note : `ANTHROPIC_API_KEY` encore non-marquée « secret » (server-only quand même ; flip manuel possible).
 - [ ] **Vidéos C1→C9** : remplacer `videoUrl: null` par les embeds une fois tournées.
 - [ ] **Fiches C2→C9** : enrichir/distiller depuis les transcripts préconisés (cf. `_cahier-vacances-docs/Capsules-DR26-Plan-Detaille.md`).
 
@@ -101,8 +101,8 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 - [x] **Opt-in + identité durable** (HubSpot Forms API + GTM SS). Déclenché à la **1ʳᵉ demande de retour Max IA** (toute capsule, **une seule fois**) ; reconnexion par **email simple**.
   - **Modale 2 étapes** (`OptInModal`) : prénom+email → CA+secteur (tél optionnel). CA+secteur **obligatoires** (servent la classification lead + personnalisent le retour de Max IA, passés à `generateExerciceFeedback`). Porte « j'ai déjà un espace » = reconnexion.
   - **Table `cdv.participants`** (clé=email, `token`, `session_id` canonique, `lead_quality`, `attribution`). RLS **sans SELECT large** ; lecture/maj via fonctions security-definer `cdv.find_participant` / `cdv.set_participant_qualif` → emails non dumpables via la clé anon. Reconnexion = on adopte le `session_id` canonique (rattache le cahier déjà commencé).
-  - **`/api/optin`** (signup / qualify / login) → HubSpot Forms API (portail 27215892, form 991c1d4e…, eu1). ⚠️ Le formulaire exige **firstname + CA ensemble** → **une seule soumission complète** à l'étape qualify (prénom+email+CA+secteur+tél). **Le tél doit rester NON requis sur le form** (envoyé seulement si saisi).
-  - **HubSpot** : CA=`chiffre_d_affaires_annuel_new`, secteur=`secteur_dactivite_summer_business` (≠ celui de Max Piccinini : c'est le **\_summer\_business**), tél=`phone`, prénom=`firstname`.
+  - **`/api/optin`** (signup / qualify / login) → **HubSpot API CRM** (app privée, `HUBSPOT_TOKEN`) : à la qualif, **crée le contact OU ne complète que les propriétés vides** (jamais d'écrasement). Repli Forms API si pas de token. **Le tél est obligatoire** dans la modale (le form HubSpot natif n'est plus utilisé par l'app). ✅ Testé bout-en-bout (création + mapping + non-écrasement + remplissage des vides).
+  - **Mapping HubSpot** : prénom=`firstname`, tél=`phone`, CA=`chiffre_d_affaires_annuel_new`, secteur=`secteur_dactivite_summer_business` (le **\_summer\_business**, ≠ Max Piccinini), **gclid→`hs_google_click_id`**, **fbclid→`hs_facebook_click_id`**, **utm_source/medium/campaign concaténés→`source_summer_business`**.
   - Reste optionnel : envoi d'email (différé), page `/espace/[token]` (pas nécessaire, l'identité tient via localStorage + reconnexion email).
 - [x] **Tracking GTM server-side** : `dataLayer` → `page_view` + **`generate_lead`** segmenté `lead_quality` (**'quali' ≥100K = conversion optimisée** · 'classique' <100K). Hooks server-side prêts. **Reste : poser `NEXT_PUBLIC_GTM_ID`** (+ créer les 2 conversions dans GTM SS filtrées sur `lead_quality`, + brancher Meta CAPI / Google Ads côté conteneur).
   - Quali = 4 tranches ≥100K (`100K–999K`, `300K–1M`, `1M–10M`, `+10M`). Voir `src/lib/optin.ts` (`caLeadQuality`).
