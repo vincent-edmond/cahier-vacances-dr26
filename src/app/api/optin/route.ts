@@ -1,7 +1,30 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { randomUUID } from "node:crypto";
+import { resolveMx } from "node:dns/promises";
 import { getSupabase } from "@/lib/supabase";
 import { HS_FIELD, caLeadQuality } from "@/lib/optin";
+import { validateEmailFormat, emailDomain, validatePhone } from "@/lib/validation";
+
+/**
+ * Le domaine email reçoit-il des emails (enregistrements MX) ?
+ * true = oui · false = domaine inexistant/sans mail (bloquer) · null = lookup
+ * impossible (timeout/réseau) → on n'aveugle pas un vrai utilisateur (fail open).
+ */
+async function domainHasMx(domain: string): Promise<boolean | null> {
+  if (!domain) return false;
+  try {
+    const records = await Promise.race([
+      resolveMx(domain),
+      new Promise<null>((res) => setTimeout(() => res(null), 3500)),
+    ]);
+    if (records === null) return null; // timeout → fail open
+    return Array.isArray(records) && records.length > 0;
+  } catch (e) {
+    const code = (e as NodeJS.ErrnoException).code;
+    if (code === "ENOTFOUND" || code === "NXDOMAIN" || code === "ENODATA") return false;
+    return null; // erreur transitoire → fail open
+  }
+}
 
 /**
  * POST /api/optin — opt-in & identité durable.
@@ -172,8 +195,12 @@ export async function POST(req: NextRequest) {
     const prenom = body.prenom?.trim();
     const ca = body.ca?.trim();
     const secteur = body.secteur?.trim();
-    const phone = body.phone?.trim();
     const leadQuality = ca ? caLeadQuality(ca) : undefined;
+
+    // Téléphone : validé + normalisé E.164 (anti-bidon).
+    const phoneCheck = validatePhone(body.phone ?? "");
+    if (!phoneCheck.ok) return NextResponse.json({ error: phoneCheck.reason }, { status: 400 });
+    const phone = phoneCheck.e164;
 
     if (supabase) {
       // Via RPC security-definer (bypasse RLS : un UPDATE direct serait filtré à 0
@@ -221,6 +248,13 @@ export async function POST(req: NextRequest) {
     const prenom = body.prenom?.trim() ?? "";
     const sessionId = body.sessionId?.trim() ?? "";
     if (!email) return NextResponse.json({ error: "email requis" }, { status: 400 });
+
+    // Anti-bidon : syntaxe + domaine jetable/factice, puis vérif MX du domaine.
+    const fmt = validateEmailFormat(email);
+    if (!fmt.ok) return NextResponse.json({ error: fmt.reason }, { status: 400 });
+    if ((await domainHasMx(emailDomain(email))) === false) {
+      return NextResponse.json({ error: "Ce domaine email ne reçoit pas d'emails. Vérifiez l'adresse." }, { status: 400 });
+    }
 
     let token = "";
     let canonicalSession = sessionId;

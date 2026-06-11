@@ -108,7 +108,7 @@ function adoptSession(sessionId: string): boolean {
 export async function optinSignup(
   prenom: string,
   email: string,
-): Promise<{ ok: boolean; switched: boolean; existing: boolean }> {
+): Promise<{ ok: boolean; switched: boolean; existing: boolean; error?: string }> {
   const sessionId = getOrCreateSessionId();
   try {
     const res = await fetch("/api/optin", {
@@ -116,7 +116,10 @@ export async function optinSignup(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ mode: "signup", prenom, email, sessionId, attribution: getAttribution() }),
     });
-    if (!res.ok) return { ok: false, switched: false, existing: false };
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      return { ok: false, switched: false, existing: false, error: data.error };
+    }
     const data = (await res.json()) as { token: string; prenom: string; sessionId: string; existing?: boolean };
     setParticipantLocal({ token: data.token, email: email.trim().toLowerCase(), prenom: data.prenom || prenom });
     setPrenom(data.prenom || prenom);
@@ -132,21 +135,26 @@ export async function optinQualify(
   ca: string,
   secteur: string,
   phone?: string,
-): Promise<boolean> {
+): Promise<{ ok: boolean; error?: string }> {
   const p = getParticipant();
-  if (!p) return false;
-  if (typeof window !== "undefined") {
-    localStorage.setItem(QUALIF_KEY, JSON.stringify({ ca, secteur }));
-  }
+  if (!p) return { ok: false };
   try {
     const res = await fetch("/api/optin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ mode: "qualify", token: p.token, email: p.email, prenom: p.prenom, ca, secteur, phone, attribution: getAttribution() }),
     });
-    return res.ok;
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      return { ok: false, error: data.error };
+    }
+    // Persiste le profil seulement après validation serveur (sert au feedback Max IA).
+    if (typeof window !== "undefined") {
+      localStorage.setItem(QUALIF_KEY, JSON.stringify({ ca, secteur }));
+    }
+    return { ok: true };
   } catch {
-    return false;
+    return { ok: false };
   }
 }
 

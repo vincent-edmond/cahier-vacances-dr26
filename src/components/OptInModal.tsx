@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { optinSignup, optinQualify, optinLogin } from "@/lib/session";
 import { CA_OPTIONS, SECTEUR_OPTIONS, caLeadQuality } from "@/lib/optin";
+import { validateEmailFormat, validatePhone } from "@/lib/validation";
 import { trackLead, newEventId } from "@/lib/track";
 
 /**
@@ -32,8 +33,12 @@ export function OptInModal({
 
   if (!open) return null;
 
-  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  const phoneOk = phone.replace(/\D/g, "").length >= 8;
+  const emailCheck = validateEmailFormat(email);
+  const emailOk = emailCheck.ok;
+  const phoneOk = validatePhone(phone).ok;
+  // Messages inline (uniquement quand le champ est non vide et invalide).
+  const emailInline = email.trim() && !emailOk ? ("reason" in emailCheck ? emailCheck.reason : "Email invalide.") : null;
+  const phoneInline = phone.trim() && !phoneOk ? "Ce numéro ne semble pas valide." : null;
 
   function finish(switched: boolean) {
     if (switched) {
@@ -50,7 +55,7 @@ export function OptInModal({
     const r = await optinSignup(prenom, email);
     setLoading(false);
     if (!r.ok) {
-      setError("Un souci est survenu. Réessayez dans un instant.");
+      setError(r.error || "Un souci est survenu. Réessayez dans un instant.");
       return;
     }
     // Email déjà inscrit → déjà qualifié, on reprend directement.
@@ -65,10 +70,10 @@ export function OptInModal({
     if (!ca || !secteur || !phoneOk || loading) return;
     setLoading(true);
     setError(null);
-    const ok = await optinQualify(ca, secteur, phone);
+    const r = await optinQualify(ca, secteur, phone);
     setLoading(false);
-    if (!ok) {
-      setError("Un souci est survenu. Réessayez dans un instant.");
+    if (!r.ok) {
+      setError(r.error || "Un souci est survenu. Réessayez dans un instant.");
       return;
     }
     trackLead({
@@ -138,6 +143,7 @@ export function OptInModal({
             <>
               <FieldInput label="Prénom" value={prenom} onChange={setPrenom} placeholder="Votre prénom" autoFocus />
               <FieldInput label="Email" type="email" value={email} onChange={setEmail} placeholder="vous@entreprise.com" />
+              {emailInline && <p className="text-xs text-red-600 -mt-1">{emailInline}</p>}
               {error && <p className="text-sm text-red-600">{error}</p>}
               <PrimaryBtn disabled={!prenom.trim() || !emailOk || loading} onClick={handleSignupStep1}>
                 {loading ? "Un instant…" : "Continuer"}
@@ -156,6 +162,7 @@ export function OptInModal({
               <FieldSelect label="Votre chiffre d'affaires annuel" value={ca} onChange={setCa} options={CA_OPTIONS} placeholder="Choisir…" />
               <FieldSelect label="Votre secteur" value={secteur} onChange={setSecteur} options={SECTEUR_OPTIONS} placeholder="Choisir…" />
               <FieldInput label="Téléphone" type="tel" value={phone} onChange={setPhone} placeholder="06 12 34 56 78" />
+              {phoneInline && <p className="text-xs text-red-600 -mt-1">{phoneInline}</p>}
               {error && <p className="text-sm text-red-600">{error}</p>}
               <PrimaryBtn disabled={!ca || !secteur || !phoneOk || loading} onClick={handleSignupStep2}>
                 {loading ? "Un instant…" : "Recevoir mon retour de Max IA →"}
