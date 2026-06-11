@@ -311,7 +311,7 @@ export async function generatePlan(sid: string): Promise<string | null> {
     const res = await fetch("/api/plan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ progress }),
+      body: JSON.stringify({ progress, profil: getQualif() ?? undefined }),
     });
     if (res.ok) {
       const data = (await res.json()) as { plan?: string | null };

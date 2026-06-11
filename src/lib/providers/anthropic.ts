@@ -63,17 +63,31 @@ export interface ProfilFeedback {
   secteur?: string;
 }
 
+/**
+ * Bloc de contexte injecté avant les réponses, pour calibrer le retour à l'échelle
+ * et au métier. Cas « Autre » (ou secteur absent) : on N'INJECTE PAS de secteur et
+ * on consigne à l'IA de rester générique (jamais de « votre secteur Autre… »).
+ */
+function profilContext(profil?: ProfilFeedback): string {
+  if (!profil) return "";
+  const realSecteur = profil.secteur && profil.secteur !== "Autre" ? profil.secteur : null;
+  const bits: string[] = [];
+  if (realSecteur) bits.push(`secteur : ${realSecteur}`);
+  if (profil.ca) bits.push(`CA : ${profil.ca}`);
+  if (bits.length === 0) return "";
+  const guard = realSecteur
+    ? ""
+    : " Le secteur n'est pas précisé : reste générique, ne nomme ou n'invente aucun secteur (n'écris jamais « votre secteur »).";
+  return `Contexte du chef d'entreprise, pour calibrer ton retour à son échelle (sans le citer mot pour mot) : ${bits.join(" ; ")}.${guard}\n\n`;
+}
+
 /** Feedback IA personnalisé sur l'exercice d'une capsule. */
 export async function generateExerciceFeedback(
   capsule: Capsule,
   reponses: ExerciceReponses,
   profil?: ProfilFeedback
 ): Promise<string | null> {
-  const contexte =
-    profil && (profil.ca || profil.secteur)
-      ? `Contexte du chef d'entreprise (pour calibrer ton retour à son échelle, sans le répéter mot pour mot)${profil.secteur ? ` : secteur ${profil.secteur}` : ""}${profil.ca ? `, ${profil.ca}` : ""}.\n\n`
-      : "";
-  const user = `${contexte}Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`;
+  const user = `${profilContext(profil)}Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`;
   return callClaude(`${capsule.feedbackPrompt}\n\n${FEEDBACK_FORMAT}`, user, 600);
 }
 
@@ -87,7 +101,8 @@ const FEEDBACK_FORMAT =
  */
 export async function generatePlanFinal(
   capsules: Capsule[],
-  progress: CapsuleProgress[]
+  progress: CapsuleProgress[],
+  profil?: ProfilFeedback
 ): Promise<string | null> {
   const byNum = new Map(progress.map((p) => [p.capsuleNum, p]));
   const bilan = capsules
@@ -103,5 +118,5 @@ export async function generatePlanFinal(
 
   const system = `Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Nous sommes à la mi-2026 : le plan couvre le second semestre 2026 (de juillet à décembre 2026). N'évoque jamais une autre année. À partir des exercices remplis tout l'été par un chef d'entreprise (un par levier business), rédige un plan d'action du second semestre, personnel et actionnable. Structure : 1) un diagnostic d'ensemble en 3 ou 4 phrases ; 2) les 2 ou 3 chantiers prioritaires à mener d'ici décembre, chacun avec une première action concrète ; 3) une bascule claire vers Destination Réussite (du 25 au 27 septembre) pour exécuter ce plan. Vouvoiement, ton direct et motivant, phrases courtes, pas de tirets cadratins, pas de jargon. Ne cite jamais de code interne (pas de « C1 », « C6 », « capsule 7 ») : nomme chaque levier par son nom.`;
 
-  return callClaude(system, `Bilan de l'été du chef d'entreprise :\n\n${bilan}`, 1500);
+  return callClaude(system, `${profilContext(profil)}Bilan de l'été du chef d'entreprise :\n\n${bilan}`, 1500);
 }

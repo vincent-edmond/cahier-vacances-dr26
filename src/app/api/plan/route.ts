@@ -10,7 +10,7 @@ import type { CapsuleProgress } from "@/lib/types";
  * déjà serveur + localStorage).
  */
 export async function POST(req: NextRequest) {
-  let body: { progress?: CapsuleProgress[] };
+  let body: { progress?: CapsuleProgress[]; profil?: { ca?: string; secteur?: string } };
   try {
     body = await req.json();
   } catch {
@@ -24,6 +24,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ plan: null, filled: 0 });
   }
 
-  const plan = await generatePlanFinal(getCapsules(), filled);
+  const plan = await generatePlanFinal(getCapsules(), filled, body.profil);
   return NextResponse.json({ plan, filled: filled.length });
 }
