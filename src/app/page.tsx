@@ -182,7 +182,7 @@ export default function LandingPage() {
             {[
               { ic: "🎯", t: "Un bilan sans complaisance", d: "Où vous en êtes vraiment face à vos objectifs. Les chiffres en main, pas les impressions.", accent: "#0046FF" },
               { ic: "🔑", t: "Vos 1 ou 2 vrais leviers", d: "On isole ce qui change la donne pour vous. Le reste, c'est du bruit.", accent: "#0D9488" },
-              { ic: "💬", t: "Un regard direct sur vos décisions", d: "Un retour franc sur chacun de vos choix, pour avancer sans angle mort.", accent: "#8B5CF6" },
+              { ic: "💬", t: "Un regard direct sur vos décisions", d: "Le retour franc de l'IA de Max sur chacun de vos choix, pour avancer sans angle mort.", accent: "#8B5CF6" },
               { ic: "🗺️", t: "Un plan que vous n'avez plus qu'à exécuter", d: "Concret, priorisé, daté. En septembre, vous savez exactement quoi faire.", accent: "#F59E0B" },
             ].map((r) => (
               <div key={r.t} className="lp-result" style={{ "--accent": r.accent } as CSSProperties}>
@@ -210,7 +210,7 @@ export default function LandingPage() {
             {[
               { ic: "💡", t: "Une idée qui remet les choses en perspective", d: "Le levier de la semaine, expliqué droit au but par Max.", accent: "#0046FF" },
               { ic: "✍️", t: "Un exercice sur VOS chiffres", d: "Vous appliquez à votre situation réelle. C'est là que ça compte.", accent: "#8B5CF6" },
-              { ic: "🤝", t: "Un retour personnalisé", d: "Une analyse de ce que vous avez écrit, pour décider juste.", accent: "#0D9488" },
+              { ic: "🤝", t: "Un retour personnalisé", d: "L'IA de Max analyse ce que vous avez écrit et vous répond, pour décider juste.", accent: "#0D9488" },
             ].map((s) => (
               <div key={s.t} className="lp-step" style={{ "--accent": s.accent } as CSSProperties}>
                 <div className="ic">{s.ic}</div>
@@ -280,6 +280,11 @@ export default function LandingPage() {
                 chefs d&apos;entreprise francophones depuis plus de 15 ans à passer au niveau supérieur :
                 faire le bon diagnostic, activer les bons leviers et faire grandir leur entreprise,
                 chiffres à l&apos;appui.
+              </p>
+              <p className="bio">
+                Max ne peut pas analyser chaque entreprise une par une. Alors il a entraîné une IA
+                sur ses méthodes et sa façon de penser : c&apos;est ce <strong>clone numérique</strong> qui
+                étudie vos réponses et vous répond, dans son style, à chaque étape.
               </p>
               <div className="lp-about-stats">
                 {[
