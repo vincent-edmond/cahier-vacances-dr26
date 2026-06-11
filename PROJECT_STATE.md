@@ -93,15 +93,19 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 
 ### Court terme
 - [x] **Supabase** : schéma `cdv` dans dietzone + clés branchées + testé OK.
-- [ ] **Netlify** : reporter `SUPABASE_URL` + `SUPABASE_ANON_KEY` + `ANTHROPIC_API_KEY` dans les env vars du site.
+- [x] **Netlify env** : `SUPABASE_URL` + `SUPABASE_ANON_KEY` + `ANTHROPIC_API_KEY` + `HUBSPOT_PORTAL_ID` (27215892) + `HUBSPOT_FORM_GUID` (991c1d4e-41a7-4acd-946e-a5de913ee71f) en place. **Reste : `NEXT_PUBLIC_GTM_ID`** (id conteneur GTM web) à ajouter.
 - [ ] **Vidéos C1→C9** : remplacer `videoUrl: null` par les embeds une fois tournées.
 - [ ] **Fiches C2→C9** : enrichir/distiller depuis les transcripts préconisés (cf. `_cahier-vacances-docs/Capsules-DR26-Plan-Detaille.md`).
 
-### Phase 2 — identité durable (décidé : à faire plus tard, pas maintenant)
-- [ ] **Opt-in + identité durable** (en attente : décisions HubSpot). Décidé : passerelle **HubSpot Forms API** (portail EU, CA=`chiffre_d_affaires_annuel_new`, tél=`phone`, secteur=`secteur_d_activite_max_piccinini`), capture UTM/hutk (faite), **reconnexion = email simple** (pas de lien magique, pas d'envoi d'email). Modèle : 1er opt-in → `cdv.participants(token,email,...)` clé=email → mémoire durable ; retour même appareil = auto (token localStorage) ; autre appareil = ressaisir l'email.
-  - Limite actuelle : l'identité = id anonyme en `localStorage` (`cdv_session`). Espace bien isolé par utilisateur, mais perdu si cache vidé / autre navigateur / autre appareil, et pas d'email capté.
-  - Cible (déjà dans la spec) : opt-in prénom+email → table `cdv.participants (token, email, prenom)` → page `/espace/[token]` → progression rattachée au **token** (récupérer le cahier anonyme déjà commencé via le `session_id` courant). Le lien = la clé d'accès.
-  - Envoi d'email : **différé** (décision : pas d'email pour l'instant). Quand on l'active : N8N/HubSpot (déjà en place) ou Resend.
+### Phase 2 — identité durable + opt-in — FAIT ✅ (commit `6dd3f57`)
+- [x] **Opt-in + identité durable** (HubSpot Forms API + GTM SS). Déclenché à la **1ʳᵉ demande de retour Max IA** (toute capsule, **une seule fois**) ; reconnexion par **email simple**.
+  - **Modale 2 étapes** (`OptInModal`) : prénom+email → CA+secteur (tél optionnel). CA+secteur **obligatoires** (servent la classification lead + personnalisent le retour de Max IA, passés à `generateExerciceFeedback`). Porte « j'ai déjà un espace » = reconnexion.
+  - **Table `cdv.participants`** (clé=email, `token`, `session_id` canonique, `lead_quality`, `attribution`). RLS **sans SELECT large** ; lecture/maj via fonctions security-definer `cdv.find_participant` / `cdv.set_participant_qualif` → emails non dumpables via la clé anon. Reconnexion = on adopte le `session_id` canonique (rattache le cahier déjà commencé).
+  - **`/api/optin`** (signup / qualify / login) → HubSpot Forms API (portail 27215892, form 991c1d4e…, eu1). ⚠️ Le formulaire exige **firstname + CA ensemble** → **une seule soumission complète** à l'étape qualify (prénom+email+CA+secteur+tél). **Le tél doit rester NON requis sur le form** (envoyé seulement si saisi).
+  - **HubSpot** : CA=`chiffre_d_affaires_annuel_new`, secteur=`secteur_dactivite_summer_business` (≠ celui de Max Piccinini : c'est le **\_summer\_business**), tél=`phone`, prénom=`firstname`.
+  - Reste optionnel : envoi d'email (différé), page `/espace/[token]` (pas nécessaire, l'identité tient via localStorage + reconnexion email).
+- [x] **Tracking GTM server-side** : `dataLayer` → `page_view` + **`generate_lead`** segmenté `lead_quality` (**'quali' ≥100K = conversion optimisée** · 'classique' <100K). Hooks server-side prêts. **Reste : poser `NEXT_PUBLIC_GTM_ID`** (+ créer les 2 conversions dans GTM SS filtrées sur `lead_quality`, + brancher Meta CAPI / Google Ads côté conteneur).
+  - Quali = 4 tranches ≥100K (`100K–999K`, `300K–1M`, `1M–10M`, `+10M`). Voir `src/lib/optin.ts` (`caLeadQuality`).
 
 ### Phase 3
 - [x] Synthèse finale : intégrée **dans la C9** (pas une page séparée). `/api/plan` + `generatePlanFinal` compilent tout le cahier (C1→C9) ; `ExerciceForm` mode `plan` sauve les derniers champs puis génère, plan persisté en localStorage (`cdv_plan_*`).
