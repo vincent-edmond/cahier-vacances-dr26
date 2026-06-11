@@ -33,6 +33,7 @@ export function OptInModal({
   if (!open) return null;
 
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const phoneOk = phone.replace(/\D/g, "").length >= 8;
 
   function finish(switched: boolean) {
     if (switched) {
@@ -61,7 +62,7 @@ export function OptInModal({
   }
 
   async function handleSignupStep2() {
-    if (!ca || !secteur || loading) return;
+    if (!ca || !secteur || !phoneOk || loading) return;
     setLoading(true);
     setError(null);
     const ok = await optinQualify(ca, secteur, phone);
@@ -154,9 +155,9 @@ export function OptInModal({
             <>
               <FieldSelect label="Votre chiffre d'affaires annuel" value={ca} onChange={setCa} options={CA_OPTIONS} placeholder="Choisir…" />
               <FieldSelect label="Votre secteur" value={secteur} onChange={setSecteur} options={SECTEUR_OPTIONS} placeholder="Choisir…" />
-              <FieldInput label="Téléphone (optionnel)" type="tel" value={phone} onChange={setPhone} placeholder="06…" />
+              <FieldInput label="Téléphone" type="tel" value={phone} onChange={setPhone} placeholder="06 12 34 56 78" />
               {error && <p className="text-sm text-red-600">{error}</p>}
-              <PrimaryBtn disabled={!ca || !secteur || loading} onClick={handleSignupStep2}>
+              <PrimaryBtn disabled={!ca || !secteur || !phoneOk || loading} onClick={handleSignupStep2}>
                 {loading ? "Un instant…" : "Recevoir mon retour de Max IA →"}
               </PrimaryBtn>
               <p className="text-[11px] text-[#9096A5] text-center leading-snug">
