@@ -48,6 +48,7 @@ const HS_SUBMIT = (portal: string, form: string) =>
 // api.hubapi.com est global (vaut aussi pour les portails EU).
 const HS_TOKEN = process.env.HUBSPOT_TOKEN; // pat-eu1-…  (secret, server-only)
 const HS_SOURCE_PROP = process.env.HUBSPOT_SOURCE_PROP || "source_summer_business";
+const HS_DATE_PROP = process.env.HUBSPOT_DATE_PROP || "date_optin_summer_business";
 const HS_CRM = "https://api.hubapi.com";
 
 type Attribution = Record<string, string> | null | undefined;
@@ -63,18 +64,31 @@ async function logIfError(label: string, res: Response): Promise<void> {
   if (!res.ok) console.error(`HubSpot ${label} error:`, res.status, (await res.text()).slice(0, 250));
 }
 
+function cleanMap(m: Record<string, string | undefined>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(m)) if (v != null && v !== "") out[k] = v;
+  return out;
+}
+
 /**
- * Upsert contact via CRM API : crée s'il n'existe pas, sinon ne complète QUE les
- * propriétés actuellement vides côté HubSpot (jamais d'écrasement). No-op sans token.
+ * Upsert contact via CRM API. Crée s'il n'existe pas. S'il existe, politique HYBRIDE :
+ *  - `fillIfEmpty` (prénom, attribution, date opt-in) : écrit SEULEMENT si vide (first-touch).
+ *  - `refresh` (tél, CA, secteur) : écrit la valeur fraîche si vide OU différente (auto-déclaré
+ *    récent = le plus fiable). Jamais d'écrasement de l'attribution. No-op sans token.
  */
-async function hubspotUpsertContact(email: string, desired: Record<string, string | undefined>): Promise<void> {
+async function hubspotUpsertContact(
+  email: string,
+  fillIfEmpty: Record<string, string | undefined>,
+  refresh: Record<string, string | undefined>,
+): Promise<void> {
   if (!HS_TOKEN) return;
-  const clean: Record<string, string> = {};
-  for (const [k, v] of Object.entries(desired)) if (v != null && v !== "") clean[k] = v;
-  if (Object.keys(clean).length === 0) return;
+  const fe = cleanMap(fillIfEmpty);
+  const rf = cleanMap(refresh);
+  const all = { ...fe, ...rf };
+  if (Object.keys(all).length === 0) return;
 
   const headers = { Authorization: `Bearer ${HS_TOKEN}`, "Content-Type": "application/json" };
-  const propList = Object.keys(clean).join(",");
+  const propList = Object.keys(all).join(",");
 
   try {
     const getRes = await fetch(
@@ -86,7 +100,7 @@ async function hubspotUpsertContact(email: string, desired: Record<string, strin
       const res = await fetch(`${HS_CRM}/crm/v3/objects/contacts`, {
         method: "POST",
         headers,
-        body: JSON.stringify({ properties: { email, ...clean } }),
+        body: JSON.stringify({ properties: { email, ...all } }),
       });
       await logIfError("create", res);
       return;
@@ -97,11 +111,10 @@ async function hubspotUpsertContact(email: string, desired: Record<string, strin
     }
 
     const contact = (await getRes.json()) as { id: string; properties: Record<string, string | null> };
+    const existing = (k: string) => (contact.properties?.[k] ?? "").toString().trim();
     const patch: Record<string, string> = {};
-    for (const [k, v] of Object.entries(clean)) {
-      const existing = (contact.properties?.[k] ?? "").toString().trim();
-      if (!existing) patch[k] = v; // uniquement si vide côté HubSpot
-    }
+    for (const [k, v] of Object.entries(fe)) if (!existing(k)) patch[k] = v; // first-touch
+    for (const [k, v] of Object.entries(rf)) if (existing(k) !== v) patch[k] = v; // rafraîchi si différent (ou vide)
     if (Object.keys(patch).length === 0) return;
 
     const res = await fetch(`${HS_CRM}/crm/v3/objects/contacts/${contact.id}`, {
@@ -218,15 +231,23 @@ export async function POST(req: NextRequest) {
     // HubSpot : via CRM API (créer ou compléter-les-vides) si token présent ;
     // sinon repli Forms API (écrase, soumission complète car firstname+CA requis ensemble).
     if (HS_TOKEN) {
-      await hubspotUpsertContact(email, {
-        [HS_FIELD.firstname]: prenom,
-        [HS_FIELD.phone]: phone,
-        [HS_FIELD.ca]: ca,
-        [HS_FIELD.secteur]: secteur,
-        hs_google_click_id: body.attribution?.gclid,
-        hs_facebook_click_id: body.attribution?.fbclid,
-        [HS_SOURCE_PROP]: buildSourceString(body.attribution),
-      });
+      await hubspotUpsertContact(
+        email,
+        {
+          // first-touch / set-once : prénom + attribution Summer Business + date d'opt-in
+          [HS_FIELD.firstname]: prenom,
+          hs_google_click_id: body.attribution?.gclid,
+          hs_facebook_click_id: body.attribution?.fbclid,
+          [HS_SOURCE_PROP]: buildSourceString(body.attribution),
+          [HS_DATE_PROP]: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
+        },
+        {
+          // rafraîchi avec la valeur fraîche (auto-déclaré récent = le plus fiable)
+          [HS_FIELD.phone]: phone,
+          [HS_FIELD.ca]: ca,
+          [HS_FIELD.secteur]: secteur,
+        },
+      );
     } else {
       await submitHubspot(
         {
