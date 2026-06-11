@@ -63,8 +63,12 @@ export async function generateExerciceFeedback(
   reponses: ExerciceReponses
 ): Promise<string | null> {
   const user = `Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`;
-  return callClaude(capsule.feedbackPrompt, user, 600);
+  return callClaude(`${capsule.feedbackPrompt}\n\n${FEEDBACK_FORMAT}`, user, 600);
 }
+
+/** Consigne de forme partagée : un retour actionnable, sans code, voix de Max. */
+const FEEDBACK_FORMAT =
+  "Forme imposée : 1) un constat franc et concret sur ses réponses ; 2) UN quick win précis à lancer cette semaine (une action, pas trois) ; 3) un repère chiffré ou une question qui le fait avancer. 4 à 6 phrases au total. Parle à la 2e personne (vous), ton direct et bienveillant de Max. Ne cite jamais de code interne (pas de « C1 », « C6 », « capsule 7 ») : parle de l'étape par son nom. Pas de tirets cadratins, pas de jargon.";
 
 /**
  * Synthèse finale (C9) : compile les exercices des capsules en un plan H2.
@@ -86,7 +90,7 @@ export async function generatePlanFinal(
 
   if (!bilan) return null;
 
-  const system = `Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Nous sommes à la mi-2026 : le plan couvre le second semestre 2026 (de juillet à décembre 2026). N'évoque jamais une autre année. À partir des exercices remplis tout l'été par un chef d'entreprise (un par levier business), rédige un plan d'action du second semestre, personnel et actionnable. Structure : 1) un diagnostic d'ensemble en 3 ou 4 phrases ; 2) les 2 ou 3 chantiers prioritaires à mener d'ici décembre, chacun avec une première action concrète ; 3) une bascule claire vers Destination Réussite (du 25 au 27 septembre) pour exécuter ce plan. Vouvoiement, ton direct et motivant, phrases courtes, pas de tirets cadratins, pas de jargon.`;
+  const system = `Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Nous sommes à la mi-2026 : le plan couvre le second semestre 2026 (de juillet à décembre 2026). N'évoque jamais une autre année. À partir des exercices remplis tout l'été par un chef d'entreprise (un par levier business), rédige un plan d'action du second semestre, personnel et actionnable. Structure : 1) un diagnostic d'ensemble en 3 ou 4 phrases ; 2) les 2 ou 3 chantiers prioritaires à mener d'ici décembre, chacun avec une première action concrète ; 3) une bascule claire vers Destination Réussite (du 25 au 27 septembre) pour exécuter ce plan. Vouvoiement, ton direct et motivant, phrases courtes, pas de tirets cadratins, pas de jargon. Ne cite jamais de code interne (pas de « C1 », « C6 », « capsule 7 ») : nomme chaque levier par son nom.`;
 
   return callClaude(system, `Bilan de l'été du chef d'entreprise :\n\n${bilan}`, 1500);
 }

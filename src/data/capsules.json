@@ -8,15 +8,15 @@
     "dateUnlock": "2026-06-30",
     "dureeMin": 10,
     "videoUrl": null,
-    "ficheHtml": "<p class=\"lead\">Vous avez consommé la moitié de votre année. Avez-vous fait la moitié de vos résultats ? Le bilan de mi-année est le point de contrôle le plus rentable : il vous reste six mois pour corriger.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Pendant que les autres lèvent le pied, c'est le moment de regarder vos chiffres en face.</li><li>Quatre chiffres suffisent : CA réalisé vs objectif, marge, trésorerie, pipeline.</li><li>La brutale honnêteté d'abord : où en êtes-vous vraiment, sans vous raconter d'histoires.</li><li>Un bilan ne sert à rien sans un levier prioritaire et une action.</li></ul>",
+    "ficheHtml": "<p class=\"lead\">Vous avez consommé la moitié de votre année. Avez-vous fait la moitié de vos résultats ? Le bilan de mi-année est le point de contrôle le plus rentable : il vous reste six mois pour corriger.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Pendant que les autres lèvent le pied, c'est le moment de regarder vos chiffres en face.</li><li>Quatre chiffres suffisent : CA réalisé vs objectif, marge, trésorerie, pipeline.</li><li>La brutale honnêteté d'abord : où en êtes-vous vraiment, sans vous raconter d'histoires.</li><li>Un bilan ne sert à rien sans un levier prioritaire et une action.</li></ul><p><strong>Soyons directs :</strong> le frein le plus puissant, c'est souvent vous-même, faute de recul. C'est exactement ce qu'un cadre extérieur comme Destination Réussite est fait pour débloquer.</p>",
     "exercice": {
       "intro": "Posez noir sur blanc votre bilan de mi-année. C'est le point de départ de tout votre parcours.",
       "champs": [
         { "id": "objectif_ca", "label": "Mon objectif de CA 2026", "type": "number", "suffix": "€", "placeholder": "Ex : 800000", "required": true },
         { "id": "ca_realise", "label": "Mon CA réalisé au 30/06", "type": "number", "suffix": "€", "placeholder": "Ex : 320000", "required": true },
         { "id": "avancement", "label": "% d'avancement sur l'objectif", "type": "computed", "computeFrom": ["ca_realise", "objectif_ca"], "suffix": "%" },
-        { "id": "marge", "label": "Ma marge ressentie", "type": "select", "options": ["En hausse", "Stable", "En baisse"], "required": true },
-        { "id": "tresorerie", "label": "Ma trésorerie", "type": "select", "options": ["Confortable", "Juste", "Tendue"], "required": true },
+        { "id": "marge", "label": "Sur 100€ vendus, combien vous reste-t-il une fois toutes les charges payées ?", "type": "select", "options": ["Plus de 15€ (marge confortable)", "Entre 8€ et 15€ (marge correcte)", "Moins de 8€ (marge serrée)", "Je ne sais pas le dire précisément"], "required": true },
+        { "id": "tresorerie", "label": "Si vos ventes s'arrêtaient demain, combien de temps votre trésorerie tiendrait ?", "type": "select", "options": ["Plus de 3 mois", "Entre 1 et 3 mois", "Moins d'un mois", "Je ne sais pas"], "required": true },
         { "id": "levier_faible", "label": "Le levier où ça coince le plus", "type": "select", "options": ["Stratégie", "Offre", "Différenciation", "Acquisition", "Vente", "Opérationnel", "Rentabilité", "Équipe"], "required": true },
         { "id": "correction", "label": "En une phrase, ce que je dois absolument corriger d'ici décembre", "type": "textarea", "placeholder": "D'ici décembre, je dois absolument…", "required": true }
       ]
@@ -181,7 +181,7 @@
     "exercice": {
       "intro": "Traquez votre plus grosse fuite, et chiffrez le cash récupérable.",
       "champs": [
-        { "id": "indicateurs", "label": "Notez vos 7 indicateurs, même approximatifs (prix moyen, volume, coûts directs, masse salariale, créances, dettes fournisseurs, stock)", "type": "textarea", "placeholder": "Prix moyen : … · Volume : … · Coûts directs : … · Masse salariale : … · Créances : … · Dettes fournisseurs : … · Stock : …", "required": true },
+        { "id": "suivi_chiffres", "label": "Aujourd'hui, suivez-vous vos marges et votre trésorerie de près ?", "type": "select", "options": ["Oui, je regarde mes chiffres chaque semaine", "De temps en temps", "Non, pas vraiment"], "required": true },
         { "id": "fuite_principale", "label": "Où est votre plus grosse fuite ?", "type": "select", "options": ["Prix", "Volume", "Coûts directs", "Masse salariale", "Créances clients", "Dettes fournisseurs", "Stock"], "required": true },
         { "id": "action", "label": "Une action cette semaine (ex : +10% sur un prix, relancer une créance, alléger un stock)", "type": "textarea", "placeholder": "Cette semaine, je…", "required": true },
         { "id": "cash_libere", "label": "Combien de cash cette action libère-t-elle ?", "type": "text", "placeholder": "Ex : ~ X €", "required": true }
@@ -237,7 +237,7 @@
       "intro": "La synthèse de l'été : transformez votre audit en plan d'action H2.",
       "champs": [
         { "id": "piliers_notes", "label": "Notez chaque pilier de 1 à 10 (mindset, vision, équipe, stratégie, marketing, finances, optimisation, protection, exécution)", "type": "textarea", "placeholder": "Mindset : … / Vision : … / Équipe : … / Stratégie : … / Marketing : … / Finances : … / Optimisation : … / Protection : … / Exécution : …", "required": true },
-        { "id": "leviers_recurrents", "label": "Reprenez vos réponses des capsules C1 à C8 : quels leviers reviennent le plus ?", "type": "textarea", "placeholder": "Les leviers qui reviennent…", "required": true },
+        { "id": "leviers_recurrents", "label": "En repensant à vos étapes précédentes, quels problèmes reviennent le plus souvent ?", "type": "textarea", "placeholder": "Ce qui revient sans cesse…", "required": true },
         { "id": "chantier_1", "label": "Chantier prioritaire n°1", "type": "text", "placeholder": "…", "required": true },
         { "id": "chantier_2", "label": "Chantier prioritaire n°2", "type": "text", "placeholder": "…", "required": true },
         { "id": "chantier_3", "label": "Chantier prioritaire n°3 (optionnel)", "type": "text", "placeholder": "…" },

@@ -45,7 +45,7 @@ export default function CapsulePage() {
   if (!capsule) {
     return (
       <AppShell>
-        <CenteredMessage title="Capsule introuvable" text="Cette capsule n'existe pas." />
+        <CenteredMessage title="Étape introuvable" text="Cette étape n'existe pas." />
       </AppShell>
     );
   }
@@ -57,7 +57,7 @@ export default function CapsulePage() {
       {mounted && !unlocked ? (
         <CenteredMessage
           title={`🔒 ${capsule.titre}`}
-          text={`Cette capsule se débloque le ${formatDateFr(capsule.dateUnlock)}. Revenez à cette date pour la découvrir.`}
+          text={`Cette étape se débloque le ${formatDateFr(capsule.dateUnlock)}. Revenez à cette date pour la découvrir.`}
         />
       ) : (
         <div className="max-w-3xl mx-auto px-5 py-8 space-y-10">
@@ -67,7 +67,7 @@ export default function CapsulePage() {
               ← Mon espace
             </Link>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0046FF] mb-2">
-              Module {capsule.num} / {TOTAL_CAPSULES} · {capsule.dureeMin} min · {capsule.levier}
+              Étape {capsule.num} / {TOTAL_CAPSULES} · {capsule.dureeMin} min · {capsule.levier}
             </p>
             <h1 className="font-display font-extrabold text-[#00194C] text-2xl sm:text-3xl leading-tight mb-2">
               {capsule.titre}
@@ -145,7 +145,7 @@ function VuButton({ vu, onClick }: { vu: boolean; onClick: () => void }) {
   if (vu) {
     return (
       <div className="mt-3 flex items-center gap-2 text-sm text-green-600 font-semibold">
-        <span>✓</span> Capsule regardée
+        <span>✓</span> Vidéo regardée
       </div>
     );
   }
@@ -154,7 +154,7 @@ function VuButton({ vu, onClick }: { vu: boolean; onClick: () => void }) {
       onClick={onClick}
       className="mt-3 inline-flex items-center gap-2 rounded-xl border border-[#E2E4EA] bg-white hover:border-[#0046FF] text-[#00194C] font-semibold text-sm px-5 py-2.5 transition-all"
     >
-      ✓ J&apos;ai regardé la capsule
+      ✓ J&apos;ai regardé la vidéo
     </button>
   );
 }
