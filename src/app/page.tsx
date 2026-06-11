@@ -267,7 +267,7 @@ export default function LandingPage() {
             <div className="lp-about-photo">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="https://mc.maxpiccinini.com/wp-content/uploads/2025/07/DS_Mxp_Og_3_Max_DS.png"
+                src="/max-p.png"
                 alt="Max Piccinini"
                 loading="lazy"
               />
