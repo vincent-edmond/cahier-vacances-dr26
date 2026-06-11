@@ -13,14 +13,24 @@ export function CtaDR({ cta, strong = false }: CtaDRProps) {
     <section
       className="relative overflow-hidden rounded-2xl text-center"
       style={{
-        background: "linear-gradient(135deg, #00194C 0%, #000D2B 100%)",
+        backgroundColor: "#000D2B",
+        backgroundImage: "url('/dr-seminar.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
         padding: strong ? "44px 28px" : "32px 28px",
       }}
     >
+      {/* Voile navy semi-transparent : laisse transparaître la photo de Destination Réussite */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
-        style={{ background: "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(0,70,255,0.28) 0%, transparent 70%)" }}
+        style={{ background: "linear-gradient(135deg, rgba(0,25,76,0.72) 0%, rgba(0,13,43,0.82) 100%)" }}
+      />
+      {/* Halo bleu (cohérence de marque), léger pour ne pas écraser la photo */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(0,70,255,0.18) 0%, transparent 70%)" }}
       />
       <div className="relative z-10 flex flex-col items-center gap-5">
         <p
@@ -31,7 +41,7 @@ export function CtaDR({ cta, strong = false }: CtaDRProps) {
         </p>
         <p
           className="text-white font-semibold max-w-xl"
-          style={{ fontSize: strong ? 22 : 18, lineHeight: 1.4 }}
+          style={{ fontSize: strong ? 22 : 18, lineHeight: 1.4, textShadow: "0 1px 14px rgba(0,8,30,0.55)" }}
         >
           {cta.texte}
         </p>
