@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Poppins, Caveat } from "next/font/google";
+import { Inter, Poppins, Dancing_Script } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -16,10 +16,10 @@ const poppins = Poppins({
 });
 
 // Signature manuscrite « by Max Piccinini »
-const caveat = Caveat({
+const dancingScript = Dancing_Script({
   variable: "--font-script",
   subsets: ["latin"],
-  weight: ["600"],
+  weight: ["600", "700"],
   display: "swap",
 });
 
@@ -37,7 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${inter.variable} ${poppins.variable} ${caveat.variable} h-full antialiased`}
+      className={`${inter.variable} ${poppins.variable} ${dancingScript.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         {children}
