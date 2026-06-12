@@ -100,6 +100,14 @@ h1, h2, h3, h4, h5, h6 {
   color: #00194C;
 }
 
+/* Mobile : on réduit un cran la typo de la fiche (moins « gros » sur petit écran). */
+@media (max-width: 640px) {
+  .fiche { font-size: 15px; }
+  .fiche .lead { font-size: 17px; line-height: 1.4; margin-bottom: 14px; }
+  .fiche h3 { font-size: 15px; }
+  .fiche blockquote { padding: 14px 16px; }
+}
+
 /* ── Scroll reveal (CSS pur, React-safe) ── */
 @keyframes revealUp {
   from { opacity: 0; transform: translateY(20px); }

@@ -73,7 +73,7 @@ export default function CapsulePage() {
             <h1 className="font-display font-extrabold text-[#00194C] text-2xl sm:text-3xl leading-tight mb-2">
               {capsule.titre}
             </h1>
-            <p className="text-lg text-[#555B6E] italic">« {capsule.accroche} »</p>
+            <p className="text-base sm:text-lg text-[#555B6E] italic">« {capsule.accroche} »</p>
           </div>
 
           {/* Vidéo */}

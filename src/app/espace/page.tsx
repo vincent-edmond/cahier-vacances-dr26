@@ -64,25 +64,6 @@ export default function HubPage() {
           Avancez à votre rythme.
         </p>
 
-        {/* Pont DR — le goulot, c'est vous (dès l'entrée) */}
-        <div className="mb-8 rounded-2xl bg-white border border-[#E6E9F0] border-l-4 border-l-[#FFB020] p-5 shadow-[0_2px_8px_rgba(0,25,76,0.05)]">
-          <p className="font-display font-bold text-[#00194C] text-[15px] mb-1.5">
-            Le plus gros goulot d&apos;étranglement de votre entreprise, c&apos;est souvent vous.
-          </p>
-          <p className="text-sm text-[#555B6E] leading-relaxed">
-            Pas par manque de travail : par manque de recul. Ces 9 étapes vous le redonnent, sans
-            complaisance. Et pour transformer ce recul en résultats, en profondeur, il y a{" "}
-            <a
-              href="https://www.maxpiccinini.com/destination-reussite/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-semibold text-[#0046FF] hover:text-[#0033CC]"
-            >
-              Destination Réussite →
-            </a>
-          </p>
-        </div>
-
         {/* Les 9 leviers — grille (tout visible sans scroll sur laptop) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {capsules.map((c) =>
@@ -98,6 +79,25 @@ export default function HubPage() {
               <div key={c.num} className="h-[136px] rounded-2xl bg-white border border-[#E2E4EA] animate-pulse" />
             )
           )}
+        </div>
+
+        {/* Pont DR — le goulot, c'est vous (après les 9 leviers) */}
+        <div className="mt-8 rounded-2xl bg-white border border-[#E6E9F0] border-l-4 border-l-[#FFB020] p-5 shadow-[0_2px_8px_rgba(0,25,76,0.05)]">
+          <p className="font-display font-bold text-[#00194C] text-[15px] mb-1.5">
+            Le plus gros goulot d&apos;étranglement de votre entreprise, c&apos;est souvent vous.
+          </p>
+          <p className="text-sm text-[#555B6E] leading-relaxed">
+            Pas par manque de travail : par manque de recul. Ces 9 étapes vous le redonnent, sans
+            complaisance. Et pour transformer ce recul en résultats, en profondeur, il y a{" "}
+            <a
+              href="https://www.maxpiccinini.com/destination-reussite/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[#0046FF] hover:text-[#0033CC]"
+            >
+              Destination Réussite →
+            </a>
+          </p>
         </div>
       </div>
     </AppShell>

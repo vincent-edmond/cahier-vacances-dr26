@@ -23,7 +23,7 @@ export default function LandingPage() {
         .lp-hero::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,70,255,0.34) 0%, transparent 70%), radial-gradient(ellipse 50% 40% at 85% 88%, rgba(37,99,255,0.16) 0%, transparent 60%), radial-gradient(ellipse 36% 32% at 10% 94%, rgba(255,176,32,0.13) 0%, transparent 60%); pointer-events:none; }
         .lp-hero::after { content:''; position:absolute; inset:0; background-image: repeating-linear-gradient(0deg, transparent 0 39px, rgba(255,255,255,0.022) 39px 40px), repeating-linear-gradient(90deg, transparent 0 39px, rgba(255,255,255,0.022) 39px 40px); -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 0%, transparent 78%); mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 0%, transparent 78%); pointer-events:none; }
         .lp-hero-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 22px; }
-        .lp-kicker { display:inline-flex; align-items:center; gap:8px; background: rgba(0,70,255,0.16); border:1px solid rgba(0,70,255,0.4); color:#6B9FFF; border-radius:100px; padding:8px 18px; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; }
+        .lp-kicker { display:inline-flex; align-items:center; gap:8px; background: rgba(0,70,255,0.16); border:1px solid rgba(0,70,255,0.4); color:#6B9FFF; border-radius:100px; padding:8px 18px; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; white-space:nowrap; max-width:100%; }
         .lp-hero h1 { font-family: var(--font-poppins); font-weight: 800; color:#fff; font-size: clamp(34px, 4.9vw, 56px); line-height: 1.04; letter-spacing: -0.02em; max-width: 840px; text-wrap: balance; }
         .lp-hero h1 .accent { display:block; font-size: 0.46em; font-weight: 700; letter-spacing: -0.01em; margin-top: 16px; text-wrap: balance; background-image: linear-gradient(90deg, #6B9FFF 0%, #2563FF 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
         .lp-hero p.sub { color: rgba(255,255,255,0.66); font-size: clamp(15px,1.4vw,16.5px); max-width: 520px; line-height: 1.6; margin-top: 2px; }
@@ -35,6 +35,11 @@ export default function LandingPage() {
         @keyframes ctaPulse { 0%,100%{ box-shadow:0 6px 28px rgba(0,70,255,0.45);} 50%{ box-shadow:0 8px 38px rgba(0,70,255,0.72);} }
         @media (prefers-reduced-motion: reduce) { .lp-cta { animation: none; } }
         .lp-hero .reassure { color: rgba(255,255,255,0.45); font-size: 13px; }
+        @media (max-width:560px){
+          .lp-kicker { font-size:10px; letter-spacing:0.05em; padding:7px 14px; gap:7px; }
+          .lp-kicker-mid { display:none; }
+          .lp-hero { padding:46px 0 56px; }
+        }
 
         .lp-section-label { font-size:12px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#0046FF; text-align:center; margin-bottom:10px; }
         .lp-section-title { font-family: var(--font-poppins); font-weight:800; color:#00194C; text-align:center; font-size: clamp(24px,4vw,38px); line-height:1.2; margin-bottom: 14px; }
@@ -132,7 +137,7 @@ export default function LandingPage() {
         <div className="container lp-hero-inner">
           <span className="lp-kicker reveal">
             <span aria-hidden style={{ width: 7, height: 7, borderRadius: "50%", background: "#FFB020", boxShadow: "0 0 10px rgba(255,176,32,0.85)", flexShrink: 0 }} />
-            Summer Business · Édition 2026 · avec Max Piccinini
+            Summer Business<span className="lp-kicker-mid"> · Édition 2026</span> · avec Max Piccinini
           </span>
           <h1 className="display reveal reveal-delay-1">
             Cet été, reprenez le contrôle de votre entreprise.
