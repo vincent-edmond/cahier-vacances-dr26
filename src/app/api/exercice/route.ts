@@ -35,8 +35,9 @@ export async function POST(req: NextRequest) {
   }
 
   // skipFeedback : on persiste seulement les réponses (cas C9 → synthèse via /api/plan).
-  // Coût de l'inaction déterministe (calé sur la tranche de CA) injecté dans le retour.
-  const cout = skipFeedback ? null : leverCost(capsuleNum, profil?.ca);
+  // Coût de l'inaction déterministe, data-driven : calé en priorité sur les chiffres
+  // de l'exercice (objectif vs réalisé, clients × panier × fréquence), sinon le CA opt-in.
+  const cout = skipFeedback ? null : leverCost(capsuleNum, profil?.ca, reponses);
   const feedbackIA = skipFeedback ? null : await generateExerciceFeedback(capsule, reponses, profil, cout);
 
   // Persistance best-effort (no-op si Supabase non configuré)

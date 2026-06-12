@@ -97,7 +97,7 @@ export async function generateExerciceFeedback(
     : "";
   const system = [MAX_VOICE, capsule.feedbackPrompt, knowledge, buildFeedbackFormat(cout)].filter(Boolean).join("\n\n");
   const user = `${profilContext(profil)}Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`;
-  return callClaude(system, user, 1300);
+  return callClaude(system, user, 1800);
 }
 
 /**
@@ -106,16 +106,16 @@ export async function generateExerciceFeedback(
  */
 function buildFeedbackFormat(cout?: CostFigures | null): string {
   const coutSection = cout
-    ? `\n##COUT## Le coût de l'inaction (la « taxe stupide » qu'il paie tant qu'il ne corrige pas ce point), 2 à 3 phrases. Tu DOIS reprendre EXACTEMENT ces montants, sans les modifier ni en inventer d'autres : environ ${formatEuro(cout.annualLow)} à ${formatEuro(cout.annualHigh)} par an, soit ${formatEuro(cout.fiveLow)} à ${formatEuro(cout.fiveHigh)} sur 5 ans. Explique CONCRÈTEMENT d'où vient ce manque à gagner dans SA situation (à partir de ses chiffres et de son secteur), pour que le montant soit crédible et que ça fasse mal — pas une formule vague.`
-    : "";
+    ? `\n##COUT## Le coût de l'inaction (la « taxe stupide » qu'il paie tant qu'il ne corrige pas ce point), 3 à 4 phrases. Tu DOIS reprendre EXACTEMENT ces montants, sans les modifier ni en inventer d'autres : environ ${formatEuro(cout.annualLow)} à ${formatEuro(cout.annualHigh)} par an, soit ${formatEuro(cout.fiveLow)} à ${formatEuro(cout.fiveHigh)} sur 5 ans. Ce chiffre vient de : ${cout.note}. Déroule ce raisonnement avec SES chiffres pour qu'il comprenne d'où sort le montant et qu'il ne puisse pas le contester, puis rends-le tangible (ce que ça représente concrètement dans sa vie d'entreprise : ce qu'il pourrait financer, embaucher, dégager avec). C'est ce manque à gagner, année après année, qui doit faire mal — pas une formule vague.`
+    : `\n##COUT## Le coût de l'inaction (le prix qu'il paie tant qu'il ne corrige pas ce point), 3 à 4 phrases. ICI, NE DONNE AUCUN montant en euros ni aucun chiffre chiffré : sur ce point, un montant serait inventé et te décrédibiliserait. Exprime ce coût autrement, de façon concrète et tangible dans SA situation — en temps de dirigeant gaspillé, en énergie et en charge mentale, en opportunités et en clients qui filent, en talents qui s'épuisent ou s'en vont, en croissance qu'il laisse à ses concurrents. Rends-le palpable pour que ça fasse mal, sans jamais le chiffrer.`;
   return (
     "Structure ta réponse avec ces balises EXACTES, chacune en début de ligne, suivie de son texte. " +
-    "N'écris aucun autre titre ni numéro.\n" +
-    "##CONSTAT## un constat franc, lucide et DÉVELOPPÉ (3 à 4 phrases claires) : ce que ses réponses révèlent vraiment, le problème de fond derrière, et pourquoi ça compte maintenant. Appuie-toi sur SES chiffres et SON secteur.\n" +
-    "##ACTION## UNE seule action à lancer cette semaine, mais EXPLIQUÉE et guidée (2 à 3 phrases) : dis précisément QUOI faire et COMMENT s'y prendre, concrètement, à sa portée — pas juste une injonction." +
+    "N'écris aucun autre titre ni numéro. Chaque section doit être SUBSTANTIELLE et complète : ne bâcle pas, développe vraiment ta pensée.\n" +
+    "##CONSTAT## un constat franc, lucide et DÉVELOPPÉ (4 à 5 phrases claires) : reformule d'abord ce que SES réponses révèlent (cite ses chiffres), nomme le problème de fond qui se cache derrière, montre la conséquence concrète si rien ne bouge, et explique pourquoi c'est précisément maintenant qu'il faut le traiter. Reste ancré sur SON secteur et SA situation, jamais générique.\n" +
+    "##ACTION## UNE seule action à lancer cette semaine, mais EXPLIQUÉE et guidée pas à pas (3 à 4 phrases) : dis précisément QUOI faire, COMMENT s'y prendre concrètement (la première étape, puis la suivante), et à quoi il verra que ça marche — quelque chose de simple et à sa portée, jamais une injonction creuse. Donne-lui de quoi passer à l'action dès aujourd'hui." +
     coutSection +
-    "\n##QUESTION## une question qui dérange et le met face à lui-même (1 à 2 phrases).\n" +
-    "RÈGLES DE FOND : (a) Clarté avant tout — des phrases COMPLÈTES et compréhensibles du premier coup, jamais cryptiques, zéro jargon ; une image de Max est bienvenue si elle éclaire, jamais si elle embrouille. (b) Apporte de la VALEUR concrète et personnalisée à CE chef d'entreprise : utilise ses chiffres, son secteur, sa situation — pas du générique. (c) Garde le punch, la franchise et le ton de Max, mais la clarté et la pertinence priment. " +
+    "\n##QUESTION## une question qui dérange et le met face à lui-même (2 phrases) : d'abord la question franche, puis un mot qui le pousse à se la poser pour de vrai.\n" +
+    "RÈGLES DE FOND : (a) Clarté avant tout — des phrases COMPLÈTES et compréhensibles du premier coup, jamais cryptiques, zéro jargon ; une image de Max est bienvenue si elle éclaire, jamais si elle embrouille. (b) Apporte de la VALEUR concrète et personnalisée à CE chef d'entreprise : utilise ses chiffres, son secteur, sa situation — pas du générique. (c) Garde le punch, la franchise et le ton de Max, mais la clarté et la pertinence priment. (d) Vise des sections riches et nourries : mieux vaut un retour dense et utile qu'un retour télégraphique. " +
     "N'emploie QUE ces balises, aucune autre (surtout pas de ##CONTRE-PIED## ni autre titre) : toute touche « contre-pied de l'été » se glisse dans la QUESTION. " +
     "Parle à la 2e personne (vous). Ne cite jamais de code interne (« C1 », « capsule 7 ») : nomme l'étape par son nom. Pas de tirets cadratins."
   );

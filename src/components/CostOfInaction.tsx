@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getQualif } from "@/lib/session";
 import { TOTAL_CAPSULES } from "@/lib/capsules";
-import { leverCost, totalCost, formatEuro, LEVER_COST } from "@/lib/cost";
+import { leverCost, totalCost, formatEuro, LEVER_COPY } from "@/lib/cost";
 
 /**
  * « Le coût de l'inaction » (taxe stupide) : carte d'électrochoc affichant le
@@ -62,7 +62,7 @@ export function CostOfInaction({ num }: { num: number }) {
     );
   }
 
-  const lever = LEVER_COST[num];
+  const lever = LEVER_COPY[num];
   return (
     <Card>
       <Eyebrow>💸 Le coût de l&apos;inaction</Eyebrow>
