@@ -93,7 +93,7 @@ export async function generateExerciceFeedback(
   cout?: CostFigures | null
 ): Promise<string | null> {
   const knowledge = COACH_KNOWLEDGE[capsule.num]
-    ? `Matière de Max sur ce levier (ancre ton analyse dans SA méthode et ses exemples ; n'utilise que ce qui colle à SA situation, ne récite pas la liste) :\n${COACH_KNOWLEDGE[capsule.num]}`
+    ? `Matière de Max sur ce levier — c'est ta CULTURE pour répondre juste, crédible et dans son style, PAS un cours à réciter :\n${COACH_KNOWLEDGE[capsule.num]}\n\nGARDE-FOUS IMPORTANTS : le destinataire est un PROSPECT (pas un client de formation payante). Reste accessible, zéro jargon technique. Ne déballe NI les listes/frameworks complets NI toute la méthode (c'est la valeur de l'accompagnement). Inspire-toi de ces repères sans les recracher ; au plus UN exemple, seulement s'il éclaire vraiment. Donne un constat lucide, UNE action simple et à sa portée, et une question qui pique. Tu peux laisser entrevoir qu'il y a plus de profondeur à creuser (avec un accompagnement), sans rien livrer de plus.`
     : "";
   const system = [MAX_VOICE, capsule.feedbackPrompt, knowledge, buildFeedbackFormat(cout)].filter(Boolean).join("\n\n");
   const user = `${profilContext(profil)}Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`;
@@ -144,7 +144,8 @@ export async function generatePlanFinal(
   const system = [
     MAX_VOICE,
     "Nous sommes à la mi-2026 : le plan couvre le second semestre 2026 (de juillet à décembre 2026). N'évoque jamais une autre année. À partir des exercices remplis tout l'été par un chef d'entreprise (un par levier business), rédige un plan d'action du second semestre, personnel et actionnable. Structure : 1) un diagnostic d'ensemble en 3 ou 4 phrases ; 2) les 2 ou 3 chantiers prioritaires à mener d'ici décembre, chacun avec une première action concrète ; 3) une bascule claire vers Destination Réussite (du 25 au 27 septembre) pour exécuter ce plan. Phrases courtes, pas de tirets cadratins, pas de jargon. Ne cite jamais de code interne (« C1 », « capsule 7 ») : nomme chaque levier par son nom.",
-    `Grille de Max pour structurer (les 9 piliers) :\n${COACH_KNOWLEDGE[9]}`,
+    `Grille de Max pour structurer (les 9 piliers) — inspiration, pas un cours à réciter :\n${COACH_KNOWLEDGE[9]}`,
+    "Le destinataire est un prospect, pas un client de formation : reste accessible, sans jargon ni méthode complète déballée. Le plan synthétise SES réponses et lui donne envie d'exécuter ; l'accompagnement (Destination Réussite) reste la marche d'après.",
   ].join("\n\n");
 
   return callClaude(system, `${profilContext(profil)}Bilan de l'été du chef d'entreprise :\n\n${bilan}`, 1800);
