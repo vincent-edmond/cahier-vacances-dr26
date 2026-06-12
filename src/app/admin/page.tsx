@@ -1,6 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { getCapsule } from "@/lib/capsules";
+
+// ─── Détail d'un prospect ────────────────────────────────────────────────────
+interface Detail {
+  profile: { prenom: string | null; email: string; phone: string | null; ca: string | null; secteur: string | null; lead_quality: string | null; source: string; created_at: string; ex_done: number; plan_done: boolean; score: number; tier: string };
+  progress: { capsule: number; vu: boolean; reponses: Record<string, string | number> | null; feedback: string | null; done_at: string | null }[];
+}
 
 // ─── Types (miroir de cdv.admin_overview) ───────────────────────────────────
 interface Overview {
@@ -36,6 +43,23 @@ export default function AdminPage() {
   const [data, setData] = useState<Overview | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Detail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const openDetail = useCallback(async (email: string) => {
+    setDetailLoading(true);
+    setDetail(null);
+    try {
+      const res = await fetch("/api/admin/participant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: sessionStorage.getItem(PWD_KEY) || "", email }),
+      });
+      if (res.ok) setDetail(((await res.json()) as { data: Detail }).data);
+    } finally {
+      setDetailLoading(false);
+    }
+  }, []);
 
   const fetchData = useCallback(async (password: string) => {
     setLoading(true);
@@ -144,7 +168,7 @@ export default function AdminPage() {
 
         {/* Top leads à contacter (lead scoring) */}
         <Card title="🔥 Leads à contacter — les plus engagés (score d'engagement)">
-          <TopLeads rows={data.top_leads} />
+          <TopLeads rows={data.top_leads} onOpen={openDetail} />
           <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
             Score /100 = CA (quali +40 · classique +15) · téléphone fourni (+10) · exercices faits (+5 chacun, max 45) · plan H2 atteint (+10).
             <span className="text-[#DC2626] font-semibold"> 🔥 Chaud ≥ 70</span> · Tiède 40-69 · Froid &lt; 40.
@@ -193,9 +217,14 @@ export default function AdminPage() {
 
         {/* Derniers inscrits */}
         <Card title={`Derniers inscrits (${data.recent.length})`}>
-          <RecentTable rows={data.recent} />
+          <RecentTable rows={data.recent} onOpen={openDetail} />
         </Card>
+        <p className="text-[11px] text-[#9096A5] text-center">Cliquez sur un prospect pour voir sa fiche complète (réponses + retours Max IA).</p>
       </main>
+
+      {(detail || detailLoading) && (
+        <ParticipantDetail detail={detail} loading={detailLoading} onClose={() => { setDetail(null); setDetailLoading(false); }} />
+      )}
     </div>
   );
 }
@@ -278,7 +307,7 @@ function FunnelChart({ funnel }: { funnel: { capsule: number; vu: number; done: 
   );
 }
 
-function TopLeads({ rows }: { rows: Overview["top_leads"] }) {
+function TopLeads({ rows, onOpen }: { rows: Overview["top_leads"]; onOpen: (email: string) => void }) {
   if (rows.length === 0) return <p className="text-sm text-[#9096A5]">Aucun lead pour l&apos;instant.</p>;
   return (
     <div className="overflow-x-auto">
@@ -297,7 +326,7 @@ function TopLeads({ rows }: { rows: Overview["top_leads"] }) {
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={r.email + i} className="border-b border-[#F0F1F5]">
+            <tr key={r.email + i} onClick={() => onOpen(r.email)} className="border-b border-[#F0F1F5] cursor-pointer hover:bg-[#F7F8FA]">
               <td className="py-2 pr-3 whitespace-nowrap">
                 <span className="font-display font-extrabold text-[#00194C] mr-2">{r.score}</span>
                 <TierBadge tier={r.tier} />
@@ -317,7 +346,7 @@ function TopLeads({ rows }: { rows: Overview["top_leads"] }) {
   );
 }
 
-function RecentTable({ rows }: { rows: Overview["recent"] }) {
+function RecentTable({ rows, onOpen }: { rows: Overview["recent"]; onOpen: (email: string) => void }) {
   if (rows.length === 0) return <p className="text-sm text-[#9096A5]">Aucun inscrit pour l'instant.</p>;
   return (
     <div className="overflow-x-auto">
@@ -337,7 +366,7 @@ function RecentTable({ rows }: { rows: Overview["recent"] }) {
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={r.email + i} className="border-b border-[#F0F1F5]">
+            <tr key={r.email + i} onClick={() => onOpen(r.email)} className="border-b border-[#F0F1F5] cursor-pointer hover:bg-[#F7F8FA]">
               <td className="py-2 pr-3 text-[#00194C] font-medium">{r.prenom || "—"}</td>
               <td className="py-2 pr-3 text-[#555B6E]">{r.email}</td>
               <td className="py-2 pr-3 text-[#555B6E] whitespace-nowrap">{r.ca ? r.ca.replace(/ de C\.A annuel/, "") : "—"}</td>
@@ -357,6 +386,104 @@ function RecentTable({ rows }: { rows: Overview["recent"] }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// ─── Fiche détaillée d'un prospect (réponses + retours Max IA) ──────────────────
+
+function AdminTag({ children }: { children: React.ReactNode }) {
+  return <span className="px-2 py-0.5 rounded-full bg-white/10 text-white/85">{children}</span>;
+}
+
+function parseFeedbackAdmin(text: string): { label: string; body: string }[] {
+  const labels: Record<string, string> = { CONSTAT: "Constat", ACTION: "Action", COUT: "Taxe stupide", QUESTION: "Question" };
+  const order = ["CONSTAT", "ACTION", "COUT", "QUESTION"];
+  const out: Record<string, string> = {};
+  const re = /##(CONSTAT|ACTION|COUT|QUESTION)##\s*([\s\S]*?)(?=##(?:CONSTAT|ACTION|COUT|QUESTION)##|$)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) out[m[1]] = m[2].trim();
+  const blocks = order.filter((k) => out[k]).map((k) => ({ label: labels[k], body: out[k] }));
+  return blocks.length ? blocks : [{ label: "", body: text }];
+}
+
+function ParticipantDetail({ detail, loading, onClose }: { detail: Detail | null; loading: boolean; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 overflow-y-auto">
+      <div className="absolute inset-0 bg-[#000D2B]/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-2xl my-8 rounded-2xl bg-white shadow-2xl overflow-hidden">
+        {loading || !detail ? (
+          <div className="p-12 text-center text-[#555B6E]">Chargement de la fiche…</div>
+        ) : (
+          <>
+            <div className="bg-gradient-to-br from-[#00194C] to-[#000D2B] text-white px-6 py-5 relative">
+              <button onClick={onClose} aria-label="Fermer" className="absolute top-3 right-4 text-white/60 hover:text-white text-xl leading-none">×</button>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-display font-extrabold text-xl">{detail.profile.prenom || "—"}</h3>
+                <span className="font-display font-extrabold text-[#6B9FFF]">{detail.profile.score}</span>
+                <TierBadge tier={detail.profile.tier} />
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/75">
+                <a href={`mailto:${detail.profile.email}`} className="hover:text-white underline">{detail.profile.email}</a>
+                {detail.profile.phone && <a href={`tel:${detail.profile.phone}`} className="hover:text-white">{detail.profile.phone}</a>}
+              </div>
+              <div className="flex flex-wrap gap-2 mt-3 text-[11px]">
+                {detail.profile.ca && <AdminTag>{detail.profile.ca.replace(/ de C\.A annuel/, "")}</AdminTag>}
+                {detail.profile.secteur && <AdminTag>{detail.profile.secteur}</AdminTag>}
+                {detail.profile.lead_quality && <AdminTag>{detail.profile.lead_quality}</AdminTag>}
+                <AdminTag>source : {detail.profile.source}</AdminTag>
+                <AdminTag>{detail.profile.ex_done}/9 étapes</AdminTag>
+                <AdminTag>inscrit le {detail.profile.created_at}</AdminTag>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              {detail.progress.length === 0 && (
+                <p className="text-sm text-[#9096A5]">Ce prospect n&apos;a pas encore commencé d&apos;étape.</p>
+              )}
+              {detail.progress.map((p) => {
+                const cap = getCapsule(p.capsule);
+                const champs = cap?.exercice.champs ?? [];
+                const answers = champs
+                  .map((c) => ({ label: c.label, value: p.reponses?.[c.id], suffix: c.suffix }))
+                  .filter((a) => a.value !== undefined && a.value !== null && `${a.value}` !== "");
+                return (
+                  <div key={p.capsule} className="rounded-xl border border-[#E2E4EA] p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-bold text-[#00194C] text-sm">Étape {p.capsule} · {cap?.titre ?? ""}</h4>
+                      <span className="text-[11px] text-[#9096A5]">{p.vu ? "👁 vue " : ""}{p.done_at ? `· ${p.done_at}` : ""}</span>
+                    </div>
+                    {answers.length > 0 ? (
+                      <dl className="space-y-1.5 mb-3">
+                        {answers.map((a, idx) => (
+                          <div key={idx} className="text-sm">
+                            <dt className="text-[#9096A5]">{a.label}</dt>
+                            <dd className="text-[#2A2D35] font-medium">{a.value}{a.suffix ? ` ${a.suffix}` : ""}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    ) : (
+                      <p className="text-xs text-[#9096A5] mb-3">Pas de réponse enregistrée (vidéo vue uniquement).</p>
+                    )}
+                    {p.feedback && (
+                      <div className="rounded-lg bg-[#0046FF]/[0.04] border border-[#0046FF]/15 p-3">
+                        <p className="text-[11px] font-bold uppercase tracking-wide text-[#0046FF] mb-1.5">💬 Retour de Max IA</p>
+                        <div className="space-y-2">
+                          {parseFeedbackAdmin(p.feedback).map((b, idx) => (
+                            <p key={idx} className="text-sm text-[#2A2D35] leading-relaxed">
+                              {b.label && <span className="font-semibold text-[#00194C]">{b.label} : </span>}{b.body}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
