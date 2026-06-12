@@ -31,8 +31,9 @@ Mécanique d'une capsule : **vidéo (embed) → fiche HTML → exercice sauvegar
 | `POST /api/exercice` | Sauve l'exercice + feedback Claude |
 | `GET/POST /api/progression` | Progression d'une session |
 | `POST /api/plan` | Compile le plan H2 (synthèse C9) à partir de tout le cahier |
-| `/admin` | Back-office (KPIs leads/sources/qualité/engagement) protégé par mot de passe |
+| `/admin` | Back-office (KPIs leads/sources/qualité/engagement + **visiteurs uniques/visites**) protégé par mot de passe |
 | `POST /api/admin/overview` | Agrégats admin via `cdv.admin_overview(p_pass)` (bcrypt, security-definer) |
+| `POST /api/visit` | Ping visiteur (entrée `/espace`) → `cdv.touch_session` (compteur type GA : unique = session, visite = +1 après 30 min) |
 
 > Routes Momentum supprimées : sign-in/up, qualify, diagnostic, chat, dashboard, guide-*, bibliotheque, plan, api/session, api/chat, etc.
 

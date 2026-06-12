@@ -109,6 +109,40 @@ as $$
 $$;
 grant execute on function cdv.set_participant_qualif(text,text,text,text,text) to anon, authenticated;
 
+-- ─── Suivi des visiteurs du SaaS (entrée /espace) — sémantique Google Analytics ─
+-- visiteur unique = 1 ligne (1 session navigateur, revenir n'en recrée pas),
+-- visite = +1 après 30 min d'inactivité. Aucune PII ; écriture via security-definer.
+create table if not exists cdv.sessions (
+  session_id text primary key,
+  first_seen timestamptz not null default now(),
+  last_seen  timestamptz not null default now(),
+  visits     integer     not null default 1,
+  source     text
+);
+alter table cdv.sessions enable row level security;
+-- Pas de policy anon : ni lisible ni modifiable via la clé anon (accès par RPC only).
+grant usage on schema cdv to anon, authenticated;
+grant all on cdv.sessions to service_role;
+
+create or replace function cdv.touch_session(p_session_id text, p_source text default null)
+returns void
+language plpgsql security definer set search_path = cdv
+as $$
+begin
+  if p_session_id is null or length(trim(p_session_id)) = 0 then
+    return;
+  end if;
+  insert into cdv.sessions (session_id, source)
+  values (p_session_id, nullif(p_source, ''))
+  on conflict (session_id) do update
+    set last_seen = now(),
+        visits = cdv.sessions.visits
+                 + case when now() - cdv.sessions.last_seen > interval '30 minutes' then 1 else 0 end,
+        source = coalesce(cdv.sessions.source, excluded.source);
+end;
+$$;
+grant execute on function cdv.touch_session(text, text) to anon, authenticated;
+
 -- ─── Exposer le schéma `cdv` à PostgREST (additif, garde public + graphql) ────
 -- À exécuter hors migration (alter role + reload de la config) :
 --   alter role authenticator set pgrst.db_schemas to 'public, graphql_public, cdv';

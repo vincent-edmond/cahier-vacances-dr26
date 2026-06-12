@@ -12,6 +12,7 @@ interface Detail {
 // ─── Types (miroir de cdv.admin_overview) ───────────────────────────────────
 interface Overview {
   totals: { leads: number; quali: number; classique: number; with_phone: number; qualified: number; today: number; last7: number; last30: number };
+  visitors: { unique: number; visits: number; optin_unique: number; today_unique: number; by_day: { day: string; count: number }[] };
   by_source: { label: string; count: number }[];
   by_secteur: { label: string; count: number }[];
   by_ca: { label: string; count: number }[];
@@ -141,6 +142,9 @@ export default function AdminPage() {
   const pctQuali = t.quali + t.classique > 0 ? Math.round((t.quali / (t.quali + t.classique)) * 100) : 0;
   const e = data.engagement;
   const actRate = t.leads > 0 ? Math.round((e.did_exercise / t.leads) * 100) : 0;
+  const v = data.visitors;
+  const optinRate = v.unique > 0 ? Math.round((v.optin_unique / v.unique) * 100) : 0;
+  const nonOptin = Math.max(0, v.unique - v.optin_unique);
 
   return (
     <div className="min-h-screen bg-[#F7F8FA]">
@@ -166,6 +170,24 @@ export default function AdminPage() {
           <Kpi label="Aujourd'hui" value={t.today} sub={`${t.last7} sur 7j · ${t.last30} sur 30j`} />
         </section>
 
+        {/* Visiteurs du SaaS (entrée /espace) — type Google Analytics */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Kpi label="Visiteurs uniques" value={v.unique} sub={`${v.today_unique} aujourd'hui`} accent="#0046FF" />
+          <Kpi label="Visites (total)" value={v.visits} sub="nouvelle visite après 30 min d'inactivité" />
+          <Kpi label="Opt-in / visiteurs" value={`${optinRate}%`} sub={`${v.optin_unique} inscrits sur ${v.unique} visiteurs`} accent="#0D9488" />
+          <Kpi label="Visiteurs non opt-in" value={nonOptin} sub="entrés mais pas encore inscrits" accent="#9096A5" />
+        </section>
+
+        {/* Visiteurs vs opt-ins par jour */}
+        <div className="grid md:grid-cols-2 gap-6">
+          <Card title="Visiteurs uniques par jour (30 j)">
+            <DayChart days={v.by_day} />
+          </Card>
+          <Card title="Opt-ins par jour (30 j)">
+            <DayChart days={data.by_day} />
+          </Card>
+        </div>
+
         {/* Top leads à contacter (lead scoring) */}
         <Card title="🔥 Leads à contacter — les plus engagés (score d'engagement)">
           <TopLeads rows={data.top_leads} onOpen={openDetail} />
@@ -173,11 +195,6 @@ export default function AdminPage() {
             Score /100 = CA (quali +40 · classique +15) · téléphone fourni (+10) · exercices faits (+5 chacun, max 45) · plan H2 atteint (+10).
             <span className="text-[#DC2626] font-semibold"> 🔥 Chaud ≥ 70</span> · Tiède 40-69 · Froid &lt; 40.
           </p>
-        </Card>
-
-        {/* Opt-ins par jour */}
-        <Card title="Opt-ins par jour (30 derniers jours)">
-          <DayChart days={data.by_day} />
         </Card>
 
         <div className="grid md:grid-cols-2 gap-6">
