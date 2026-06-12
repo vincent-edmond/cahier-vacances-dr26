@@ -1,8 +1,9 @@
 import type { Capsule, ExerciceReponses, CapsuleProgress } from "@/lib/types";
 import { formatEuro, type CostFigures } from "@/lib/cost";
+import { MAX_VOICE, COACH_KNOWLEDGE } from "@/lib/coachKnowledge";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-sonnet-4-6";
+const MODEL = "claude-opus-4-8";
 
 /** Supprime les tirets cadratins que Claude génère parfois malgré la consigne. */
 function sanitise(text: string): string {
@@ -91,8 +92,12 @@ export async function generateExerciceFeedback(
   profil?: ProfilFeedback,
   cout?: CostFigures | null
 ): Promise<string | null> {
+  const knowledge = COACH_KNOWLEDGE[capsule.num]
+    ? `Matière de Max sur ce levier (ancre ton analyse dans SA méthode et ses exemples ; n'utilise que ce qui colle à SA situation, ne récite pas la liste) :\n${COACH_KNOWLEDGE[capsule.num]}`
+    : "";
+  const system = [MAX_VOICE, capsule.feedbackPrompt, knowledge, buildFeedbackFormat(cout)].filter(Boolean).join("\n\n");
   const user = `${profilContext(profil)}Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`;
-  return callClaude(`${capsule.feedbackPrompt}\n\n${buildFeedbackFormat(cout)}`, user, 750);
+  return callClaude(system, user, 900);
 }
 
 /**
@@ -136,7 +141,11 @@ export async function generatePlanFinal(
 
   if (!bilan) return null;
 
-  const system = `Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Nous sommes à la mi-2026 : le plan couvre le second semestre 2026 (de juillet à décembre 2026). N'évoque jamais une autre année. À partir des exercices remplis tout l'été par un chef d'entreprise (un par levier business), rédige un plan d'action du second semestre, personnel et actionnable. Structure : 1) un diagnostic d'ensemble en 3 ou 4 phrases ; 2) les 2 ou 3 chantiers prioritaires à mener d'ici décembre, chacun avec une première action concrète ; 3) une bascule claire vers Destination Réussite (du 25 au 27 septembre) pour exécuter ce plan. Vouvoiement, ton direct et motivant, phrases courtes, pas de tirets cadratins, pas de jargon. Ne cite jamais de code interne (pas de « C1 », « C6 », « capsule 7 ») : nomme chaque levier par son nom.`;
+  const system = [
+    MAX_VOICE,
+    "Nous sommes à la mi-2026 : le plan couvre le second semestre 2026 (de juillet à décembre 2026). N'évoque jamais une autre année. À partir des exercices remplis tout l'été par un chef d'entreprise (un par levier business), rédige un plan d'action du second semestre, personnel et actionnable. Structure : 1) un diagnostic d'ensemble en 3 ou 4 phrases ; 2) les 2 ou 3 chantiers prioritaires à mener d'ici décembre, chacun avec une première action concrète ; 3) une bascule claire vers Destination Réussite (du 25 au 27 septembre) pour exécuter ce plan. Phrases courtes, pas de tirets cadratins, pas de jargon. Ne cite jamais de code interne (« C1 », « capsule 7 ») : nomme chaque levier par son nom.",
+    `Grille de Max pour structurer (les 9 piliers) :\n${COACH_KNOWLEDGE[9]}`,
+  ].join("\n\n");
 
-  return callClaude(system, `${profilContext(profil)}Bilan de l'été du chef d'entreprise :\n\n${bilan}`, 1500);
+  return callClaude(system, `${profilContext(profil)}Bilan de l'été du chef d'entreprise :\n\n${bilan}`, 1800);
 }

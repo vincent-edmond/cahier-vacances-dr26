@@ -45,7 +45,7 @@ Mécanique d'une capsule : **vidéo (embed) → fiche HTML → exercice sauvegar
 - `src/lib/capsules.ts` — `getCapsules/getCapsule`, `isUnlocked(capsule,{preview})`, `formatDateFr`, `DR_URL`, `TOTAL_CAPSULES`.
 - `src/lib/session.ts` — session anonyme + progression locale + sync serveur best-effort + mode preview.
 - `src/lib/supabase.ts` — client serveur ; `null` si env absentes (→ bascule localStorage).
-- `src/lib/providers/anthropic.ts` — `generateExerciceFeedback` (model `claude-sonnet-4-6`) + `generatePlanFinal` (synthèse C9, prête, pas encore câblée à une page).
+- `src/lib/providers/anthropic.ts` — `generateExerciceFeedback` + `generatePlanFinal`. **Modèle : `claude-opus-4-8`** (Opus 4.8). Le prompt injecte la **voix de Max** + une **matière de Max par capsule** (`src/lib/coachKnowledge.ts`, distillée des 9 scripts : Océan Bleu/Dyson, 3 leviers/IKEA, Rebecca's Coffee/7 KPIs, One Thing/Apple, 9 piliers…) → retours ancrés dans SA méthode, plus génériques. Enrichissement futur = RAG Pinecone (transcripts complets, cf. doc de curation).
 - Composants : `AppShell` (sidebar SaaS + drawer mobile + footer), `VideoEmbed` (YouTube/Vimeo/mp4), `ExerciceForm` (champs + % calculé + feedback ou mode `plan` en C9), `CtaDR`, `Footer`.
 
 ---
