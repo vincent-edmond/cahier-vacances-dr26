@@ -7,3 +7,18 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Consolide tout le trafic sur le domaine principal (maxpiccinini.com).
+# Évite le duplicate content SEO + le split de localStorage/session/attribution
+# entre les deux origines. Ne touche pas aux URLs deploy-preview-*.
+[[redirects]]
+  from = "https://summer-business.netlify.app/*"
+  to = "https://summer-business.maxpiccinini.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "http://summer-business.netlify.app/*"
+  to = "https://summer-business.maxpiccinini.com/:splat"
+  status = 301
+  force = true
