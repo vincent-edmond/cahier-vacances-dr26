@@ -8,7 +8,7 @@
 
 **Le Cahier de Vacances du Chef d'Entreprise** — espace web boosté à l'IA pour Max Piccinini.
 9 capsules business (« le contre-pied de l'été ») qui se débloquent au fil de l'été, du bilan
-de mi-année (C1, 30/06) au plan d'action H2 (C9, 25/08). Pont vers Destination Réussite (25-27/09).
+de mi-année (C1, jeudi 02/07) au plan d'action H2 (C9, 27/08). 1 capsule chaque jeudi. Pont vers Destination Réussite (25-27/09).
 
 **Dupliqué et simplifié depuis MOMENTUM** (on ne touche pas au SaaS Momentum en prod).
 
@@ -75,8 +75,8 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 
 ## 🎬 Drip & mode démo
 
-- Déblocage réel par date (`dateUnlock` dans capsules.json) : C1 30/06 → C9 25/08/2026.
-- Aujourd'hui (avant 30/06) tout est verrouillé en réel. **Mode démo** pour tester : `/espace?preview=1`
+- Déblocage réel par date (`dateUnlock` dans capsules.json) : **1 capsule chaque jeudi**, C1 le 02/07 → C9 le 27/08/2026.
+- Aujourd'hui (avant 02/07) tout est verrouillé en réel. **Mode démo** pour tester : `/espace?preview=1`
   (bouton « Démo » dans le hub, stocké en `localStorage` `cdv_preview`). `?preview=0` pour annuler.
 
 ---

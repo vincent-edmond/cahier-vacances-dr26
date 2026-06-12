@@ -39,7 +39,7 @@ export function setPrenom(prenom: string): void {
 // ─── Mode preview (démo avant le drip réel) ─────────────────────────────────
 
 // Démo ON par défaut (tout débloqué) tant qu'on est en phase de prévisualisation,
-// avant le vrai lancement du drip (C1 le 30/06). Coupable explicitement via le toggle
+// avant le vrai lancement du drip (C1 le 02/07). Coupable explicitement via le toggle
 // (stocke "0") ou `?preview=0`. À repasser sur false par défaut avant le lancement.
 export function isPreview(): boolean {
   if (typeof window === "undefined") return true;
