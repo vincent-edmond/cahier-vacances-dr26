@@ -11,7 +11,18 @@ interface Overview {
   by_day: { day: string; count: number }[];
   funnel: { capsule: number; vu: number; done: number }[];
   engagement: { sessions: number; did_exercise: number; plan_done: number };
-  recent: { prenom: string | null; email: string; ca: string | null; lead_quality: string | null; secteur: string | null; source: string; created_at: string; capsules_done: number }[];
+  recent: { prenom: string | null; email: string; ca: string | null; lead_quality: string | null; secteur: string | null; source: string; created_at: string; capsules_done: number; score: number; tier: string }[];
+  top_leads: { prenom: string | null; email: string; phone: string | null; ca: string | null; secteur: string | null; source: string; capsules_done: number; plan_done: boolean; score: number; tier: string }[];
+}
+
+function TierBadge({ tier }: { tier: string }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    chaud: { label: "🔥 Chaud", cls: "bg-[#DC2626]/10 text-[#DC2626]" },
+    tiede: { label: "Tiède", cls: "bg-[#F59E0B]/15 text-[#B45309]" },
+    froid: { label: "Froid", cls: "bg-[#F0F1F5] text-[#9096A5]" },
+  };
+  const t = map[tier] ?? map.froid;
+  return <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${t.cls}`}>{t.label}</span>;
 }
 
 const PWD_KEY = "cdv_admin_pwd";
@@ -130,6 +141,15 @@ export default function AdminPage() {
           <Kpi label="Leads classique (<100K)" value={t.classique} accent="#9096A5" />
           <Kpi label="Aujourd'hui" value={t.today} sub={`${t.last7} sur 7j · ${t.last30} sur 30j`} />
         </section>
+
+        {/* Top leads à contacter (lead scoring) */}
+        <Card title="🔥 Leads à contacter — les plus engagés (score d'engagement)">
+          <TopLeads rows={data.top_leads} />
+          <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
+            Score /100 = CA (quali +40 · classique +15) · téléphone fourni (+10) · exercices faits (+5 chacun, max 45) · plan H2 atteint (+10).
+            <span className="text-[#DC2626] font-semibold"> 🔥 Chaud ≥ 70</span> · Tiède 40-69 · Froid &lt; 40.
+          </p>
+        </Card>
 
         {/* Opt-ins par jour */}
         <Card title="Opt-ins par jour (30 derniers jours)">
@@ -258,6 +278,45 @@ function FunnelChart({ funnel }: { funnel: { capsule: number; vu: number; done: 
   );
 }
 
+function TopLeads({ rows }: { rows: Overview["top_leads"] }) {
+  if (rows.length === 0) return <p className="text-sm text-[#9096A5]">Aucun lead pour l&apos;instant.</p>;
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wide text-[#9096A5] border-b border-[#E2E4EA]">
+            <th className="py-2 pr-3 font-semibold">Score</th>
+            <th className="py-2 pr-3 font-semibold">Prénom</th>
+            <th className="py-2 pr-3 font-semibold">Email</th>
+            <th className="py-2 pr-3 font-semibold">Téléphone</th>
+            <th className="py-2 pr-3 font-semibold">CA</th>
+            <th className="py-2 pr-3 font-semibold">Secteur</th>
+            <th className="py-2 pr-3 font-semibold">Source</th>
+            <th className="py-2 font-semibold text-center">Étapes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={r.email + i} className="border-b border-[#F0F1F5]">
+              <td className="py-2 pr-3 whitespace-nowrap">
+                <span className="font-display font-extrabold text-[#00194C] mr-2">{r.score}</span>
+                <TierBadge tier={r.tier} />
+              </td>
+              <td className="py-2 pr-3 text-[#00194C] font-medium">{r.prenom || "—"}</td>
+              <td className="py-2 pr-3 text-[#555B6E]">{r.email}</td>
+              <td className="py-2 pr-3 text-[#555B6E] whitespace-nowrap">{r.phone || "—"}</td>
+              <td className="py-2 pr-3 text-[#555B6E] whitespace-nowrap">{r.ca ? r.ca.replace(/ de C\.A annuel/, "") : "—"}</td>
+              <td className="py-2 pr-3 text-[#555B6E]">{r.secteur || "—"}</td>
+              <td className="py-2 pr-3 text-[#555B6E]">{r.source}</td>
+              <td className="py-2 text-center text-[#00194C] font-semibold">{r.capsules_done > 0 ? `${r.capsules_done}/9` : "—"}{r.plan_done ? " ✓plan" : ""}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function RecentTable({ rows }: { rows: Overview["recent"] }) {
   if (rows.length === 0) return <p className="text-sm text-[#9096A5]">Aucun inscrit pour l'instant.</p>;
   return (
@@ -272,6 +331,7 @@ function RecentTable({ rows }: { rows: Overview["recent"] }) {
             <th className="py-2 pr-3 font-semibold">Secteur</th>
             <th className="py-2 pr-3 font-semibold">Source</th>
             <th className="py-2 pr-3 font-semibold text-center">Étapes</th>
+            <th className="py-2 pr-3 font-semibold">Score</th>
             <th className="py-2 font-semibold">Date</th>
           </tr>
         </thead>
@@ -291,6 +351,7 @@ function RecentTable({ rows }: { rows: Overview["recent"] }) {
               <td className="py-2 pr-3 text-[#555B6E]">{r.secteur || "—"}</td>
               <td className="py-2 pr-3 text-[#555B6E]">{r.source}</td>
               <td className="py-2 pr-3 text-center text-[#00194C] font-semibold">{r.capsules_done > 0 ? `${r.capsules_done}/9` : "—"}</td>
+              <td className="py-2 pr-3 whitespace-nowrap"><span className="font-semibold text-[#00194C] mr-1.5">{r.score}</span><TierBadge tier={r.tier} /></td>
               <td className="py-2 text-[#9096A5] whitespace-nowrap">{r.created_at}</td>
             </tr>
           ))}
