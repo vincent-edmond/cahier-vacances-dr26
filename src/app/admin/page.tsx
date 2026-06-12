@@ -404,7 +404,70 @@ function parseFeedbackAdmin(text: string): { label: string; body: string }[] {
   let m: RegExpExecArray | null;
   while ((m = re.exec(text)) !== null) out[m[1]] = m[2].replace(/##[A-Za-zÀ-ÿ0-9 _-]+##/g, " ").replace(/\s+/g, " ").trim();
   const blocks = order.filter((k) => out[k]).map((k) => ({ label: labels[k], body: out[k] }));
-  return blocks.length ? blocks : [{ label: "", body: text }];
+  if (blocks.length) return blocks;
+  // Format legacy (séparateurs ### sans libellés) : on découpe en paragraphes propres.
+  const parts = text.split(/#{2,}/).map((s) => s.replace(/\s+/g, " ").trim()).filter(Boolean);
+  if (parts.length > 1) return parts.map((p) => ({ label: "", body: p }));
+  // Garde-fou : jamais de balise brute affichée.
+  return [{ label: "", body: text.replace(/#{2,}[A-Za-zÀ-ÿ0-9 _-]*/g, " ").replace(/\s+/g, " ").trim() }];
+}
+
+type ProgressItem = Detail["progress"][number];
+
+/** Carte repliable (accordéon) d'une étape traitée : en-tête cliquable, détails au clic. */
+function CapsuleAccordionItem({ p, defaultOpen }: { p: ProgressItem; defaultOpen: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  const cap = getCapsule(p.capsule);
+  const champs = cap?.exercice.champs ?? [];
+  const answers = champs
+    .map((c) => ({ label: c.label, value: p.reponses?.[c.id], suffix: c.suffix }))
+    .filter((a) => a.value !== undefined && a.value !== null && `${a.value}` !== "");
+  const status = p.done_at ? "✅ exercice" : p.vu ? "👁 vidéo" : "—";
+
+  return (
+    <div className="rounded-xl border border-[#E2E4EA] overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[#F6F7F9] transition-colors"
+      >
+        <span className={`shrink-0 text-[#9096A5] text-xs transition-transform ${open ? "rotate-90" : ""}`}>▶</span>
+        <span className="shrink-0 w-7 h-7 rounded-full bg-[#00194C] text-white text-xs font-bold flex items-center justify-center">{p.capsule}</span>
+        <span className="flex-1 min-w-0">
+          <span className="block font-bold text-[#00194C] text-sm truncate">{cap?.titre ?? `Étape ${p.capsule}`}</span>
+          <span className="block text-[11px] text-[#9096A5]">{status}{p.done_at ? ` · ${p.done_at}` : ""}{p.feedback ? " · 💬 retour" : ""}</span>
+        </span>
+      </button>
+      {open && (
+        <div className="px-4 pb-4 pt-1 border-t border-[#EEF0F3]">
+          {answers.length > 0 ? (
+            <dl className="space-y-1.5 mb-3 mt-2">
+              {answers.map((a, idx) => (
+                <div key={idx} className="text-sm">
+                  <dt className="text-[#9096A5]">{a.label}</dt>
+                  <dd className="text-[#2A2D35] font-medium">{a.value}{a.suffix ? ` ${a.suffix}` : ""}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-xs text-[#9096A5] mb-3 mt-2">Pas de réponse enregistrée (vidéo vue uniquement).</p>
+          )}
+          {p.feedback && (
+            <div className="rounded-lg bg-[#0046FF]/[0.04] border border-[#0046FF]/15 p-3">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[#0046FF] mb-1.5">💬 Retour de Max IA</p>
+              <div className="space-y-2">
+                {parseFeedbackAdmin(p.feedback).map((b, idx) => (
+                  <p key={idx} className="text-sm text-[#2A2D35] leading-relaxed">
+                    {b.label && <span className="font-semibold text-[#00194C]">{b.label} : </span>}{b.body}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function ParticipantDetail({ detail, loading, onClose }: { detail: Detail | null; loading: boolean; onClose: () => void }) {
@@ -441,45 +504,9 @@ function ParticipantDetail({ detail, loading, onClose }: { detail: Detail | null
               {detail.progress.length === 0 && (
                 <p className="text-sm text-[#9096A5]">Ce prospect n&apos;a pas encore commencé d&apos;étape.</p>
               )}
-              {detail.progress.map((p) => {
-                const cap = getCapsule(p.capsule);
-                const champs = cap?.exercice.champs ?? [];
-                const answers = champs
-                  .map((c) => ({ label: c.label, value: p.reponses?.[c.id], suffix: c.suffix }))
-                  .filter((a) => a.value !== undefined && a.value !== null && `${a.value}` !== "");
-                return (
-                  <div key={p.capsule} className="rounded-xl border border-[#E2E4EA] p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-bold text-[#00194C] text-sm">Étape {p.capsule} · {cap?.titre ?? ""}</h4>
-                      <span className="text-[11px] text-[#9096A5]">{p.vu ? "👁 vue " : ""}{p.done_at ? `· ${p.done_at}` : ""}</span>
-                    </div>
-                    {answers.length > 0 ? (
-                      <dl className="space-y-1.5 mb-3">
-                        {answers.map((a, idx) => (
-                          <div key={idx} className="text-sm">
-                            <dt className="text-[#9096A5]">{a.label}</dt>
-                            <dd className="text-[#2A2D35] font-medium">{a.value}{a.suffix ? ` ${a.suffix}` : ""}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                    ) : (
-                      <p className="text-xs text-[#9096A5] mb-3">Pas de réponse enregistrée (vidéo vue uniquement).</p>
-                    )}
-                    {p.feedback && (
-                      <div className="rounded-lg bg-[#0046FF]/[0.04] border border-[#0046FF]/15 p-3">
-                        <p className="text-[11px] font-bold uppercase tracking-wide text-[#0046FF] mb-1.5">💬 Retour de Max IA</p>
-                        <div className="space-y-2">
-                          {parseFeedbackAdmin(p.feedback).map((b, idx) => (
-                            <p key={idx} className="text-sm text-[#2A2D35] leading-relaxed">
-                              {b.label && <span className="font-semibold text-[#00194C]">{b.label} : </span>}{b.body}
-                            </p>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              {detail.progress.map((p) => (
+                <CapsuleAccordionItem key={p.capsule} p={p} defaultOpen={detail.progress.length === 1} />
+              ))}
             </div>
           </>
         )}
