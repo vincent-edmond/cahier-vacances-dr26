@@ -31,6 +31,8 @@ Mécanique d'une capsule : **vidéo (embed) → fiche HTML → exercice sauvegar
 | `POST /api/exercice` | Sauve l'exercice + feedback Claude |
 | `GET/POST /api/progression` | Progression d'une session |
 | `POST /api/plan` | Compile le plan H2 (synthèse C9) à partir de tout le cahier |
+| `/admin` | Back-office (KPIs leads/sources/qualité/engagement) protégé par mot de passe |
+| `POST /api/admin/overview` | Agrégats admin via `cdv.admin_overview(p_pass)` (bcrypt, security-definer) |
 
 > Routes Momentum supprimées : sign-in/up, qualify, diagnostic, chat, dashboard, guide-*, bibliotheque, plan, api/session, api/chat, etc.
 
@@ -112,7 +114,7 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 ### Phase 3
 - [x] Synthèse finale : intégrée **dans la C9** (pas une page séparée). `/api/plan` + `generatePlanFinal` compilent tout le cahier (C1→C9) ; `ExerciceForm` mode `plan` sauve les derniers champs puis génère, plan persisté en localStorage (`cdv_plan_*`).
 - [x] Coquille SaaS : `AppShell` (sidebar gauche desktop = nav 9 leviers + états + progression + démo + CTA DR, drawer mobile) + `Footer` partagé, responsive.
-- [ ] Back-office léger `/admin` (inscrits, suivi des cahiers).
+- [x] **Back-office `/admin`** — protégé par mot de passe (bcrypt en base, fonction security-definer `cdv.admin_overview`, aucune env var à ajouter). KPIs : leads total + **quali/classique**, opt-ins/jour, **par source/secteur/CA**, **entonnoir 9 étapes** (vidéos vues vs exercices), activation, plan C9, table des inscrits. Mot de passe temp : **`summer-admin-2026`** (à changer : `update cdv.admin_config set value = crypt('NOUVEAU', gen_salt('bf')) where key='password';`).
 - [ ] Tracking (opt-in, progression, clics CTA DR → HubSpot / Hyros).
 
 ---
