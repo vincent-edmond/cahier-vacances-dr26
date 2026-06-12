@@ -253,11 +253,14 @@ export default function LandingPage() {
           <h2 className="lp-section-title display reveal">Pour les chefs d&apos;entreprise qui savent qu&apos;ils valent mieux que leur premier semestre</h2>
           <div className="lp-who-card reveal">
             <p>
-              Summer Business est pensé pour les <strong>chefs d&apos;entreprise établis</strong> qui n&apos;ont pas
-              besoin d&apos;un cours de plus, mais d&apos;un vrai moment de recul. Si vous êtes prêt à
-              <strong> regarder vos chiffres en face</strong> et à agir sur ce qui compte vraiment,
-              vous êtes exactement au bon endroit. C&apos;est gratuit, c&apos;est à votre rythme, et c&apos;est
-              fait pour vous donner une longueur d&apos;avance.
+              Summer Business est pensé pour les{" "}
+              <strong>chefs d&apos;entreprise établis</strong>{" "}
+              qui n&apos;ont pas besoin d&apos;un cours de plus, mais d&apos;un vrai moment de recul.
+              Si vous êtes prêt à{" "}
+              <strong>regarder vos chiffres en face</strong>{" "}
+              et à agir sur ce qui compte vraiment, vous êtes exactement au bon endroit. C&apos;est
+              gratuit, c&apos;est à votre rythme, et c&apos;est fait pour vous donner une longueur
+              d&apos;avance.
             </p>
           </div>
         </div>
