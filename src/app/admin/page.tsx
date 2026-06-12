@@ -402,7 +402,7 @@ function parseFeedbackAdmin(text: string): { label: string; body: string }[] {
   const out: Record<string, string> = {};
   const re = /##(CONSTAT|ACTION|COUT|QUESTION)##\s*([\s\S]*?)(?=##(?:CONSTAT|ACTION|COUT|QUESTION)##|$)/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) out[m[1]] = m[2].trim();
+  while ((m = re.exec(text)) !== null) out[m[1]] = m[2].replace(/##[A-Za-zÀ-ÿ0-9 _-]+##/g, " ").replace(/\s+/g, " ").trim();
   const blocks = order.filter((k) => out[k]).map((k) => ({ label: labels[k], body: out[k] }));
   return blocks.length ? blocks : [{ label: "", body: text }];
 }

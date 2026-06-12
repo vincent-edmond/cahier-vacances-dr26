@@ -115,6 +115,8 @@ function buildFeedbackFormat(cout?: CostFigures | null): string {
     "##ACTION## UNE action précise à lancer cette semaine, une seule (1 à 2 phrases)." +
     coutSection +
     "\n##QUESTION## une question qui dérange ou un repère chiffré qui le fait avancer (1 phrase).\n" +
+    "N'emploie QUE ces balises, aucune autre (surtout pas de ##CONTRE-PIED## ni autre titre) : toute touche " +
+    "« contre-pied de l'été » se glisse dans la QUESTION, sans nouvelle balise. " +
     "Parle à la 2e personne (vous), ton direct et bienveillant de Max. Ne cite jamais de code interne " +
     "(pas de « C1 », « capsule 7 ») : nomme l'étape par son nom. Pas de tirets cadratins, pas de jargon."
   );

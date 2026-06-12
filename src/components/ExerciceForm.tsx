@@ -321,7 +321,8 @@ function parseFeedback(text: string): Record<string, string> {
   const out: Record<string, string> = {};
   const re = /##(CONSTAT|ACTION|COUT|QUESTION)##\s*([\s\S]*?)(?=##(?:CONSTAT|ACTION|COUT|QUESTION)##|$)/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) out[m[1]] = m[2].trim();
+  // Retire d'éventuelles balises parasites (ex. ##CONTRE-PIED##) du corps.
+  while ((m = re.exec(text)) !== null) out[m[1]] = m[2].replace(/##[A-Za-zÀ-ÿ0-9 _-]+##/g, " ").replace(/\s+/g, " ").trim();
   return out;
 }
 
