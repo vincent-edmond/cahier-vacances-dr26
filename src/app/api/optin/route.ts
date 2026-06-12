@@ -141,7 +141,7 @@ async function submitHubspot(
       .map(([name, value]) => ({ name, value: value as string })),
     context: {
       ...(ctx.hutk ? { hutk: ctx.hutk } : {}),
-      pageUri: ctx.pageUri || "https://summer-business.netlify.app/",
+      pageUri: ctx.pageUri || "https://summer-business.maxpiccinini.com/",
       pageName: "Summer Business — opt-in",
     },
   };
