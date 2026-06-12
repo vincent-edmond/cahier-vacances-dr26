@@ -97,7 +97,7 @@ export async function generateExerciceFeedback(
     : "";
   const system = [MAX_VOICE, capsule.feedbackPrompt, knowledge, buildFeedbackFormat(cout)].filter(Boolean).join("\n\n");
   const user = `${profilContext(profil)}Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`;
-  return callClaude(system, user, 900);
+  return callClaude(system, user, 1300);
 }
 
 /**
@@ -106,19 +106,18 @@ export async function generateExerciceFeedback(
  */
 function buildFeedbackFormat(cout?: CostFigures | null): string {
   const coutSection = cout
-    ? `\n##COUT## Une punchline percutante, dans la voix de Max, sur le coût de l'inaction (la « taxe stupide » qu'il paie tant qu'il ne corrige pas ce point). Tu DOIS reprendre EXACTEMENT ces montants, sans les modifier ni en inventer d'autres : environ ${formatEuro(cout.annualLow)} à ${formatEuro(cout.annualHigh)} par an, soit ${formatEuro(cout.fiveLow)} à ${formatEuro(cout.fiveHigh)} sur 5 ans. Relie ce coût à SA situation concrète (ses réponses), pour que ça fasse mal tout en restant crédible. 1 à 2 phrases.`
+    ? `\n##COUT## Le coût de l'inaction (la « taxe stupide » qu'il paie tant qu'il ne corrige pas ce point), 2 à 3 phrases. Tu DOIS reprendre EXACTEMENT ces montants, sans les modifier ni en inventer d'autres : environ ${formatEuro(cout.annualLow)} à ${formatEuro(cout.annualHigh)} par an, soit ${formatEuro(cout.fiveLow)} à ${formatEuro(cout.fiveHigh)} sur 5 ans. Explique CONCRÈTEMENT d'où vient ce manque à gagner dans SA situation (à partir de ses chiffres et de son secteur), pour que le montant soit crédible et que ça fasse mal — pas une formule vague.`
     : "";
   return (
     "Structure ta réponse avec ces balises EXACTES, chacune en début de ligne, suivie de son texte. " +
     "N'écris aucun autre titre ni numéro.\n" +
-    "##CONSTAT## un constat franc et concret sur ses réponses (2 phrases).\n" +
-    "##ACTION## UNE action précise à lancer cette semaine, une seule (1 à 2 phrases)." +
+    "##CONSTAT## un constat franc, lucide et DÉVELOPPÉ (3 à 4 phrases claires) : ce que ses réponses révèlent vraiment, le problème de fond derrière, et pourquoi ça compte maintenant. Appuie-toi sur SES chiffres et SON secteur.\n" +
+    "##ACTION## UNE seule action à lancer cette semaine, mais EXPLIQUÉE et guidée (2 à 3 phrases) : dis précisément QUOI faire et COMMENT s'y prendre, concrètement, à sa portée — pas juste une injonction." +
     coutSection +
-    "\n##QUESTION## une question qui dérange ou un repère chiffré qui le fait avancer (1 phrase).\n" +
-    "N'emploie QUE ces balises, aucune autre (surtout pas de ##CONTRE-PIED## ni autre titre) : toute touche " +
-    "« contre-pied de l'été » se glisse dans la QUESTION, sans nouvelle balise. " +
-    "Parle à la 2e personne (vous), ton direct et bienveillant de Max. Ne cite jamais de code interne " +
-    "(pas de « C1 », « capsule 7 ») : nomme l'étape par son nom. Pas de tirets cadratins, pas de jargon."
+    "\n##QUESTION## une question qui dérange et le met face à lui-même (1 à 2 phrases).\n" +
+    "RÈGLES DE FOND : (a) Clarté avant tout — des phrases COMPLÈTES et compréhensibles du premier coup, jamais cryptiques, zéro jargon ; une image de Max est bienvenue si elle éclaire, jamais si elle embrouille. (b) Apporte de la VALEUR concrète et personnalisée à CE chef d'entreprise : utilise ses chiffres, son secteur, sa situation — pas du générique. (c) Garde le punch, la franchise et le ton de Max, mais la clarté et la pertinence priment. " +
+    "N'emploie QUE ces balises, aucune autre (surtout pas de ##CONTRE-PIED## ni autre titre) : toute touche « contre-pied de l'été » se glisse dans la QUESTION. " +
+    "Parle à la 2e personne (vous). Ne cite jamais de code interne (« C1 », « capsule 7 ») : nomme l'étape par son nom. Pas de tirets cadratins."
   );
 }
 

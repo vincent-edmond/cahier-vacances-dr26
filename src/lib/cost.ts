@@ -22,25 +22,27 @@ export function caToRevenue(ca?: string): number | null {
   }
 }
 
-/** Par levier : impact annuel (fourchette, % du CA) + libellé du problème + douleur. */
+/** Par levier : manque à gagner ANNUEL (fourchette, % du CA) + problème + douleur.
+ * Calibré sur le « money left on the table » réel d'un levier mal travaillé (croissance
+ * non captée, marge qui fuit, temps perdu), pas sur un pourcentage symbolique. */
 export const LEVER_COST: Record<number, { low: number; high: number; probleme: string; douleur: string }> = {
-  1: { low: 0.010, high: 0.025, probleme: "Piloter sans objectif chiffré clair",
+  1: { low: 0.05, high: 0.12, probleme: "Piloter sans objectif chiffré clair",
        douleur: "Sans cap précis, vous corrigez trop tard et laissez filer des points de croissance chaque mois." },
-  2: { low: 0.015, high: 0.030, probleme: "Une énergie dispersée sur trop de priorités",
+  2: { low: 0.06, high: 0.14, probleme: "Une énergie dispersée sur trop de priorités",
        douleur: "À vouloir tout faire, on avance sur rien : l'éparpillement a un coût bien réel." },
-  3: { low: 0.015, high: 0.030, probleme: "Un modèle et une offre pas assez solides",
+  3: { low: 0.08, high: 0.18, probleme: "Un modèle et une offre pas assez solides",
        douleur: "Une offre tiède se vend mal et finit bradée : c'est de la marge qui s'évapore." },
-  4: { low: 0.020, high: 0.040, probleme: "Subir la guerre des prix, faute de différenciation",
+  4: { low: 0.08, high: 0.18, probleme: "Subir la guerre des prix, faute de différenciation",
        douleur: "Sans avantage clair, vous justifiez vos prix au lieu de les imposer." },
-  5: { low: 0.015, high: 0.030, probleme: "Du temps de dirigeant noyé dans l'opérationnel",
+  5: { low: 0.05, high: 0.12, probleme: "Du temps de dirigeant noyé dans l'opérationnel",
        douleur: "Chaque heure passée dans l'exécution est une heure volée à la croissance." },
-  6: { low: 0.025, high: 0.045, probleme: "Des leviers de croissance laissés en jachère",
+  6: { low: 0.10, high: 0.22, probleme: "Des leviers de croissance laissés en jachère",
        douleur: "Le chiffre d'affaires que vous n'allez pas chercher, un concurrent le prend à votre place." },
-  7: { low: 0.025, high: 0.045, probleme: "Des marges qui fuient et des prix trop bas",
+  7: { low: 0.06, high: 0.15, probleme: "Des marges qui fuient et des prix trop bas",
        douleur: "Quelques points de marge perdus à chaque vente, ça finit par chiffrer très lourd." },
-  8: { low: 0.015, high: 0.030, probleme: "Une équipe pas encore au niveau de vos ambitions",
+  8: { low: 0.05, high: 0.13, probleme: "Une équipe pas encore au niveau de vos ambitions",
        douleur: "Seul ou mal entouré, vous restez vous-même le plafond de votre entreprise." },
-  9: { low: 0.015, high: 0.030, probleme: "Un second semestre sans plan d'exécution",
+  9: { low: 0.05, high: 0.12, probleme: "Un second semestre sans plan d'exécution",
        douleur: "Un bon diagnostic sans plan, c'est une intention qui ne rapporte rien." },
 };
 
@@ -59,15 +61,13 @@ export function leverCost(num: number, ca?: string): CostFigures | null {
   return { annualLow, annualHigh, fiveLow: annualLow * 5, fiveHigh: annualHigh * 5 };
 }
 
-/** Cumul des 9 leviers (pour la C9). */
+/** Cumul des 9 leviers (pour la C9). Agrégat RÉALISTE (les leviers se recoupent),
+ * pas la somme brute : ~20 à 40 % du CA par an de potentiel non capté. */
 export function totalCost(ca?: string): CostFigures | null {
   const rev = caToRevenue(ca);
   if (rev == null) return null;
-  let lo = 0, hi = 0;
-  for (let n = 1; n <= TOTAL_CAPSULES; n++) {
-    const imp = LEVER_COST[n];
-    if (imp) { lo += rev * imp.low; hi += rev * imp.high; }
-  }
+  const lo = rev * 0.20;
+  const hi = rev * 0.40;
   return { annualLow: lo, annualHigh: hi, fiveLow: lo * 5, fiveHigh: hi * 5 };
 }
 
