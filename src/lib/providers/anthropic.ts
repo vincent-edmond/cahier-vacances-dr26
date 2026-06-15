@@ -112,7 +112,7 @@ function costInstruction(cout?: CostFigures | null): string {
       `environ ${formatEuro(cout.annualLow)} à ${formatEuro(cout.annualHigh)} par an, soit ${formatEuro(cout.fiveLow)} à ${formatEuro(cout.fiveHigh)} sur 5 ans. ` +
       `Base du calcul à expliquer avec SES chiffres : ${cout.note}.`;
     if (cout.discrepancy) {
-      s += ` ${cout.discrepancy} Signale-le en UNE phrase courte, SIMPLE et DIRECTE, avec des mots de tous les jours (évite les tournures rédigées du type « réalisé annualisé pointe vers » ; dis plutôt, par exemple : « Vos deux chiffres ne collent pas : vos ventes donnent X, mais vos clients donnent Y. Je pars sur Y. »). Ne le développe pas, ne le commente pas, et ne le colle PAS à une phrase qui valide son choix de levier (ce sont deux sujets distincts, ne dis pas « vos chiffres vous donnent raison » juste à côté). Puis enchaîne sur ton analyse.`;
+      s += ` ${cout.discrepancy} Signale-le en UNE phrase courte, SIMPLE et DIRECTE, avec des mots de tous les jours (évite les tournures rédigées du type « réalisé annualisé pointe vers »), et précise BRIÈVEMENT d'où vient CHAQUE chiffre. Exemple : « Vos deux chiffres ne collent pas : vos ventes (300 000 € à mi-année, doublées) donnent 600 000 €, mais vos clients (8000 × 25 € × 4) donnent 800 000 €. Je pars sur 800 000 €. » Ne le développe pas, ne le commente pas, et ne le colle PAS à une phrase qui valide son choix de levier (ne dis pas « vos chiffres vous donnent raison » juste à côté). Puis enchaîne sur ton analyse.`;
     }
     return s;
   }

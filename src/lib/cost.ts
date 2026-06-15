@@ -158,11 +158,15 @@ export function leverCost(num_: number, ca?: string, reponses?: ExerciceReponses
   // volumes clients × panier × fréquence de l'autre, écart > 15 %), on le signale pour que
   // Max IA le relève de façon NEUTRE et précise sur quel chiffre il base son analyse.
   if (num_ === 6) {
+    // On ne compare qu'à un chiffre RÉEL et actuel : le réalisé mi-année annualisé
+    // (pas l'objectif, qui est une cible et non un chiffre déjà réalisé).
     const realise = num(merged.ca_realise);
-    const annualized = realise ? realise * 2 : num(merged.objectif_ca);
     const reconstituted = canon.rev;
-    if (annualized && reconstituted && Math.abs(annualized - reconstituted) / Math.max(annualized, reconstituted) > 0.15) {
-      fig.discrepancy = `Deux chiffres de CA ne collent pas entre eux : ses ventes donnent environ ${formatEuro(annualized)} sur l'année, mais ses volumes clients (clients × panier × fréquence) donnent plutôt ${formatEuro(reconstituted)}.`;
+    if (realise && reconstituted) {
+      const annualized = realise * 2;
+      if (Math.abs(annualized - reconstituted) / Math.max(annualized, reconstituted) > 0.15) {
+        fig.discrepancy = `Deux chiffres de CA ne collent pas entre eux : ses ventes donnent environ ${formatEuro(annualized)} sur l'année (${formatEuro(realise)} encaissés à mi-année, doublés), mais ses volumes clients (clients × panier × fréquence) donnent plutôt ${formatEuro(reconstituted)}.`;
+      }
     }
   }
   return fig;
