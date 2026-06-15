@@ -120,7 +120,7 @@ export function ExerciceForm({
             <div className="rounded-2xl border border-[#0046FF]/25 bg-gradient-to-br from-[#0046FF]/[0.06] to-[#00194C]/[0.03] p-6 sm:p-7">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-lg">📋</span>
-                <h4 className="font-display font-bold text-[#00194C] text-lg">Votre plan d&apos;action H2</h4>
+                <h4 className="font-display font-bold text-[#00194C] text-lg">Votre plan d&apos;action</h4>
               </div>
               <p className="text-[#2A2D35] leading-relaxed whitespace-pre-line">{feedback}</p>
             </div>
@@ -169,7 +169,7 @@ export function ExerciceForm({
             className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0046FF] hover:bg-[#0033CC] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-7 py-3.5 transition-all ${!missing ? "cta-glow" : ""}`}
           >
             {mode === "plan"
-              ? <>Générer mon plan d&apos;action H2 <span className="arrow">→</span></>
+              ? <>Générer mon plan d&apos;action <span className="arrow">→</span></>
               : <>Obtenir le retour de Max IA <span className="arrow">→</span></>}
           </button>
           {missing && (

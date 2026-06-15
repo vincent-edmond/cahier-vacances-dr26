@@ -48,6 +48,7 @@ create table if not exists cdv.participants (
   ca           text,        -- tranche CA (chiffre_d_affaires_annuel_new)
   secteur      text,        -- secteur_dactivite_summer_business
   lead_quality text,        -- 'quali' (>=100K) | 'classique' (<100K)
+  activite     text,        -- activité + client idéal en 1 phrase (contexte Max IA)
   session_id   text,        -- session anonyme rattachée → progression
   attribution  jsonb,       -- utm_*, gclid, fbclid (first-touch)
   created_at   timestamptz  not null default now(),
@@ -98,16 +99,17 @@ grant execute on function cdv.find_participant(text) to anon, authenticated;
 -- Qualif via security-definer : un UPDATE direct serait filtré à 0 ligne faute de
 -- policy SELECT (choix volontaire). La fonction bypasse RLS proprement.
 create or replace function cdv.set_participant_qualif(
-  p_email text, p_ca text, p_secteur text, p_phone text, p_lead_quality text
+  p_email text, p_ca text, p_secteur text, p_phone text, p_lead_quality text, p_activite text default null
 ) returns void
 language sql security definer set search_path = cdv
 as $$
   update cdv.participants
      set ca = p_ca, secteur = p_secteur, phone = p_phone,
-         lead_quality = p_lead_quality, updated_at = now()
+         lead_quality = p_lead_quality,
+         activite = coalesce(p_activite, activite), updated_at = now()
    where lower(email) = lower(p_email);
 $$;
-grant execute on function cdv.set_participant_qualif(text,text,text,text,text) to anon, authenticated;
+grant execute on function cdv.set_participant_qualif(text,text,text,text,text,text) to anon, authenticated;
 
 -- ─── Suivi des visiteurs du SaaS (entrée /espace) — sémantique Google Analytics ─
 -- visiteur unique = 1 ligne (1 session navigateur, revenir n'en recrée pas),

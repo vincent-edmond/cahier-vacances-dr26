@@ -45,3 +45,6 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+
+# Docs de travail privés (retours, mémos)
+*.pdf

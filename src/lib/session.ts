@@ -74,8 +74,8 @@ function setParticipantLocal(p: Participant): void {
   localStorage.setItem(PARTICIPANT_KEY, JSON.stringify(p));
 }
 
-/** Profil de qualif (CA + secteur) — sert à personnaliser le retour Max IA. */
-export function getQualif(): { ca?: string; secteur?: string } | null {
+/** Profil de qualif (CA + secteur + activité) — sert à personnaliser le retour Max IA. */
+export function getQualif(): { ca?: string; secteur?: string; activite?: string } | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(QUALIF_KEY);
@@ -136,6 +136,7 @@ export async function optinQualify(
   secteur: string,
   phone: string,
   country?: string,
+  activite?: string,
 ): Promise<{ ok: boolean; error?: string }> {
   const p = getParticipant();
   if (!p) return { ok: false };
@@ -143,7 +144,7 @@ export async function optinQualify(
     const res = await fetch("/api/optin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode: "qualify", token: p.token, email: p.email, prenom: p.prenom, ca, secteur, phone, country, attribution: getAttribution() }),
+      body: JSON.stringify({ mode: "qualify", token: p.token, email: p.email, prenom: p.prenom, ca, secteur, phone, country, activite, attribution: getAttribution() }),
     });
     if (!res.ok) {
       const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -152,7 +153,7 @@ export async function optinQualify(
     // Persiste le profil seulement après validation serveur (sert au feedback Max IA
     // et au calcul du coût de l'inaction). L'event rafraîchit les blocs coût en direct.
     if (typeof window !== "undefined") {
-      localStorage.setItem(QUALIF_KEY, JSON.stringify({ ca, secteur }));
+      localStorage.setItem(QUALIF_KEY, JSON.stringify({ ca, secteur, activite: activite?.trim() || undefined }));
       window.dispatchEvent(new Event("cdv:qualif"));
     }
     return { ok: true };

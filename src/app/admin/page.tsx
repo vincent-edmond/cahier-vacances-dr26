@@ -5,7 +5,7 @@ import { getCapsule } from "@/lib/capsules";
 
 // ─── Détail d'un prospect ────────────────────────────────────────────────────
 interface Detail {
-  profile: { prenom: string | null; email: string; phone: string | null; ca: string | null; secteur: string | null; lead_quality: string | null; source: string; created_at: string; ex_done: number; plan_done: boolean; score: number; tier: string };
+  profile: { prenom: string | null; email: string; phone: string | null; ca: string | null; secteur: string | null; activite: string | null; lead_quality: string | null; source: string; created_at: string; ex_done: number; plan_done: boolean; score: number; tier: string };
   progress: { capsule: number; vu: boolean; reponses: Record<string, string | number> | null; feedback: string | null; done_at: string | null }[];
 }
 
@@ -192,7 +192,7 @@ export default function AdminPage() {
         <Card title="🔥 Leads à contacter — les plus engagés (score d'engagement)">
           <TopLeads rows={data.top_leads} onOpen={openDetail} />
           <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
-            Score /100 = CA (quali +40 · classique +15) · téléphone fourni (+10) · exercices faits (+5 chacun, max 45) · plan H2 atteint (+10).
+            Score /100 = CA (quali +40 · classique +15) · téléphone fourni (+10) · exercices faits (+5 chacun, max 45) · plan final atteint (+10).
             <span className="text-[#DC2626] font-semibold"> 🔥 Chaud ≥ 70</span> · Tiède 40-69 · Froid &lt; 40.
           </p>
         </Card>
@@ -224,7 +224,7 @@ export default function AdminPage() {
           <Kpi label="Sessions actives" value={e.sessions} sub="ont au moins ouvert une étape" />
           <Kpi label="Ont fait ≥1 exercice" value={e.did_exercise} accent="#0046FF" />
           <Kpi label="Taux d'activation" value={`${actRate}%`} sub="leads → ≥1 exercice" accent="#10B981" />
-          <Kpi label="Plan H2 généré (C9)" value={e.plan_done} accent="#EC4899" />
+          <Kpi label="Plan final généré (C9)" value={e.plan_done} accent="#EC4899" />
         </section>
 
         {/* Funnel par capsule */}
@@ -515,6 +515,11 @@ function ParticipantDetail({ detail, loading, onClose }: { detail: Detail | null
                 <AdminTag>{detail.profile.ex_done}/9 étapes</AdminTag>
                 <AdminTag>inscrit le {detail.profile.created_at}</AdminTag>
               </div>
+              {detail.profile.activite && (
+                <p className="mt-3 border-t border-white/10 pt-3 text-[13px] leading-snug text-white/85">
+                  <span className="text-white/55">Activité : </span>{detail.profile.activite}
+                </p>
+              )}
             </div>
 
             <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">

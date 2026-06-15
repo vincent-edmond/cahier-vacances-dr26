@@ -63,6 +63,8 @@ async function callClaude(system: string, user: string, maxTokens = 600): Promis
 export interface ProfilFeedback {
   ca?: string;
   secteur?: string;
+  /** Activité + client idéal en une phrase (capté à l'opt-in) : le contexte clé. */
+  activite?: string;
 }
 
 /**
@@ -73,30 +75,90 @@ export interface ProfilFeedback {
 function profilContext(profil?: ProfilFeedback): string {
   if (!profil) return "";
   const realSecteur = profil.secteur && profil.secteur !== "Autre" ? profil.secteur : null;
+  const activite = profil.activite?.trim();
   const bits: string[] = [];
   if (realSecteur) bits.push(`secteur : ${realSecteur}`);
   if (profil.ca) bits.push(`CA : ${profil.ca}`);
-  if (bits.length === 0) return "";
+  if (!activite && bits.length === 0) return "";
   const guard = realSecteur
     ? ""
     : " Le secteur n'est pas précisé : reste générique, ne nomme ou n'invente aucun secteur (n'écris jamais « votre secteur »).";
-  return `Contexte du chef d'entreprise, pour calibrer ton retour à son échelle (sans le citer mot pour mot) : ${bits.join(" ; ")}.${guard}\n\n`;
+  const lignes: string[] = [];
+  if (activite) {
+    lignes.push(
+      `Son activité, décrite par lui-même : « ${activite} ». Sers-t'en pour comprendre ce qu'il vend et à qui ; n'extrapole RIEN au-delà de ce qu'il a écrit (ne suppose ni équipe, ni modèle, ni clientèle qu'il n'a pas mentionnés).`
+    );
+  }
+  if (bits.length) lignes.push(`Pour calibrer ton retour à son échelle (sans le citer mot pour mot) : ${bits.join(" ; ")}.${guard}`);
+  return lignes.join("\n") + "\n\n";
+}
+
+/**
+ * « Fil rouge » : récap compact et déterministe des points-clés des capsules DÉJÀ
+ * faites, pour que l'IA garde le contexte d'une étape à l'autre — sans recoller les
+ * exercices entiers. On ne retient que le ou les champs « signal » de chaque capsule.
+ */
+const FIL_ROUGE_TITRE: Record<number, string> = {
+  1: "Bilan", 2: "Cap du semestre", 3: "Offre", 4: "Différenciation",
+  5: "Opérationnel", 6: "Croissance", 7: "Rentabilité", 8: "Équipe",
+};
+const FIL_ROUGE_FIELDS: Record<number, { id: string; tag: string }[]> = {
+  1: [{ id: "objectif_ca", tag: "objectif CA" }, { id: "ca_realise", tag: "réalisé mi-année" }, { id: "marge", tag: "marge" }, { id: "tresorerie", tag: "trésorerie" }, { id: "levier_faible", tag: "levier faible" }],
+  2: [{ id: "cap_phrase", tag: "cap" }],
+  3: [{ id: "offre_phrase", tag: "offre" }, { id: "note_irresistible", tag: "note offre/10" }],
+  4: [{ id: "phrase_strategie", tag: "avantage" }],
+  5: [{ id: "tache_couteuse", tag: "tâche chronophage" }, { id: "delegue_a", tag: "à déléguer" }],
+  6: [{ id: "levier_sous_exploite", tag: "levier sous-exploité" }, { id: "nb_clients", tag: "clients" }, { id: "panier_moyen", tag: "panier" }, { id: "frequence", tag: "fréquence/an" }],
+  7: [{ id: "fuite_principale", tag: "plus grosse fuite" }],
+  8: [{ id: "poste", tag: "poste clé" }],
+};
+
+export interface PriorAnswers {
+  capsuleNum: number;
+  reponses: ExerciceReponses | null;
+}
+
+function buildFilRouge(prior: PriorAnswers[], currentNum: number): string {
+  const lignes: string[] = [];
+  for (const p of [...prior].sort((a, b) => a.capsuleNum - b.capsuleNum)) {
+    if (p.capsuleNum === currentNum || !p.reponses) continue;
+    const fields = FIL_ROUGE_FIELDS[p.capsuleNum];
+    if (!fields) continue;
+    const bits = fields
+      .map(({ id, tag }) => {
+        const v = p.reponses?.[id];
+        return v === undefined || v === null || `${v}`.trim() === "" ? null : `${tag} : ${`${v}`.trim().slice(0, 120)}`;
+      })
+      .filter(Boolean);
+    if (bits.length) lignes.push(`- ${FIL_ROUGE_TITRE[p.capsuleNum] ?? `Étape ${p.capsuleNum}`} → ${bits.join(" ; ")}`);
+  }
+  if (!lignes.length) return "";
+  return (
+    "Ce que ce chef d'entreprise a déjà partagé lors des étapes précédentes (sers-t'en pour faire le lien et montrer une continuité, sans tout répéter, et sans rien affirmer au-delà de ces éléments) :\n" +
+    lignes.join("\n")
+  );
 }
 
 /** Feedback IA personnalisé sur l'exercice d'une capsule. `cout` (déterministe,
  * calculé en amont) est injecté tel quel : Max IA l'emballe en punchline sans
- * inventer de chiffre. */
+ * inventer de chiffre. `prior` = réponses des capsules déjà faites (fil rouge). */
 export async function generateExerciceFeedback(
   capsule: Capsule,
   reponses: ExerciceReponses,
   profil?: ProfilFeedback,
-  cout?: CostFigures | null
+  cout?: CostFigures | null,
+  prior?: PriorAnswers[]
 ): Promise<string | null> {
   const knowledge = COACH_KNOWLEDGE[capsule.num]
     ? `Matière de Max sur ce levier — c'est ta CULTURE pour répondre juste, crédible et dans son style, PAS un cours à réciter :\n${COACH_KNOWLEDGE[capsule.num]}\n\nGARDE-FOUS IMPORTANTS : le destinataire est un PROSPECT (pas un client de formation payante). Reste accessible, zéro jargon technique. Ne déballe NI les listes/frameworks complets NI toute la méthode (c'est la valeur de l'accompagnement). Inspire-toi de ces repères sans les recracher ; au plus UN exemple, seulement s'il éclaire vraiment. Donne un constat lucide, UNE action simple et à sa portée, et une question qui pique. Tu peux laisser entrevoir qu'il y a plus de profondeur à creuser (avec un accompagnement), sans rien livrer de plus.`
     : "";
   const system = [MAX_VOICE, capsule.feedbackPrompt, knowledge, buildFeedbackFormat(cout)].filter(Boolean).join("\n\n");
-  const user = `${profilContext(profil)}Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`;
+  const filRouge = prior?.length ? buildFilRouge(prior, capsule.num) : "";
+  const user = [
+    profilContext(profil).trimEnd(),
+    filRouge,
+    `Réponses de l'exercice « ${capsule.titre} » :\n${formatReponses(capsule, reponses)}`,
+  ].filter(Boolean).join("\n\n");
   return callClaude(system, user, 1800);
 }
 
@@ -116,6 +178,7 @@ function buildFeedbackFormat(cout?: CostFigures | null): string {
     coutSection +
     "\n##QUESTION## une question qui dérange et le met face à lui-même (2 phrases) : d'abord la question franche, puis un mot qui le pousse à se la poser pour de vrai.\n" +
     "RÈGLES DE FOND : (a) Clarté avant tout — des phrases COMPLÈTES et compréhensibles du premier coup, jamais cryptiques, zéro jargon ; une image de Max est bienvenue si elle éclaire, jamais si elle embrouille. (b) Apporte de la VALEUR concrète et personnalisée à CE chef d'entreprise : utilise ses chiffres, son secteur, sa situation — pas du générique. (c) Garde le punch, la franchise et le ton de Max, mais la clarté et la pertinence priment. (d) Vise des sections riches et nourries : mieux vaut un retour dense et utile qu'un retour télégraphique. " +
+    "(e) N'AFFIRME JAMAIS ce que ses réponses ne prouvent pas. S'il manque une information (rétention, raisons, effectifs, intentions du client…), formule-la au CONDITIONNEL (« il se peut que… », « si c'est votre cas… ») plutôt que de l'affirmer ou de l'inventer — c'est ce qui te décrédibiliserait. Exemple : une fréquence d'achat de 1 fois par an ne veut PAS dire qu'un client ne revient jamais (il peut racheter chaque année pendant 10 ans). (f) Quand l'utilisateur a lui-même DÉSIGNÉ un choix dans ses réponses (le levier le plus sous-exploité, sa plus grosse fuite, sa priorité…), construis ton constat, ton action et ta question SUR CE CHOIX précis, jamais sur un autre que tu jugerais plus pertinent. " +
     "N'emploie QUE ces balises, aucune autre (surtout pas de ##CONTRE-PIED## ni autre titre) : toute touche « contre-pied de l'été » se glisse dans la QUESTION. " +
     "Parle à la 2e personne (vous). Ne cite jamais de code interne (« C1 », « capsule 7 ») : nomme l'étape par son nom. Pas de tirets cadratins."
   );

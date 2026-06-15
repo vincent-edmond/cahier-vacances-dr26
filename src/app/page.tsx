@@ -111,6 +111,8 @@ export default function LandingPage() {
         @media (max-width:860px){ .lp-about-media { justify-content:center; } }
         .lp-about-media .tag { font-size:12px; color:#9096A5; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; }
         .lp-about-media .name { background:#fff; border:1px solid #E6E9F0; border-radius:8px; padding:6px 14px; font-size:13px; font-weight:600; color:#2A2D35; }
+        .lp-about-media .logo { height:24px; width:auto; max-width:108px; object-fit:contain; filter:grayscale(1) opacity(0.6); transition:filter .2s ease; }
+        .lp-about-media .logo:hover { filter:grayscale(0) opacity(1); }
 
         /* FINAL */
         .lp-final { position:relative; overflow:hidden; background:#000D2B; padding:88px 0; text-align:center; }
@@ -140,12 +142,12 @@ export default function LandingPage() {
             Summer Business<span className="lp-kicker-mid"> · Édition 2026</span> · avec Max Piccinini
           </span>
           <h1 className="display reveal reveal-delay-1">
-            Cet été, reprenez le contrôle de votre entreprise.
+            Cet été, préparez-vous à devenir le Leader de votre marché.
             <span className="accent">Pendant que vos concurrents lèvent le pied.</span>
           </h1>
           <p className="sub reveal reveal-delay-2">
-            9 étapes guidées par Max Piccinini pour faire le point, corriger vos vrais leviers
-            et repartir avec un plan d&apos;action clair pour vos six derniers mois.
+            9 étapes guidées par Max Piccinini pour gagner en perspectives, activer vos leviers
+            de croissance et repartir avec un plan d&apos;action clair pour faire une fin d&apos;année explosive&nbsp;!
           </p>
           <Link href="/espace" className="lp-cta reveal reveal-delay-2">Je commence gratuitement <span className="arrow">→</span></Link>
           <p className="reassure reveal reveal-delay-3">Accès libre · à votre rythme · pour chefs d&apos;entreprise établis</p>
@@ -246,6 +248,13 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* CTA intermédiaire → entrée dans le SaaS (pas DR : les CTA DR sont dans l'espace) */}
+      <section style={{ background: "#EDF1F8", padding: "4px 0 76px", textAlign: "center" }}>
+        <div className="container">
+          <Link href="/espace" className="lp-cta">Je commence gratuitement <span className="arrow">→</span></Link>
+        </div>
+      </section>
+
       {/* POUR QUI */}
       <section className="lp-who">
         <div className="container">
@@ -296,8 +305,8 @@ export default function LandingPage() {
                 {[
                   { num: "170 000+", label: "Entrepreneurs accompagnés" },
                   { num: "25+ pays", label: "Dans le monde" },
-                  { num: "100M€+", label: "de CA généré pour ses clients" },
-                  { num: "7M+", label: "Personnes touchées / mois" },
+                  { num: "200M€+", label: "de CA généré pour ses clients" },
+                  { num: "23M+", label: "Personnes touchées sur les réseaux / mois" },
                 ].map((s) => (
                   <div key={s.label} className="lp-about-stat">
                     <div className="num">{s.num}</div>
@@ -307,8 +316,14 @@ export default function LandingPage() {
               </div>
               <div className="lp-about-media">
                 <span className="tag">Vu sur</span>
-                {["France 2", "BFM TV", "Forbes", "France Inter"].map((n) => (
-                  <span key={n} className="name">{n}</span>
+                {[
+                  { src: "/logos/france2.svg", alt: "France 2" },
+                  { src: "/logos/bfmtv.svg", alt: "BFM TV" },
+                  { src: "/logos/forbes.svg", alt: "Forbes" },
+                  { src: "/logos/franceinter.svg", alt: "France Inter" },
+                ].map((l) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={l.alt} src={l.src} alt={l.alt} className="logo" loading="lazy" />
                 ))}
               </div>
             </div>

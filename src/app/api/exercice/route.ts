@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     capsuleNum?: number;
     reponses?: ExerciceReponses;
     skipFeedback?: boolean;
-    profil?: { ca?: string; secteur?: string };
+    profil?: { ca?: string; secteur?: string; activite?: string };
   };
   try {
     body = await req.json();
@@ -34,14 +34,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Capsule introuvable" }, { status: 404 });
   }
 
+  const supabase = getSupabase();
+
+  // Fil rouge : récap des capsules DÉJÀ faites par cette session (lecture best-effort),
+  // pour que Max IA garde le contexte d'une étape à l'autre. Dégrade proprement si vide.
+  let prior: { capsuleNum: number; reponses: ExerciceReponses | null }[] = [];
+  if (!skipFeedback && supabase) {
+    const { data, error } = await supabase
+      .from("progress")
+      .select("capsule_num, reponses")
+      .eq("session_id", sessionId);
+    if (error) console.error("Supabase progress (fil rouge) error:", error.message);
+    else if (Array.isArray(data)) {
+      prior = (data as { capsule_num: number; reponses: ExerciceReponses | null }[])
+        .map((r) => ({ capsuleNum: r.capsule_num, reponses: r.reponses ?? null }));
+    }
+  }
+
   // skipFeedback : on persiste seulement les réponses (cas C9 → synthèse via /api/plan).
   // Coût de l'inaction déterministe, data-driven : calé en priorité sur les chiffres
   // de l'exercice (objectif vs réalisé, clients × panier × fréquence), sinon le CA opt-in.
   const cout = skipFeedback ? null : leverCost(capsuleNum, profil?.ca, reponses);
-  const feedbackIA = skipFeedback ? null : await generateExerciceFeedback(capsule, reponses, profil, cout);
+  const feedbackIA = skipFeedback ? null : await generateExerciceFeedback(capsule, reponses, profil, cout, prior);
 
   // Persistance best-effort (no-op si Supabase non configuré)
-  const supabase = getSupabase();
   if (supabase) {
     const now = new Date().toISOString();
     const { error } = await supabase.from("progress").upsert(

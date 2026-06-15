@@ -5,12 +5,12 @@ import type { CapsuleProgress } from "@/lib/types";
 
 /**
  * POST /api/plan
- * Compile le plan d'action H2 à partir de tout le cahier (réponses C1→C9).
+ * Compile le plan d'action du second semestre à partir de tout le cahier (réponses C1→C9).
  * Body : { progress: CapsuleProgress[] }  (envoyé par le client, qui fusionne
  * déjà serveur + localStorage).
  */
 export async function POST(req: NextRequest) {
-  let body: { progress?: CapsuleProgress[]; profil?: { ca?: string; secteur?: string } };
+  let body: { progress?: CapsuleProgress[]; profil?: { ca?: string; secteur?: string; activite?: string } };
   try {
     body = await req.json();
   } catch {

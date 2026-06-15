@@ -171,6 +171,7 @@ export async function POST(req: NextRequest) {
     phone?: string;
     token?: string;
     country?: string;
+    activite?: string;
     attribution?: Attribution;
   };
   // Le formulaire HubSpot exige firstname + CA ensemble : on soumet TOUT en une
@@ -210,6 +211,7 @@ export async function POST(req: NextRequest) {
     const prenom = body.prenom?.trim();
     const ca = body.ca?.trim();
     const secteur = body.secteur?.trim();
+    const activite = body.activite?.trim().slice(0, 400) || undefined; // contexte business pour Max IA
     const leadQuality = ca ? caLeadQuality(ca) : undefined;
 
     // Téléphone : validé selon l'indicatif pays choisi + normalisé E.164 (anti-bidon).
@@ -227,6 +229,7 @@ export async function POST(req: NextRequest) {
         p_secteur: secteur ?? null,
         p_phone: phone ?? null,
         p_lead_quality: leadQuality ?? null,
+        p_activite: activite ?? null,
       });
       if (error) console.error("set_participant_qualif error:", error.message);
     }

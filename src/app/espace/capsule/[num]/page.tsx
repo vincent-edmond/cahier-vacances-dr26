@@ -106,7 +106,7 @@ export default function CapsulePage() {
 
           {/* Exercice + feedback IA (ou synthèse du plan en C9) */}
           <section>
-            <SectionTitle icon={isFinal ? "📋" : "✍️"} label={isFinal ? "Votre plan d'action H2" : "Votre exercice"} />
+            <SectionTitle icon={isFinal ? "📋" : "✍️"} label={isFinal ? "Votre plan d'action" : "Votre exercice"} />
             <div className="rounded-2xl bg-white border border-[#E2E4EA] p-6 sm:p-8">
               <div className="mb-5 rounded-xl bg-[#FFB020]/[0.10] border border-[#FFB020]/35 px-4 py-3">
                 <span className="text-xs font-bold uppercase tracking-wide text-[#B45309]">🎯 Le défi</span>
