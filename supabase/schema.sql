@@ -111,6 +111,20 @@ as $$
 $$;
 grant execute on function cdv.set_participant_qualif(text,text,text,text,text,text) to anon, authenticated;
 
+-- Capte le contexte « activité » depuis le 1er exercice généré (rattaché à la session) :
+-- set-once, n'écrase jamais une valeur déjà renseignée.
+create or replace function cdv.set_session_activite(p_session_id text, p_activite text)
+returns void
+language sql security definer set search_path = cdv
+as $$
+  update cdv.participants
+     set activite = p_activite, updated_at = now()
+   where session_id = p_session_id
+     and coalesce(activite, '') = ''
+     and coalesce(p_activite, '') <> '';
+$$;
+grant execute on function cdv.set_session_activite(text, text) to anon, authenticated;
+
 -- ─── Suivi des visiteurs du SaaS (entrée /espace) — sémantique Google Analytics ─
 -- visiteur unique = 1 ligne (1 session navigateur, revenir n'en recrée pas),
 -- visite = +1 après 30 min d'inactivité. Aucune PII ; écriture via security-definer.

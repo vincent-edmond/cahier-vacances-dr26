@@ -72,6 +72,15 @@ export async function POST(req: NextRequest) {
       { onConflict: "session_id,capsule_num" }
     );
     if (error) console.error("Supabase progress upsert error:", error.message);
+
+    // Persiste le contexte « activité » sur le participant (set-once, rattaché à la session).
+    if (profil?.activite) {
+      const { error: aErr } = await supabase.rpc("set_session_activite", {
+        p_session_id: sessionId,
+        p_activite: profil.activite.slice(0, 400),
+      });
+      if (aErr) console.error("set_session_activite error:", aErr.message);
+    }
   }
 
   return NextResponse.json({ feedbackIA });

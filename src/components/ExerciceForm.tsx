@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Capsule, ExerciceField, ExerciceReponses } from "@/lib/types";
-import { submitExercice, generatePlan, hasOptedIn } from "@/lib/session";
+import { submitExercice, generatePlan, hasOptedIn, hasActivite, setActiviteLocal } from "@/lib/session";
 import { OptInModal } from "./OptInModal";
 
 interface ExerciceFormProps {
@@ -39,7 +39,14 @@ export function ExerciceForm({
   const [error, setError] = useState<string | null>(null);
   const [showOptin, setShowOptin] = useState(false);
 
+  // Contexte « activité » : capté UNE fois, dans le 1er exercice généré (n'importe quelle
+  // capsule), puis masqué. Initialisé « capté » pour éviter tout flash au rendu serveur.
+  const [activite, setActivite] = useState("");
+  const [activiteCaptured, setActiviteCaptured] = useState(true);
+  useEffect(() => { setActiviteCaptured(hasActivite()); }, []);
+
   const champs = capsule.exercice.champs;
+  const activiteMissing = !activiteCaptured && activite.trim().length < 5;
 
   const missing = useMemo(
     () =>
@@ -58,7 +65,7 @@ export function ExerciceForm({
 
   // Gate opt-in : avant le 1ᵉʳ retour Max IA, on capte prénom+email (une seule fois).
   function handleSubmit() {
-    if (missing || loading) return;
+    if (missing || activiteMissing || loading) return;
     if (!hasOptedIn()) {
       setShowOptin(true);
       return;
@@ -79,6 +86,13 @@ export function ExerciceForm({
       }
     }
     setReponses(enriched);
+
+    // Capte le contexte « activité » au passage (1re fois seulement) → stocké localement
+    // (injecté dans le profil envoyé à l'IA) puis persisté en base via /api/exercice.
+    if (!activiteCaptured && activite.trim()) {
+      setActiviteLocal(activite.trim());
+      setActiviteCaptured(true);
+    }
 
     // ── Mode plan (C9) : on persiste les réponses puis on compile tout le cahier ──
     if (mode === "plan") {
@@ -153,6 +167,24 @@ export function ExerciceForm({
         <FeedbackLoading mode={mode} />
       ) : (
         <>
+          {!activiteCaptured && (
+            <div className="rounded-xl border border-[#0046FF]/20 bg-[#0046FF]/[0.04] p-4">
+              <label htmlFor="cdv-activite" className="block text-sm font-semibold text-[#00194C] mb-1.5">
+                Pour personnaliser votre retour : votre activité en une phrase, que vendez-vous et à qui ?
+                <span className="text-[#0046FF]"> *</span>
+              </label>
+              <textarea
+                id="cdv-activite"
+                value={activite}
+                onChange={(e) => setActivite(e.target.value)}
+                rows={2}
+                placeholder="Ex : j'accompagne des dirigeants de PME du bâtiment à structurer leur croissance"
+                className="w-full rounded-xl border border-[#E2E4EA] bg-white px-4 py-3 text-[#2A2D35] focus:border-[#0046FF] focus:outline-none focus:ring-2 focus:ring-[#0046FF]/20 resize-y"
+              />
+              <p className="text-[11px] text-[#9096A5] mt-1.5">Demandé une seule fois. Max IA s&apos;en sert pour vous répondre juste, sans généralités.</p>
+            </div>
+          )}
+
           {capsule.exercice.intro && (
             <p className="text-[#555B6E] text-sm leading-relaxed">{capsule.exercice.intro}</p>
           )}
@@ -165,14 +197,14 @@ export function ExerciceForm({
 
           <button
             onClick={handleSubmit}
-            disabled={missing}
-            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0046FF] hover:bg-[#0033CC] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-7 py-3.5 transition-all ${!missing ? "cta-glow" : ""}`}
+            disabled={missing || activiteMissing}
+            className={`w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[#0046FF] hover:bg-[#0033CC] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-7 py-3.5 transition-all ${!(missing || activiteMissing) ? "cta-glow" : ""}`}
           >
             {mode === "plan"
               ? <>Générer mon plan d&apos;action <span className="arrow">→</span></>
               : <>Obtenir le retour de Max IA <span className="arrow">→</span></>}
           </button>
-          {missing && (
+          {(missing || activiteMissing) && (
             <p className="text-xs text-[#9096A5]">Complétez les champs obligatoires pour continuer.</p>
           )}
         </>

@@ -28,7 +28,6 @@ export function OptInModal({
   const [email, setEmail] = useState("");
   const [ca, setCa] = useState("");
   const [secteur, setSecteur] = useState("");
-  const [activite, setActivite] = useState("");
   const [phone, setPhone] = useState("");
   const [country, setCountry] = useState<CountryCode>("FR");
   const [loading, setLoading] = useState(false);
@@ -70,10 +69,10 @@ export function OptInModal({
   }
 
   async function handleSignupStep2() {
-    if (!ca || !secteur || activite.trim().length < 5 || !phoneOk || loading) return;
+    if (!ca || !secteur || !phoneOk || loading) return;
     setLoading(true);
     setError(null);
-    const r = await optinQualify(ca, secteur, phone, country, activite.trim());
+    const r = await optinQualify(ca, secteur, phone, country);
     setLoading(false);
     if (!r.ok) {
       setError(r.error || "Un souci est survenu. Réessayez dans un instant.");
@@ -163,18 +162,12 @@ export function OptInModal({
 
           {view === "signup" && step === 2 && (
             <>
-              <FieldTextarea
-                label="Votre activité en une phrase : que vendez-vous, et à qui ?"
-                value={activite}
-                onChange={setActivite}
-                placeholder="Ex : j'accompagne des dirigeants de PME du bâtiment à structurer leur croissance"
-              />
               <FieldSelect label="Votre chiffre d'affaires annuel" value={ca} onChange={setCa} options={CA_OPTIONS} placeholder="Choisir…" />
               <FieldSelect label="Votre secteur" value={secteur} onChange={setSecteur} options={SECTEUR_OPTIONS} placeholder="Choisir…" />
               <PhoneField country={country} onCountry={setCountry} value={phone} onChange={setPhone} />
               {phoneInline && <p className="text-xs text-red-600 -mt-1">{phoneInline}</p>}
               {error && <p className="text-sm text-red-600">{error}</p>}
-              <PrimaryBtn disabled={!ca || !secteur || activite.trim().length < 5 || !phoneOk || loading} onClick={handleSignupStep2}>
+              <PrimaryBtn disabled={!ca || !secteur || !phoneOk || loading} onClick={handleSignupStep2}>
                 {loading ? "Un instant…" : "Recevoir mon retour de Max IA →"}
               </PrimaryBtn>
               <p className="text-[11px] text-[#9096A5] text-center leading-snug">
@@ -220,25 +213,6 @@ function FieldInput({
         placeholder={placeholder}
         autoFocus={autoFocus}
         className="w-full rounded-xl border border-[#E2E4EA] bg-white px-4 py-3 text-[#2A2D35] focus:border-[#0046FF] focus:outline-none focus:ring-2 focus:ring-[#0046FF]/20"
-      />
-    </label>
-  );
-}
-
-function FieldTextarea({
-  label, value, onChange, placeholder,
-}: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-sm font-semibold text-[#00194C] mb-1.5">{label}</span>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        rows={2}
-        className="w-full rounded-xl border border-[#E2E4EA] bg-white px-4 py-3 text-[#2A2D35] focus:border-[#0046FF] focus:outline-none focus:ring-2 focus:ring-[#0046FF]/20 resize-y"
       />
     </label>
   );

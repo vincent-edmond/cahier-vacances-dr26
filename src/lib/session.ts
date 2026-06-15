@@ -85,6 +85,23 @@ export function getQualif(): { ca?: string; secteur?: string; activite?: string 
   }
 }
 
+/** A-t-on déjà capté le contexte « activité » du chef d'entreprise ? */
+export function hasActivite(): boolean {
+  return !!getQualif()?.activite?.trim();
+}
+
+/**
+ * Enregistre le contexte « activité » (capté UNE fois, dans le 1er exercice généré,
+ * quelle que soit la capsule). Fusionné au profil local → injecté ensuite dans tous
+ * les retours Max IA ; persisté en base côté serveur via /api/exercice.
+ */
+export function setActiviteLocal(activite: string): void {
+  if (typeof window === "undefined") return;
+  const cur = getQualif() ?? {};
+  localStorage.setItem(QUALIF_KEY, JSON.stringify({ ...cur, activite: activite.trim() }));
+  window.dispatchEvent(new Event("cdv:qualif"));
+}
+
 export function getAttribution(): Record<string, string> | null {
   if (typeof window === "undefined") return null;
   try {
@@ -136,7 +153,6 @@ export async function optinQualify(
   secteur: string,
   phone: string,
   country?: string,
-  activite?: string,
 ): Promise<{ ok: boolean; error?: string }> {
   const p = getParticipant();
   if (!p) return { ok: false };
@@ -144,16 +160,17 @@ export async function optinQualify(
     const res = await fetch("/api/optin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode: "qualify", token: p.token, email: p.email, prenom: p.prenom, ca, secteur, phone, country, activite, attribution: getAttribution() }),
+      body: JSON.stringify({ mode: "qualify", token: p.token, email: p.email, prenom: p.prenom, ca, secteur, phone, country, attribution: getAttribution() }),
     });
     if (!res.ok) {
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       return { ok: false, error: data.error };
     }
     // Persiste le profil seulement après validation serveur (sert au feedback Max IA
-    // et au calcul du coût de l'inaction). L'event rafraîchit les blocs coût en direct.
+    // et au calcul du coût de l'inaction). On préserve une activité déjà captée.
     if (typeof window !== "undefined") {
-      localStorage.setItem(QUALIF_KEY, JSON.stringify({ ca, secteur, activite: activite?.trim() || undefined }));
+      const prev = getQualif();
+      localStorage.setItem(QUALIF_KEY, JSON.stringify({ ca, secteur, activite: prev?.activite }));
       window.dispatchEvent(new Event("cdv:qualif"));
     }
     return { ok: true };
