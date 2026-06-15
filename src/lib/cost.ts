@@ -89,54 +89,78 @@ function figures(low: number, high: number, note: string): CostFigures {
   return { annualLow: aLow, annualHigh: aHigh, fiveLow: roundClean(aLow * 5), fiveHigh: roundClean(aHigh * 5), note };
 }
 
-/**
- * Coût annuel + cumul 5 ans d'un levier. Utilise les chiffres de l'exercice quand
- * ils existent (C1 : objectif vs réalisé ; C6 : clients × panier × fréquence),
- * sinon la tranche de CA opt-in. `null` si rien d'exploitable.
- */
-export function leverCost(num_: number, ca?: string, reponses?: ExerciceReponses): CostFigures | null {
-  const rev = caToRevenue(ca);
-  const pct = LEVER_PCT[num_];
-  if (!pct) return null;
+export interface PriorAnswers {
+  capsuleNum: number;
+  reponses: ExerciceReponses | null;
+}
 
-  // C1 — ancrer sur l'écart à SON objectif (trajectoire = réalisé mi-année × 2).
-  if (num_ === 1 && reponses) {
-    const objectif = num(reponses.objectif_ca);
-    const realise = num(reponses.ca_realise);
-    if (objectif && realise) {
+/**
+ * CA annuel CANONIQUE du prospect : UNE seule base, utilisée par TOUTES les capsules
+ * pour que les montants soient cohérents d'une étape à l'autre. Priorité au chiffre le
+ * plus réel et le plus précis :
+ *   1) CA reconstitué (clients × panier × fréquence, C6) — le plus granulaire,
+ *   2) CA réalisé annualisé (réalisé mi-année × 2, C1),
+ *   3) objectif de CA (C1),
+ *   4) à défaut seulement, la tranche d'opt-in (chiffre du barème).
+ */
+function canonicalRevenue(ca: string | undefined, m: ExerciceReponses): { rev: number; note: string } | null {
+  const clients = num(m.nb_clients), panier = num(m.panier_moyen), freq = num(m.frequence);
+  if (clients && panier && freq) {
+    const rev = clients * panier * freq;
+    return { rev, note: `votre CA reconstitué (${clients} clients × ${formatEuro(panier)} × ${freq}/an ≈ ${formatEuro(rev)})` };
+  }
+  const realise = num(m.ca_realise);
+  if (realise) return { rev: realise * 2, note: `votre CA annualisé (~${formatEuro(realise * 2)}, d'après le réalisé à mi-année)` };
+  const objectif = num(m.objectif_ca);
+  if (objectif) return { rev: objectif, note: `votre objectif de CA (~${formatEuro(objectif)})` };
+  const rev = caToRevenue(ca);
+  if (rev != null) return { rev, note: `votre tranche de CA déclarée (~${formatEuro(rev)})` };
+  return null;
+}
+
+/**
+ * Coût annuel + cumul 5 ans d'un levier, sur la base du CA CANONIQUE (cohérent entre
+ * toutes les capsules). `prior` = réponses des capsules déjà faites (pour retrouver le
+ * CA réel quel que soit le levier en cours). `null` si rien d'exploitable (→ qualitatif).
+ */
+export function leverCost(num_: number, ca?: string, reponses?: ExerciceReponses, prior?: PriorAnswers[]): CostFigures | null {
+  const pct = LEVER_PCT[num_];
+  if (!pct) return null; // levier qualitatif (C2/C5/C8) → pas de montant
+
+  // Vue fusionnée de toutes les réponses connues (étapes précédentes + courante).
+  const merged: ExerciceReponses = {};
+  for (const p of prior ?? []) if (p.reponses) Object.assign(merged, p.reponses);
+  if (reponses) Object.assign(merged, reponses);
+
+  const canon = canonicalRevenue(ca, merged);
+
+  // C1 — la taxe = une fraction de l'ÉCART à l'objectif, jamais plus que l'écart lui-même.
+  if (num_ === 1) {
+    const objectif = num(merged.objectif_ca);
+    const realise = num(merged.ca_realise);
+    if (objectif && realise != null) {
       const trajectoire = realise * 2;
       const ecart = Math.max(0, objectif - trajectoire);
       if (ecart > 0) {
-        // 25-50 % de l'écart est raisonnablement récupérable en corrigeant le bon levier.
-        const baseRev = objectif;
-        const low = Math.max(ecart * 0.25, baseRev * 0.05);
-        const high = Math.max(ecart * 0.5, baseRev * 0.1);
-        return figures(low, high, `écart entre l'objectif annoncé (${formatEuro(objectif)}) et la trajectoire actuelle (~${formatEuro(trajectoire)} sur la base du réalisé à mi-année)`);
+        return figures(ecart * 0.25, ecart * 0.5, `l'écart entre votre objectif (${formatEuro(objectif)}) et votre trajectoire actuelle (~${formatEuro(trajectoire)}, d'après le réalisé à mi-année)`);
       }
+      // Objectif déjà tenu → coût modéré d'un pilotage encore perfectible.
+      if (canon) return figures(canon.rev * 0.04, canon.rev * 0.08, `un pilotage encore perfectible, sur la base de ${canon.note}`);
     }
   }
 
-  // C6 — CA réel reconstitué et fraction de croissance capturable.
-  if (num_ === 6 && reponses) {
-    const clients = num(reponses.nb_clients);
-    const panier = num(reponses.panier_moyen);
-    const freq = num(reponses.frequence);
-    if (clients && panier && freq) {
-      const caReel = clients * panier * freq;
-      return figures(caReel * 0.10, caReel * 0.25, `CA actuel reconstitué (${clients} clients × ${formatEuro(panier)} × ${freq}/an = ${formatEuro(caReel)}) et croissance non captée sur les 3 leviers`);
-    }
-  }
-
-  // Défaut — tranche de CA opt-in × impact de référence.
-  if (rev == null) return null;
-  return figures(rev * pct.low, rev * pct.high, `tranche de CA déclarée (~${formatEuro(rev)}) × impact de référence du levier`);
+  if (!canon) return null;
+  return figures(canon.rev * pct.low, canon.rev * pct.high, canon.note);
 }
 
-/** Cumul des 9 leviers (C9) : agrégat réaliste 20-40 % du CA (les leviers se recoupent). */
-export function totalCost(ca?: string): CostFigures | null {
-  const rev = caToRevenue(ca);
+/** Cumul des 9 leviers (C9) : agrégat réaliste 20-40 % du CA (les leviers se recoupent).
+ * Utilise le CA canonique (même base que les taxes par capsule) quand on a les réponses. */
+export function totalCost(ca?: string, merged?: ExerciceReponses): CostFigures | null {
+  const canon = merged ? canonicalRevenue(ca, merged) : null;
+  const rev = canon?.rev ?? caToRevenue(ca);
   if (rev == null) return null;
-  return figures(rev * 0.20, rev * 0.40, `potentiel non capté sur l'ensemble des 9 leviers, pour un CA d'environ ${formatEuro(rev)}`);
+  const base = canon ? canon.note : `un CA d'environ ${formatEuro(rev)}`;
+  return figures(rev * 0.20, rev * 0.40, `potentiel non capté sur l'ensemble des 9 leviers, sur la base de ${base}`);
 }
 
 export function formatEuro(n: number): string {

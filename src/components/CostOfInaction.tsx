@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getQualif } from "@/lib/session";
+import { getQualif, getOrCreateSessionId, getAllProgressLocal } from "@/lib/session";
 import { TOTAL_CAPSULES } from "@/lib/capsules";
 import { leverCost, totalCost, formatEuro, LEVER_COPY } from "@/lib/cost";
+import type { ExerciceReponses } from "@/lib/types";
 
 /**
  * « Le coût de l'inaction » (taxe stupide) : carte d'électrochoc affichant le
@@ -26,7 +27,15 @@ export function CostOfInaction({ num }: { num: number }) {
   if (!ready) return null;
 
   const isTotal = num === TOTAL_CAPSULES;
-  const figures = isTotal ? totalCost(ca) : leverCost(num, ca);
+  // CA canonique : on agrège les réponses locales (C1/C6…) pour la même base que les
+  // taxes par capsule.
+  const merged: ExerciceReponses = {};
+  if (isTotal) {
+    for (const p of getAllProgressLocal(getOrCreateSessionId())) {
+      if (p.reponses) Object.assign(merged, p.reponses);
+    }
+  }
+  const figures = isTotal ? totalCost(ca, merged) : leverCost(num, ca);
 
   // Pas de CA exploitable (pas encore opt-in, ou « pas encore d'entreprise ») → teaser.
   if (!figures) {

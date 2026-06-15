@@ -71,8 +71,9 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Coût de l'inaction déterministe (calé sur ses chiffres, sinon la tranche de CA).
-  const cout = leverCost(capsuleNum, profil?.ca, reponses);
+  // Coût de l'inaction déterministe, sur le CA CANONIQUE (cohérent entre capsules :
+  // on passe l'historique pour retrouver le vrai CA quel que soit le levier en cours).
+  const cout = leverCost(capsuleNum, profil?.ca, reponses, prior);
   const messages = buildExerciceMessages(capsule, reponses, profil, cout, prior);
 
   // Persiste le feedback en fin de génération (best-effort, n'écrase que feedback_ia).
