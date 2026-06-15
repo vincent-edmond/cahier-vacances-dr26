@@ -192,10 +192,22 @@ export function ExerciceForm({
         <FeedbackLoading mode={mode} />
       ) : (
         <>
+          {capsule.exercice.intro && (
+            <p className="text-[#555B6E] text-sm leading-relaxed">{capsule.exercice.intro}</p>
+          )}
+
+          <div className="space-y-4">
+            {champs.map((c) => (
+              <Field key={c.id} field={c} reponses={reponses} onChange={update} />
+            ))}
+          </div>
+
+          {/* Contexte « activité » : juste avant le bouton, il prépare logiquement le
+              retour personnalisé sans couper l'enchaînement défi → questions. */}
           {!activiteCaptured && (
             <div className="rounded-xl border border-[#0046FF]/20 bg-[#0046FF]/[0.04] p-4">
               <label htmlFor="cdv-activite" className="block text-sm font-semibold text-[#00194C] mb-1.5">
-                Pour personnaliser votre retour : votre activité en une phrase, que vendez-vous et à qui ?
+                Pour personnaliser votre retour : décrivez votre activité en une phrase, que vendez-vous et à qui ?
                 <span className="text-[#0046FF]"> *</span>
               </label>
               <textarea
@@ -209,16 +221,6 @@ export function ExerciceForm({
               <p className="text-[11px] text-[#9096A5] mt-1.5">Demandé une seule fois. Max IA s&apos;en sert pour vous répondre juste, sans généralités.</p>
             </div>
           )}
-
-          {capsule.exercice.intro && (
-            <p className="text-[#555B6E] text-sm leading-relaxed">{capsule.exercice.intro}</p>
-          )}
-
-          <div className="space-y-4">
-            {champs.map((c) => (
-              <Field key={c.id} field={c} reponses={reponses} onChange={update} />
-            ))}
-          </div>
 
           <button
             onClick={handleSubmit}
