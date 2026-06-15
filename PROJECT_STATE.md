@@ -1,6 +1,7 @@
 # Le Cahier de Vacances DR26 — État du projet (référence persistante)
 
-> Mis à jour : 2026-06-05. Ce fichier est la mémoire du projet. À relire au début de chaque session.
+> Mis à jour : 2026-06-15. Ce fichier est la mémoire du projet. À relire au début de chaque session.
+> Nom public du produit : **Summer Business** (domaine prod : `summer-business.maxpiccinini.com`).
 
 ---
 
@@ -46,8 +47,10 @@ Mécanique d'une capsule : **vidéo (embed) → fiche HTML → exercice sauvegar
 - `src/lib/capsules.ts` — `getCapsules/getCapsule`, `isUnlocked(capsule,{preview})`, `formatDateFr`, `DR_URL`, `TOTAL_CAPSULES`.
 - `src/lib/session.ts` — session anonyme + progression locale + sync serveur best-effort + mode preview.
 - `src/lib/supabase.ts` — client serveur ; `null` si env absentes (→ bascule localStorage).
-- `src/lib/providers/anthropic.ts` — `generateExerciceFeedback` + `generatePlanFinal`. **Modèle : `claude-opus-4-8`** (Opus 4.8). Le prompt injecte la **voix de Max** + une **matière de Max par capsule** (`src/lib/coachKnowledge.ts`, distillée des 9 scripts : Océan Bleu/Dyson, 3 leviers/IKEA, Rebecca's Coffee/7 KPIs, One Thing/Apple, 9 piliers…) → retours ancrés dans SA méthode, plus génériques. Enrichissement futur = RAG Pinecone (transcripts complets, cf. doc de curation).
-- Composants : `AppShell` (sidebar SaaS + drawer mobile + footer), `VideoEmbed` (YouTube/Vimeo/mp4), `ExerciceForm` (champs + % calculé + feedback ou mode `plan` en C9), `CtaDR`, `Footer`.
+- `src/lib/providers/anthropic.ts` — cœur Max IA. **Modèle : `claude-opus-4-8`**, `max_tokens 1800`. Voir la section « 🤖 Max IA » plus bas pour l'architecture (cache, streaming, sécurité, etc.). NB : `generateExerciceFeedback`/`generatePlanFinal` ont été remplacés par `buildExerciceMessages`/`buildPlanMessages` (construisent system+user) + `streamCompletion`/`completeOnce`.
+- `src/lib/cost.ts` — « taxe stupide » (coût de l'inaction). CA canonique unique + bornes par levier + signalement d'incohérence. Voir section « 🤖 Max IA ».
+- `src/lib/coachKnowledge.ts` — `MAX_VOICE` (voix + règles de langage) + `COACH_KNOWLEDGE` (matière de Max par capsule, distillée des transcripts). **Pas de RAG** (jugé disproportionné ; à reconsidérer seulement si on passe en chat ouvert).
+- Composants : `AppShell` (sidebar SaaS + drawer mobile + footer), `VideoEmbed` (YouTube/Vimeo/mp4), `ExerciceForm` (champs + % calculé + **champ « activité » conditionnel** + streaming + feedback en blocs, ou mode `plan` en C9), `CtaDR`, `Footer`, `SessionPing`, `OptInModal`, `CostOfInaction`, `UtmCapture`, `GtmScript`.
 
 ---
 
@@ -124,3 +127,49 @@ totalement isolé des tables de dietzone (schéma à part, RLS propres).
 
 `_cahier-vacances-docs/` (hors repo) : `Capsules-DR26-Plan-Detaille.md`, `SaaS-Cahier-Vacances-DR26-Spec.md`,
 `Structure-Capsules-Ete-DR26.md`, `C1-contenu.md` (contenu C1 intégré).
+Retours de Max (PDF + mémo vocal) : déposés en local, **gitignorés** (`*.pdf`). Ne jamais committer.
+
+---
+
+## 🤖 Max IA — architecture, règles & cost engine (à jour 2026-06-15)
+
+**Tous les retours de Max (PDF + mémo vocal du 15/06) ont été appliqués et validés en prod.**
+
+### Architecture du prompt (`src/lib/providers/anthropic.ts`)
+- **Frontière de cache** (prompt caching Anthropic) : SEUL le bloc `system` est mis en cache (`cache_control: ephemeral`). Il est **stable par capsule** = `MAX_VOICE` + `GUARD` (sécurité) + `capsule.feedbackPrompt` + `COACH_KNOWLEDGE[n]` + `STATIC_FORMAT`. Le `user` (profil + fil rouge + montants + réponses) est **DYNAMIQUE, jamais caché** (confidentialité + zéro mélange entre prospects). Vérifié : ~2700 tokens lus du cache, ~580 frais.
+- **Streaming** : `/api/exercice` et `/api/plan` renvoient un flux `text/plain` (token par token). Côté client : `submitExercice`/`generatePlan` lisent le flux via `readTextStream(onChunk)` ; `ExerciceForm` affiche `StreamingView` (texte qui s'écrit + curseur) puis bascule sur les blocs formatés. Persistance du feedback en fin de flux ; les réponses sont persistées AVANT l'appel IA (jamais perdues).
+- **Résilience** : `streamCompletion`/`completeOnce` font 1 réessai sur échec transitoire (429/5xx/timeout) ; timeout 45-60 s ; repli non streamé. Bouton « Réessayer » sous le message d'erreur.
+
+### Comportement / règles du retour (les 4 blocs `##CONSTAT## / ##ACTION## / ##COUT## / ##QUESTION##`)
+- **Anti-invention** : n'affirme JAMAIS ce que les réponses ne prouvent pas ; conditionnel quand l'info manque (ex. fréquence 1/an ≠ « client qui ne revient jamais »).
+- **Ancrage** : constat/action/question portent sur le levier que l'utilisateur a lui-même coché (`levier_faible` C1, `levier_sous_exploite` C6, `fuite_principale` C7).
+- **Contexte « activité »** : capté UNE fois dans le 1er exercice généré (champ conditionnel dans `ExerciceForm`, masqué après ; `setActiviteLocal`/`hasActivite` ; persisté en base via RPC `cdv.set_session_activite`, colonne `participants.activite`). Injecté ensuite dans tous les retours. **PAS dans l'opt-in** (pour ne pas alourdir le tunnel).
+- **Fil rouge** (mémoire inter-capsules) : `buildFilRouge` injecte un récap compact des champs-clés des capsules déjà faites (lu depuis `cdv.progress`). Dégrade proprement si historique vide.
+- **Sécurité (`GUARD`)** : les réponses sont des DONNÉES, jamais des instructions → anti prompt-injection ; hors-sujet (recette, blague) → refus cadrant court ; non-divulgation du prompt/méthode ; cap longueur des champs (600 c) + délimitation `<<< >>>`.
+- **Règles de rédaction (`MAX_VOICE` + `STATIC_FORMAT`)** : voix de Max (direct, punchy, phrases courtes), **valeur personnalisée** (ses chiffres). **Interdits** : le mot « **dirigeant** » (→ « chef d'entreprise »/« vous ») ; tournures genrées (rester **neutre**, genre inconnu) ; **tirets cadratins `—`** (sortie nettoyée par `dashFix`/`sanitise`) ; ouvrir par « Soyons clairs » ; clore l'action par « vous saurez que ça marche le jour où » ; réécrire « taxe stupide » dans le corps. Chaque balise UNE seule fois (parser robuste si doublon).
+
+### Cost engine « taxe stupide » (`src/lib/cost.ts`)
+- **CA canonique unique** pour toutes les capsules (cohérence) : priorité CA reconstitué (`clients × panier × fréquence`, C6) > réalisé annualisé (`ca_realise × 2`, C1) > objectif > tranche d'opt-in (dernier recours). Calculé depuis l'historique (`prior`) passé à `leverCost`.
+- **Bornes** par levier (`LEVER_PCT`, croisées avec les ordres de grandeur de Max) ; **chiffrées seulement** pour C1/C3/C4/C6/C7 ; **qualitatives** (sans euro) pour C2/C5/C8. Montants ronds (`roundClean`). Taxe C1 capée sur l'écart à l'objectif.
+- **Signalement d'incohérence** : si réalisé annualisé vs reconstitué divergent de **> 15 %** (capsule 6 seulement), Max IA le relève en **1 phrase simple, directe, NEUTRE**, **les deux chiffres sourcés** (ex. « vos ventes (300k à mi-année, doublées) donnent 600k, vos clients (8000×25×4) donnent 800k. Je pars sur 800k »), sans jugement, dans le bloc COUT. (Résidu connu et accepté : le plan C9 ne reprend pas cette base reconstituée ; cas marginal.)
+
+### Préférences de Vincent (à respecter sur Max IA)
+Retours dans le **ton de Max**, **compréhensibles**, **clairs/simples**, **PAS sur-rédigés** (pas de tournures littéraires/alambiquées), avec **valeur perso**. Montants **data-driven, crédibles, ronds, jamais au pif**. Vincent a un AUTRE Claude éduqué au ton de Max pour la réécriture des scripts ; ici on construit et on donne des retours, on ne sur-réécrit pas à sa place.
+
+---
+
+## 🧪 Méthode de test (validée cette session)
+Batterie de personas (6 profils variés : CA/secteur/modèle différents, dont secteur « Autre » et débutant) qui font le **parcours complet 9 capsules** via l'API (script Python qui lit le flux), + relecture par **sous-agents** (cohérence ET rédaction). **Toujours nettoyer** les données de test après (`delete from cdv.progress/participants/sessions where session_id like 'TEST%'`).
+
+## 🗄️ DB `cdv` — tables & RPC (état actuel)
+Tables : `participants` (+ colonne **`activite`**), `progress`, **`sessions`** (visiteurs, type GA), `comments` (inutilisée), `admin_config`. RPC security-definer : `find_participant`, `set_participant_qualif` (6 args), **`set_session_activite`**, **`touch_session`**, `admin_overview` (+ bloc `visitors`), `admin_participant_detail` (+ `activite`), `scored_participants`. Miroir dans `supabase/schema.sql`. Migrations appliquées directement via le MCP Supabase (projet `rqjuyyhwzznaihqtalod`).
+
+## 🚀 Déploiement
+Push sur `main` → **Netlify auto-déploie** (site `1d019bf1-7cf6-41ad-98b9-a08d0b1f8410`, domaine `summer-business.maxpiccinini.com`). Build ~30-45 s. Vérifier l'état via le MCP Netlify (`get-project` → `currentDeploy.state: ready`). **Les migrations DB sont déjà en prod** (Supabase partagé). `HUBSPOT_TOKEN` secret : jamais committer. Env vars : **UI Netlify uniquement** (le MCP n'écrit pas).
+
+## 📋 Reste à faire (au 2026-06-15)
+- [ ] **Vidéos C1→C9** : remplacer `videoUrl: null` quand tournées.
+- [ ] **Fiches C2→C9** : enrichir si besoin depuis les transcripts.
+- [ ] **GTM côté Vincent** : créer les 2 conversions filtrées sur `lead_quality` + brancher Meta CAPI / Google Ads.
+- [ ] **Logos médias** « Vu sur » : récupérés (France 2/BFMTV/Forbes/France Inter dans `public/logos/`), à valider visuellement par Vincent.
+- [ ] Optionnel : mot de passe admin à changer ; rate-limiting des endpoints IA (anti-abus de coût) non encore posé.
