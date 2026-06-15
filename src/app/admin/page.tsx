@@ -419,7 +419,11 @@ function parseFeedbackAdmin(text: string): { label: string; body: string }[] {
   const out: Record<string, string> = {};
   const re = /##(CONSTAT|ACTION|COUT|QUESTION)##\s*([\s\S]*?)(?=##(?:CONSTAT|ACTION|COUT|QUESTION)##|$)/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) out[m[1]] = m[2].replace(/##[A-Za-zÀ-ÿ0-9 _-]+##/g, " ").replace(/\s+/g, " ").trim();
+  while ((m = re.exec(text)) !== null) {
+    const piece = m[2].replace(/##[A-Za-zÀ-ÿ0-9 _-]+##/g, " ").replace(/\s+/g, " ").trim();
+    if (!piece) continue;
+    out[m[1]] = out[m[1]] ? `${out[m[1]]} ${piece}` : piece;
+  }
   const blocks = order.filter((k) => out[k]).map((k) => ({ label: labels[k], body: out[k] }));
   if (blocks.length) return blocks;
   // Format legacy (séparateurs ### sans libellés) : on découpe en paragraphes propres.
