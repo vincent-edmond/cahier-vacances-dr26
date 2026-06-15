@@ -112,7 +112,7 @@ function costInstruction(cout?: CostFigures | null): string {
       `environ ${formatEuro(cout.annualLow)} à ${formatEuro(cout.annualHigh)} par an, soit ${formatEuro(cout.fiveLow)} à ${formatEuro(cout.fiveHigh)} sur 5 ans. ` +
       `Base du calcul à expliquer avec SES chiffres : ${cout.note}.`;
     if (cout.discrepancy) {
-      s += ` ${cout.discrepancy} Relève ce décalage de façon NEUTRE et factuelle (constate-le, sans jugement ni morale), précise que tu bases ton analyse sur le CA reconstitué, puis fais ton retour normalement.`;
+      s += ` ${cout.discrepancy} Mentionne ce décalage en UNE SEULE phrase brève (les deux chiffres + la base que tu retiens), de façon neutre et sans jugement, sans le développer ni le commenter, puis enchaîne directement sur ton analyse.`;
     }
     return s;
   }
