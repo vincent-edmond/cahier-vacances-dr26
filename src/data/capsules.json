@@ -121,7 +121,7 @@
     "dateUnlock": "2026-07-30",
     "dureeMin": 10,
     "videoUrl": null,
-    "ficheHtml": "<p class=\"lead\">On peut gagner plus en travaillant moins, à condition de travailler intelligemment. Si votre entreprise ne tourne pas sans vous, vous n'avez pas une entreprise, vous avez un emploi.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Le chef d'entreprise homme-orchestre est le plafond de son entreprise.</li><li>Les vacances révèlent toutes vos dépendances.</li><li>Documenter puis déléguer : sortir un process de votre tête.</li><li>Le temps libéré sert au stratégique, pas à plus d'opérationnel.</li></ul>",
+    "ficheHtml": "<p class=\"lead\">On peut gagner plus en travaillant moins, à condition de travailler intelligemment. Si votre entreprise ne tourne pas sans vous, vous n'avez pas une entreprise, vous avez un emploi.</p><h3>Ce qu'il faut comprendre</h3><ul><li>Le chef d'entreprise qui veut tout faire devient le plafond de son entreprise.</li><li>Les vacances révèlent toutes vos dépendances.</li><li>Documenter puis déléguer : sortir un process de votre tête.</li><li>Le temps libéré sert au stratégique, pas à plus d'opérationnel.</li></ul>",
     "exercice": {
       "intro": "Sortez un process de votre tête et déléguez-le.",
       "champs": [
@@ -134,7 +134,7 @@
     "feedbackPrompt": "Tu es Max Piccinini, coach business pour chefs d'entreprise établis. Réponds en 4 à 6 phrases, vouvoiement, ton punchy, sans jargon ni tirets cadratins. Consigne : vérifie que la tâche choisie est vraiment délégable (et pas une excuse), challenge la clarté du mode opératoire en 5 étapes, pousse à fixer une date ferme de délégation.",
     "defi": "Documentez en 5 étapes le process que vous seul savez faire, et déléguez-le cette semaine.",
     "cta": {
-      "texte": "Vous voyez ce qui vous retient dans l'opérationnel. Bâtir l'entreprise qui tourne sans vous, c'est dépasser votre rôle d'homme-orchestre : on l'enclenche à Destination Réussite.",
+      "texte": "Vous voyez ce qui vous retient dans l'opérationnel. Bâtir une entreprise qui tourne sans vous, c'est arrêter d'être au four et au moulin : on l'enclenche à Destination Réussite.",
       "bouton": "Réserver ma place",
       "url": "https://www.maxpiccinini.com/destination-reussite/"
     }
