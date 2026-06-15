@@ -159,6 +159,48 @@ end;
 $$;
 grant execute on function cdv.touch_session(text, text) to anon, authenticated;
 
+-- ─── Anti-abus des endpoints IA (compteurs fenêtrés partagés) ────────────────
+create table if not exists cdv.rate_counters (
+  key          text primary key,
+  count        integer not null default 0,
+  window_start timestamptz not null default now()
+);
+alter table cdv.rate_counters enable row level security; -- accès via RPC uniquement
+
+create or replace function cdv._bump(p_key text, p_limit int, p_window int)
+returns boolean
+language plpgsql security definer set search_path = cdv
+as $$
+declare cur int; ws timestamptz;
+begin
+  insert into cdv.rate_counters(key) values (p_key) on conflict (key) do nothing;
+  select count, window_start into cur, ws from cdv.rate_counters where key = p_key for update;
+  if now() - ws > make_interval(secs => p_window) then
+    update cdv.rate_counters set count = 1, window_start = now() where key = p_key;
+    return true;
+  end if;
+  if cur >= p_limit then return false; end if;
+  update cdv.rate_counters set count = cur + 1 where key = p_key;
+  return true;
+end;
+$$;
+
+-- Portillon avant tout appel IA : opt-in obligatoire + plafond session / IP / global.
+create or replace function cdv.ia_gate(
+  p_session text, p_ip text, p_session_limit int, p_ip_limit int, p_global_limit int
+) returns text
+language plpgsql security definer set search_path = cdv
+as $$
+begin
+  if not exists (select 1 from cdv.participants where session_id = p_session) then return 'no_optin'; end if;
+  if not cdv._bump('ia:s:' || p_session, p_session_limit, 86400) then return 'session'; end if;
+  if p_ip is not null and p_ip <> '' and not cdv._bump('ia:i:' || p_ip, p_ip_limit, 86400) then return 'ip'; end if;
+  if not cdv._bump('ia:g:' || to_char((now() at time zone 'utc')::date, 'YYYY-MM-DD'), p_global_limit, 86400) then return 'global'; end if;
+  return 'ok';
+end;
+$$;
+grant execute on function cdv.ia_gate(text, text, int, int, int) to anon, authenticated;
+
 -- ─── Exposer le schéma `cdv` à PostgREST (additif, garde public + graphql) ────
 -- À exécuter hors migration (alter role + reload de la config) :
 --   alter role authenticator set pgrst.db_schemas to 'public, graphql_public, cdv';

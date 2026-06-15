@@ -10,8 +10,17 @@ import type { ExerciceReponses } from "@/lib/types";
  * Sauve les réponses, puis STREAME le retour de Max IA (token par token) pour une
  * attente perçue quasi nulle. Réponses persistées d'abord (robuste si l'IA échoue),
  * feedback persisté en fin de flux. Repli non streamé si le flux ne s'établit pas.
- * Réponse : flux `text/plain` (succès) ou JSON `{ feedbackIA }` (skip / repli).
+ * Réponse : flux `text/plain` (succès) ou JSON `{ feedbackIA }` (skip / repli / bloqué).
  */
+function clientIp(req: NextRequest): string {
+  return (req.headers.get("x-nf-client-connection-ip") || (req.headers.get("x-forwarded-for") || "").split(",")[0] || "").trim();
+}
+function gateMessage(verdict: string): string {
+  if (verdict === "no_optin") return "Créez votre espace pour recevoir votre retour de Max IA.";
+  if (verdict === "session") return "Vous avez atteint la limite de retours pour aujourd'hui. Revenez demain.";
+  return "Le service est très sollicité en ce moment, réessayez dans quelques minutes.";
+}
+
 export async function POST(req: NextRequest) {
   let body: {
     sessionId?: string;
@@ -59,6 +68,22 @@ export async function POST(req: NextRequest) {
 
   // C9 (skipFeedback) : pas de retour par capsule, la synthèse passe par /api/plan.
   if (skipFeedback) return NextResponse.json({ feedbackIA: null });
+
+  // Anti-abus : opt-in obligatoire (vérif SERVEUR) + plafonds (session / IP / global)
+  // avant tout appel IA payant. Best-effort : si Supabase indisponible, on n'aveugle pas.
+  if (supabase) {
+    const { data: verdict, error: gErr } = await supabase.rpc("ia_gate", {
+      p_session: sessionId,
+      p_ip: clientIp(req),
+      p_session_limit: 25,
+      p_ip_limit: 150,
+      p_global_limit: Number(process.env.IA_DAILY_CAP || 8000),
+    });
+    if (gErr) console.error("ia_gate error:", gErr.message);
+    if (typeof verdict === "string" && verdict !== "ok") {
+      return NextResponse.json({ feedbackIA: null, blocked: verdict, message: gateMessage(verdict) });
+    }
+  }
 
   // Fil rouge : récap des capsules déjà faites (lecture best-effort) → contexte continu.
   let prior: { capsuleNum: number; reponses: ExerciceReponses | null }[] = [];

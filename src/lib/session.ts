@@ -301,8 +301,9 @@ export async function submitExercice(
   reponses: ExerciceReponses,
   opts?: { skipFeedback?: boolean },
   onChunk?: (acc: string) => void
-): Promise<{ feedbackIA: string | null; progress: CapsuleProgress }> {
+): Promise<{ feedbackIA: string | null; progress: CapsuleProgress; message?: string }> {
   let feedbackIA: string | null = null;
+  let message: string | undefined;
   try {
     const res = await fetch("/api/exercice", {
       method: "POST",
@@ -320,8 +321,9 @@ export async function submitExercice(
       if (ct.includes("text/plain") && res.body) {
         feedbackIA = await readTextStream(res.body, onChunk);
       } else {
-        const data = (await res.json()) as { feedbackIA?: string | null };
+        const data = (await res.json()) as { feedbackIA?: string | null; message?: string };
         feedbackIA = data.feedbackIA ?? null;
+        message = data.message;
       }
     }
   } catch {
@@ -334,7 +336,7 @@ export async function submitExercice(
     ...(opts?.skipFeedback ? {} : { feedbackIA }),
     doneAt: new Date().toISOString(),
   });
-  return { feedbackIA, progress };
+  return { feedbackIA, progress, message };
 }
 
 // ─── Plan d'action final (synthèse C9) ──────────────────────────────────────
@@ -355,30 +357,27 @@ function savePlanLocal(sid: string, plan: string): void {
  * Compile le plan d'action du second semestre à partir de TOUT le cahier (C1→C9) et
  * le STREAME. `onChunk` reçoit le texte cumulé (affichage progressif).
  */
-export async function generatePlan(sid: string, onChunk?: (acc: string) => void): Promise<string | null> {
+export async function generatePlan(sid: string, onChunk?: (acc: string) => void): Promise<{ plan: string | null; message?: string }> {
   const progress = await syncProgressFromServer(sid);
   try {
     const res = await fetch("/api/plan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ progress, profil: getQualif() ?? undefined }),
+      body: JSON.stringify({ sessionId: sid, progress, profil: getQualif() ?? undefined }),
     });
     if (res.ok) {
       const ct = res.headers.get("content-type") ?? "";
-      let plan: string | null = null;
       if (ct.includes("text/plain") && res.body) {
-        plan = await readTextStream(res.body, onChunk);
-      } else {
-        const data = (await res.json()) as { plan?: string | null };
-        plan = data.plan ?? null;
+        const plan = await readTextStream(res.body, onChunk);
+        if (plan) savePlanLocal(sid, plan);
+        return { plan };
       }
-      if (plan) {
-        savePlanLocal(sid, plan);
-        return plan;
-      }
+      const data = (await res.json()) as { plan?: string | null; message?: string };
+      if (data.plan) savePlanLocal(sid, data.plan);
+      return { plan: data.plan ?? null, message: data.message };
     }
   } catch {
     /* indisponible */
   }
-  return null;
+  return { plan: null };
 }

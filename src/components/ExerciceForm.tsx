@@ -100,19 +100,19 @@ export function ExerciceForm({
     // ── Mode plan (C9) : on persiste les réponses puis on compile tout le cahier ──
     if (mode === "plan") {
       await submitExercice(sessionId, capsule.num, enriched, { skipFeedback: true });
-      const plan = await generatePlan(sessionId, (acc) => setStreamingText(acc));
+      const { plan, message } = await generatePlan(sessionId, (acc) => setStreamingText(acc));
       setLoading(false);
       setStreamingText(null);
       if (plan) {
         setFeedback(plan);
       } else {
-        setError("Vos réponses sont enregistrées. La génération du plan est momentanément indisponible — réessayez.");
+        setError(message ?? "Vos réponses sont enregistrées. La génération du plan est momentanément indisponible, réessayez.");
       }
       onSaved?.();
       return;
     }
 
-    const { feedbackIA } = await submitExercice(sessionId, capsule.num, enriched, undefined, (acc) => setStreamingText(acc));
+    const { feedbackIA, message } = await submitExercice(sessionId, capsule.num, enriched, undefined, (acc) => setStreamingText(acc));
     setLoading(false);
     setStreamingText(null);
 
@@ -120,9 +120,9 @@ export function ExerciceForm({
       setFeedback(feedbackIA);
       onSaved?.();
     } else {
-      // Réponses sauvées localement, mais l'IA n'a pas répondu.
+      // Réponses sauvées localement, mais l'IA n'a pas répondu (ou limite atteinte).
       setFeedback(null);
-      setError("Vos réponses sont enregistrées. Le retour de Max IA est momentanément indisponible, réessayez.");
+      setError(message ?? "Vos réponses sont enregistrées. Le retour de Max IA est momentanément indisponible, réessayez.");
       onSaved?.();
     }
   }
