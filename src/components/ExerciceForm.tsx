@@ -36,6 +36,7 @@ export function ExerciceForm({
   const [feedback, setFeedback] = useState<string | null>(initialFeedback ?? null);
   const [editing, setEditing] = useState(!initialFeedback);
   const [loading, setLoading] = useState(false);
+  const [streamingText, setStreamingText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showOptin, setShowOptin] = useState(false);
 
@@ -76,6 +77,8 @@ export function ExerciceForm({
   async function runSubmit() {
     setLoading(true);
     setError(null);
+    setStreamingText("");
+    setEditing(false); // on quitte le formulaire : place à la génération (streamée)
 
     // Injecte les valeurs calculées avant l'envoi (pour le feedback IA).
     const enriched: ExerciceReponses = { ...reponses };
@@ -97,39 +100,45 @@ export function ExerciceForm({
     // ── Mode plan (C9) : on persiste les réponses puis on compile tout le cahier ──
     if (mode === "plan") {
       await submitExercice(sessionId, capsule.num, enriched, { skipFeedback: true });
-      const plan = await generatePlan(sessionId);
+      const plan = await generatePlan(sessionId, (acc) => setStreamingText(acc));
       setLoading(false);
-      setEditing(false);
+      setStreamingText(null);
       if (plan) {
         setFeedback(plan);
       } else {
-        setError("Vos réponses sont enregistrées. La génération du plan est momentanément indisponible — réessayez plus tard.");
+        setError("Vos réponses sont enregistrées. La génération du plan est momentanément indisponible — réessayez.");
       }
       onSaved?.();
       return;
     }
 
-    const { feedbackIA } = await submitExercice(sessionId, capsule.num, enriched);
+    const { feedbackIA } = await submitExercice(sessionId, capsule.num, enriched, undefined, (acc) => setStreamingText(acc));
     setLoading(false);
+    setStreamingText(null);
 
     if (feedbackIA) {
       setFeedback(feedbackIA);
-      setEditing(false);
       onSaved?.();
     } else {
       // Réponses sauvées localement, mais l'IA n'a pas répondu.
       setFeedback(null);
-      setEditing(false);
-      setError("Vos réponses sont enregistrées. Le retour de Max IA est momentanément indisponible, réessayez plus tard.");
+      setError("Vos réponses sont enregistrées. Le retour de Max IA est momentanément indisponible, réessayez.");
       onSaved?.();
     }
   }
 
   // ─── Vue résultat (exercice déjà rempli) ──────────────────────────────────
   if (!editing) {
+    const generating = loading || streamingText !== null;
     return (
       <div className="space-y-5">
-        {feedback && (
+        {generating ? (
+          streamingText ? (
+            <StreamingView mode={mode} text={streamingText} />
+          ) : (
+            <FeedbackLoading mode={mode} />
+          )
+        ) : feedback ? (
           mode === "plan" ? (
             <div className="rounded-2xl border border-[#0046FF]/25 bg-gradient-to-br from-[#0046FF]/[0.06] to-[#00194C]/[0.03] p-6 sm:p-7">
               <div className="flex items-center gap-2 mb-3">
@@ -147,15 +156,31 @@ export function ExerciceForm({
               <FeedbackBlocks text={feedback} />
             </div>
           )
+        ) : null}
+
+        {!generating && error && (
+          <div className="space-y-2.5">
+            <p className="text-sm text-[#555B6E]">{error}</p>
+            <button
+              onClick={() => void runSubmit()}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#0046FF] hover:bg-[#0033CC] text-white font-bold px-5 py-2.5 text-sm transition-all"
+            >
+              ↻ Réessayer
+            </button>
+          </div>
         )}
-        {error && <p className="text-sm text-[#555B6E]">{error}</p>}
-        <RecapReponses capsule={capsule} reponses={reponses} />
-        <button
-          onClick={() => setEditing(true)}
-          className="text-sm font-semibold text-[#0046FF] hover:text-[#0033CC]"
-        >
-          {mode === "plan" ? "✎ Modifier et régénérer mon plan" : "✎ Modifier mes réponses"}
-        </button>
+
+        {!generating && (
+          <>
+            <RecapReponses capsule={capsule} reponses={reponses} />
+            <button
+              onClick={() => setEditing(true)}
+              className="text-sm font-semibold text-[#0046FF] hover:text-[#0033CC]"
+            >
+              {mode === "plan" ? "✎ Modifier et régénérer mon plan" : "✎ Modifier mes réponses"}
+            </button>
+          </>
+        )}
       </div>
     );
   }
@@ -335,6 +360,32 @@ function FeedbackLoading({ mode }: { mode: "feedback" | "plan" }) {
         <div className="h-3 rounded-full bg-[#0046FF]/10 animate-pulse w-4/5" />
       </div>
       <p className="text-xs text-[#9096A5] mt-4">Quelques secondes, Max IA rédige un retour sur-mesure.</p>
+    </div>
+  );
+}
+
+// ─── Retour en cours de rédaction (streaming token par token) ──────────────────
+
+function StreamingView({ mode, text }: { mode: "feedback" | "plan"; text: string }) {
+  // En mode feedback, on retire les balises ##…## pendant l'écriture pour un texte
+  // qui coule ; la mise en forme en blocs arrive une fois la génération terminée.
+  const display =
+    mode === "plan" ? text : text.replace(/##[A-Za-zÀ-ÿ0-9 _-]+##\s*/g, "\n\n").replace(/^\n+/, "");
+  return (
+    <div className="rounded-2xl border border-[#0046FF]/20 bg-[#0046FF]/[0.04] p-6">
+      <div className="flex items-center gap-2.5 mb-3">
+        <span
+          className="inline-block w-4 h-4 rounded-full border-2 border-[#0046FF]/25 border-t-[#0046FF] animate-spin"
+          aria-hidden
+        />
+        <span className="text-sm font-bold text-[#00194C]">
+          {mode === "plan" ? "Max IA compile votre plan…" : "Max IA rédige votre retour…"}
+        </span>
+      </div>
+      <p className="text-[#2A2D35] leading-relaxed whitespace-pre-line">
+        {display}
+        <span className="inline-block w-[2px] h-[1.1em] align-text-bottom bg-[#0046FF]/70 animate-pulse ml-0.5" aria-hidden />
+      </p>
     </div>
   );
 }

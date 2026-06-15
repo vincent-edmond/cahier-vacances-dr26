@@ -266,16 +266,41 @@ export function markVu(sid: string, num: number): CapsuleProgress {
 }
 
 /**
- * Soumet l'exercice : appelle Claude (via l'API) pour le feedback, sauve tout.
- * `skipFeedback` : persiste seulement les réponses, sans appel IA (utilisé en C9,
- * où le feedback est remplacé par la synthèse complète du plan H2).
- * Renvoie le feedback (ou null si l'IA est indisponible / ignorée).
+ * Lit un flux texte (réponse streamée). `onChunk` reçoit le texte cumulé à chaque
+ * morceau (affichage progressif). Renvoie le texte final, ou null si vide.
+ */
+async function readTextStream(
+  body: ReadableStream<Uint8Array>,
+  onChunk?: (acc: string) => void
+): Promise<string | null> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let acc = "";
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      acc += decoder.decode(value, { stream: true });
+      onChunk?.(acc);
+    }
+  } catch {
+    /* flux interrompu : on garde ce qu'on a */
+  }
+  acc = acc.trim();
+  return acc || null;
+}
+
+/**
+ * Soumet l'exercice : persiste les réponses et STREAME le feedback de Max IA.
+ * `onChunk` est appelé au fil de la génération (texte cumulé) pour l'affichage progressif.
+ * `skipFeedback` (C9) : persiste seulement les réponses, sans appel IA.
  */
 export async function submitExercice(
   sid: string,
   num: number,
   reponses: ExerciceReponses,
-  opts?: { skipFeedback?: boolean }
+  opts?: { skipFeedback?: boolean },
+  onChunk?: (acc: string) => void
 ): Promise<{ feedbackIA: string | null; progress: CapsuleProgress }> {
   let feedbackIA: string | null = null;
   try {
@@ -291,8 +316,13 @@ export async function submitExercice(
       }),
     });
     if (res.ok) {
-      const data = (await res.json()) as { feedbackIA?: string | null };
-      feedbackIA = data.feedbackIA ?? null;
+      const ct = res.headers.get("content-type") ?? "";
+      if (ct.includes("text/plain") && res.body) {
+        feedbackIA = await readTextStream(res.body, onChunk);
+      } else {
+        const data = (await res.json()) as { feedbackIA?: string | null };
+        feedbackIA = data.feedbackIA ?? null;
+      }
     }
   } catch {
     /* on persiste quand même les réponses en local ci-dessous */
@@ -322,10 +352,10 @@ function savePlanLocal(sid: string, plan: string): void {
 }
 
 /**
- * Compile le plan d'action H2 à partir de TOUT le cahier (réponses C1→C9).
- * Récupère d'abord l'historique complet (serveur + local), puis l'envoie à Claude.
+ * Compile le plan d'action du second semestre à partir de TOUT le cahier (C1→C9) et
+ * le STREAME. `onChunk` reçoit le texte cumulé (affichage progressif).
  */
-export async function generatePlan(sid: string): Promise<string | null> {
+export async function generatePlan(sid: string, onChunk?: (acc: string) => void): Promise<string | null> {
   const progress = await syncProgressFromServer(sid);
   try {
     const res = await fetch("/api/plan", {
@@ -334,10 +364,17 @@ export async function generatePlan(sid: string): Promise<string | null> {
       body: JSON.stringify({ progress, profil: getQualif() ?? undefined }),
     });
     if (res.ok) {
-      const data = (await res.json()) as { plan?: string | null };
-      if (data.plan) {
-        savePlanLocal(sid, data.plan);
-        return data.plan;
+      const ct = res.headers.get("content-type") ?? "";
+      let plan: string | null = null;
+      if (ct.includes("text/plain") && res.body) {
+        plan = await readTextStream(res.body, onChunk);
+      } else {
+        const data = (await res.json()) as { plan?: string | null };
+        plan = data.plan ?? null;
+      }
+      if (plan) {
+        savePlanLocal(sid, plan);
+        return plan;
       }
     }
   } catch {
