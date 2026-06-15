@@ -162,7 +162,7 @@ export function leverCost(num_: number, ca?: string, reponses?: ExerciceReponses
     const annualized = realise ? realise * 2 : num(merged.objectif_ca);
     const reconstituted = canon.rev;
     if (annualized && reconstituted && Math.abs(annualized - reconstituted) / Math.max(annualized, reconstituted) > 0.15) {
-      fig.discrepancy = `Ses chiffres ne concordent pas : son réalisé annualisé indique ~${formatEuro(annualized)}, mais ses volumes clients (clients × panier × fréquence) indiquent ~${formatEuro(reconstituted)}. L'analyse se base sur le CA reconstitué.`;
+      fig.discrepancy = `Deux chiffres de CA ne collent pas entre eux : ses ventes donnent environ ${formatEuro(annualized)} sur l'année, mais ses volumes clients (clients × panier × fréquence) donnent plutôt ${formatEuro(reconstituted)}.`;
     }
   }
   return fig;

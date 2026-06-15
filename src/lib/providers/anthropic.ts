@@ -112,7 +112,7 @@ function costInstruction(cout?: CostFigures | null): string {
       `environ ${formatEuro(cout.annualLow)} à ${formatEuro(cout.annualHigh)} par an, soit ${formatEuro(cout.fiveLow)} à ${formatEuro(cout.fiveHigh)} sur 5 ans. ` +
       `Base du calcul à expliquer avec SES chiffres : ${cout.note}.`;
     if (cout.discrepancy) {
-      s += ` ${cout.discrepancy} Mentionne ce décalage en UNE SEULE phrase brève (les deux chiffres + la base que tu retiens), de façon neutre et sans jugement, sans le développer ni le commenter, puis enchaîne directement sur ton analyse.`;
+      s += ` ${cout.discrepancy} Signale-le en UNE phrase courte, SIMPLE et DIRECTE, avec des mots de tous les jours (évite les tournures rédigées du type « réalisé annualisé pointe vers » ; dis plutôt, par exemple : « Vos deux chiffres ne collent pas : vos ventes donnent X, mais vos clients donnent Y. Je pars sur Y. »). Ne le développe pas, ne le commente pas, et ne le colle PAS à une phrase qui valide son choix de levier (ce sont deux sujets distincts, ne dis pas « vos chiffres vous donnent raison » juste à côté). Puis enchaîne sur ton analyse.`;
     }
     return s;
   }
