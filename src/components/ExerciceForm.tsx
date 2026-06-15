@@ -325,9 +325,7 @@ function Field({
           type={field.type === "number" ? "number" : "text"}
           inputMode={field.type === "number" ? "numeric" : undefined}
           value={(reponses[field.id] as string | number) ?? ""}
-          onChange={(e) =>
-            onChange(field.id, field.type === "number" ? e.target.value : e.target.value)
-          }
+          onChange={(e) => onChange(field.id, e.target.value)}
           placeholder={field.placeholder}
           className="w-full rounded-xl border border-[#E2E4EA] bg-white px-4 py-3 pr-10 text-[#2A2D35] focus:border-[#0046FF] focus:outline-none focus:ring-2 focus:ring-[#0046FF]/20"
         />

@@ -8,7 +8,7 @@ export default function LandingPage() {
   return (
     <div className="lp">
       <style>{`
-        .lp { font-family: var(--font-inter), sans-serif; color: #0A0A0F; background: #fff; line-height: 1.6; }
+        .lp { font-family: var(--font-inter), sans-serif; color: #0A0A0F; background: #fff; line-height: 1.6; overflow-x: clip; }
         .lp .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
         .lp .display { font-family: var(--font-poppins), sans-serif; }
 

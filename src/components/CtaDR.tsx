@@ -1,5 +1,3 @@
-"use client";
-
 import type { CapsuleCTA } from "@/lib/types";
 
 interface CtaDRProps {

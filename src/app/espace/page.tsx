@@ -34,6 +34,7 @@ export default function HubPage() {
   const [progress, setProgress] = useState<CapsuleProgress[]>([]);
 
   useEffect(() => {
+    let cancelled = false;
     const sid = getOrCreateSessionId();
     const params = new URLSearchParams(window.location.search);
     if (params.get("preview") === "1") setPreview(true);
@@ -41,8 +42,9 @@ export default function HubPage() {
     setPreviewState(isPreview());
 
     setProgress(getAllProgressLocal(sid));
-    syncProgressFromServer(sid).then(setProgress);
+    syncProgressFromServer(sid).then((all) => { if (!cancelled) setProgress(all); });
     setMounted(true);
+    return () => { cancelled = true; };
   }, []);
 
   function progressFor(num: number): CapsuleProgress | undefined {

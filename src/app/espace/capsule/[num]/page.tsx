@@ -32,15 +32,17 @@ export default function CapsulePage() {
   const [planLocal, setPlanLocal] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     const s = getOrCreateSessionId();
     setSid(s);
     setPreview(isPreview());
     setProgress(getCapsuleProgressLocal(s, num));
     setPlanLocal(getPlanLocal(s));
     syncProgressFromServer(s).then((all) => {
-      setProgress(all.find((p) => p.capsuleNum === num) ?? null);
+      if (!cancelled) setProgress(all.find((p) => p.capsuleNum === num) ?? null);
     });
     setMounted(true);
+    return () => { cancelled = true; };
   }, [num]);
 
   if (!capsule) {

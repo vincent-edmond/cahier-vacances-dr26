@@ -237,21 +237,32 @@ function upsertLocal(sid: string, patch: Partial<CapsuleProgress> & { capsuleNum
 
 // ─── Synchronisation serveur (best-effort) ──────────────────────────────────
 
+// Déduplication : le hub et l'AppShell appellent sync au même instant au montage.
+// On partage la requête en vol pour un même sid (1 seul aller-retour réseau).
+const inflightSync = new Map<string, Promise<CapsuleProgress[]>>();
+
 /** Récupère la progression serveur et la fusionne dans le local. */
-export async function syncProgressFromServer(sid: string): Promise<CapsuleProgress[]> {
-  try {
-    const res = await fetch(`/api/progression?sessionId=${encodeURIComponent(sid)}`);
-    if (res.ok) {
-      const data = (await res.json()) as { progress?: CapsuleProgress[] };
-      if (Array.isArray(data.progress) && data.progress.length) {
-        writeProgressLocal(sid, data.progress);
-        return data.progress;
+export function syncProgressFromServer(sid: string): Promise<CapsuleProgress[]> {
+  const pending = inflightSync.get(sid);
+  if (pending) return pending;
+  const p = (async () => {
+    try {
+      const res = await fetch(`/api/progression?sessionId=${encodeURIComponent(sid)}`);
+      if (res.ok) {
+        const data = (await res.json()) as { progress?: CapsuleProgress[] };
+        if (Array.isArray(data.progress) && data.progress.length) {
+          writeProgressLocal(sid, data.progress);
+          return data.progress;
+        }
       }
+    } catch {
+      /* hors-ligne ou Supabase non configuré : on garde le local */
     }
-  } catch {
-    /* hors-ligne ou Supabase non configuré : on garde le local */
-  }
-  return getAllProgressLocal(sid);
+    return getAllProgressLocal(sid);
+  })();
+  inflightSync.set(sid, p);
+  void p.finally(() => { if (inflightSync.get(sid) === p) inflightSync.delete(sid); });
+  return p;
 }
 
 /** Marque une capsule comme vue (vidéo regardée). */

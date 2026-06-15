@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { CountryCode } from "libphonenumber-js";
 import { optinSignup, optinQualify, optinLogin, getAttribution } from "@/lib/session";
 import { CA_OPTIONS, SECTEUR_OPTIONS, PHONE_COUNTRIES, caLeadQuality } from "@/lib/optin";
@@ -32,6 +32,19 @@ export function OptInModal({
   const [country, setCountry] = useState<CountryCode>("FR");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Échap pour fermer (sauf pendant un envoi) + blocage du scroll de la page derrière.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !loading) onClose(); };
+    document.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open, loading, onClose]);
 
   if (!open) return null;
 
@@ -109,7 +122,7 @@ export function OptInModal({
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-[#000D2B]/70 backdrop-blur-sm" onClick={loading ? undefined : onClose} />
       <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 overflow-hidden">
         {/* Bandeau */}

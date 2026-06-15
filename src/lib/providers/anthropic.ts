@@ -253,8 +253,10 @@ export async function completeOnce(m: ClaudeMessages): Promise<string | null> {
       const res = await anthropicFetch(m, false);
       if (!res) return null;
       if (!res.ok) {
+        const transient = res.status === 429 || res.status >= 500;
+        const delay = retryDelay(res, attempt);
         console.error("Anthropic error:", res.status, (await res.text()).slice(0, 200));
-        if (res.status === 429 || res.status >= 500) { await wait(700); continue; }
+        if (transient && attempt === 0) { await wait(delay); continue; }
         return null;
       }
       const data = (await res.json()) as { content?: { type: string; text: string }[] };
@@ -262,7 +264,7 @@ export async function completeOnce(m: ClaudeMessages): Promise<string | null> {
       return text ? sanitise(text) : null;
     } catch (err) {
       console.error("Anthropic fetch error:", err);
-      await wait(700);
+      if (attempt === 0) await wait(retryDelay(null, attempt));
     }
   }
   return null;
@@ -270,6 +272,17 @@ export async function completeOnce(m: ClaudeMessages): Promise<string | null> {
 
 function wait(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+/** Délai avant réessai : respecte `retry-after` si présent, sinon backoff exponentiel
+ * + jitter (évite que tous les appels saturés réessaient en même temps). */
+function retryDelay(res: Response | null, attempt: number): number {
+  const ra = res?.headers.get("retry-after");
+  if (ra) {
+    const s = Number(ra);
+    if (Number.isFinite(s) && s > 0) return Math.min(s * 1000, 8000);
+  }
+  return 500 * Math.pow(2, attempt) + Math.floor(Math.random() * 400);
 }
 
 /**
@@ -283,16 +296,17 @@ export async function streamCompletion(
 ): Promise<ReadableStream<Uint8Array> | null> {
   let res: Response | null = null;
   for (let attempt = 0; attempt < 2; attempt++) {
+    let failed: Response | null = null;
     try {
       res = await anthropicFetch(m, true);
       if (res && res.ok && res.body) break;
-      if (res) console.error("Anthropic stream error:", res.status, (await res.text()).slice(0, 200));
+      if (res) { failed = res; console.error("Anthropic stream error:", res.status, (await res.text()).slice(0, 200)); }
       res = null;
     } catch (err) {
       console.error("Anthropic stream fetch error:", err);
       res = null;
     }
-    if (attempt === 0) await wait(600);
+    if (attempt === 0) await wait(retryDelay(failed, attempt));
   }
   if (!res || !res.body) return null;
 

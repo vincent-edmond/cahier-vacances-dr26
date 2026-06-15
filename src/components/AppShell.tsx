@@ -25,11 +25,13 @@ export function AppShell({ active, children }: { active?: number; children: Reac
   const [drawer, setDrawer] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     const sid = getOrCreateSessionId();
     setPreviewState(isPreview());
     setProgress(getAllProgressLocal(sid));
-    syncProgressFromServer(sid).then(setProgress);
+    syncProgressFromServer(sid).then((all) => { if (!cancelled) setProgress(all); });
     setMounted(true);
+    return () => { cancelled = true; };
   }, []);
 
   const done = progress.filter((p) => p.reponses).length;
