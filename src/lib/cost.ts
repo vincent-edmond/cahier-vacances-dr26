@@ -45,11 +45,11 @@ export function caToRevenue(ca?: string): number | null {
  * € de perte pour un prospect → on ne chiffre pas, on formule autrement (cf. le prompt feedback).
  */
 const LEVER_PCT: Record<number, { low: number; high: number }> = {
-  1: { low: 0.06, high: 0.12 },
-  3: { low: 0.08, high: 0.18 },
-  4: { low: 0.08, high: 0.18 },
-  6: { low: 0.10, high: 0.25 },
-  7: { low: 0.06, high: 0.15 },
+  1: { low: 0.05, high: 0.10 },
+  3: { low: 0.08, high: 0.15 },
+  4: { low: 0.08, high: 0.15 },
+  6: { low: 0.10, high: 0.18 },
+  7: { low: 0.06, high: 0.12 },
 };
 
 /** Copie éditoriale de la carte « coût de l'inaction » (indépendante du calcul). */
@@ -57,7 +57,7 @@ export const LEVER_COPY: Record<number, { probleme: string; douleur: string }> =
   1: { probleme: "Vous pilotez à l'instinct, sans cap chiffré.", douleur: "Chaque mois sans tableau de bord, ce sont des décisions prises trop tard." },
   2: { probleme: "Votre énergie est éparpillée sur trop de fronts.", douleur: "Tant que tout est prioritaire, rien n'avance vraiment." },
   3: { probleme: "Votre offre ne déclenche pas le « oui » immédiat.", douleur: "Une offre molle, ce sont des prospects qui comparent, hésitent et négocient." },
-  4: { probleme: "Vous ressemblez trop à vos concurrents.", douleur: "Sans différence nette, le combat se joue sur le prix — et c'est vous qui payez." },
+  4: { probleme: "Vous ressemblez trop à vos concurrents.", douleur: "Sans différence nette, le combat se joue sur le prix, et c'est vous qui payez." },
   5: { probleme: "Vous faites encore trop de choses vous-même.", douleur: "Votre temps de dirigeant part dans des tâches qui ne valent pas votre niveau." },
   6: { probleme: "Vous laissez de la croissance sur la table.", douleur: "Chaque levier sous-exploité, c'est du chiffre d'affaires qui dort." },
   7: { probleme: "Vous travaillez beaucoup pour une marge qui fond.", douleur: "Du chiffre sans rentabilité, c'est de la fatigue sans récompense." },
@@ -69,6 +69,8 @@ export interface CostFigures {
   fiveLow: number; fiveHigh: number;
   /** Base de calcul (pour que Max IA explique le chiffre de façon crédible). */
   note: string;
+  /** Présent si les chiffres du prospect se contredisent (à signaler, sans jugement). */
+  discrepancy?: string;
 }
 
 function num(v: unknown): number | null {
@@ -150,7 +152,20 @@ export function leverCost(num_: number, ca?: string, reponses?: ExerciceReponses
   }
 
   if (!canon) return null;
-  return figures(canon.rev * pct.low, canon.rev * pct.high, canon.note);
+  const fig = figures(canon.rev * pct.low, canon.rev * pct.high, canon.note);
+
+  // Capsule 6 : si les chiffres du prospect se contredisent (réalisé annualisé d'un côté,
+  // volumes clients × panier × fréquence de l'autre, écart > 15 %), on le signale pour que
+  // Max IA le relève de façon NEUTRE et précise sur quel chiffre il base son analyse.
+  if (num_ === 6) {
+    const realise = num(merged.ca_realise);
+    const annualized = realise ? realise * 2 : num(merged.objectif_ca);
+    const reconstituted = canon.rev;
+    if (annualized && reconstituted && Math.abs(annualized - reconstituted) / Math.max(annualized, reconstituted) > 0.15) {
+      fig.discrepancy = `Ses chiffres ne concordent pas : son réalisé annualisé indique ~${formatEuro(annualized)}, mais ses volumes clients (clients × panier × fréquence) indiquent ~${formatEuro(reconstituted)}. L'analyse se base sur le CA reconstitué.`;
+    }
+  }
+  return fig;
 }
 
 /** Cumul des 9 leviers (C9) : agrégat réaliste 20-40 % du CA (les leviers se recoupent).
