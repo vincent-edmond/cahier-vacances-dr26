@@ -231,8 +231,12 @@ export async function POST(req: NextRequest) {
       if (error) console.error("set_participant_qualif error:", error.message);
     }
 
-    // HubSpot : via CRM API (créer ou compléter-les-vides) si token présent ;
-    // sinon repli Forms API (écrase, soumission complète car firstname+CA requis ensemble).
+    // HubSpot — DEUX canaux complémentaires (le contact est dédoublonné par email,
+    // donc jamais de doublon) :
+    //  1) API CRM (si token) : mapping fin + maj hybride first-touch (attribution,
+    //     date d'opt-in, gclid/fbclid) qu'un formulaire ne sait pas faire.
+    //  2) Forms API : enregistre une SOUMISSION → compte dans les stats du formulaire
+    //     et déclenche ses workflows. Sans token, c'est l'unique canal (historique).
     if (HS_TOKEN) {
       await hubspotUpsertContact(
         email,
@@ -251,18 +255,17 @@ export async function POST(req: NextRequest) {
           [HS_FIELD.secteur]: secteur,
         },
       );
-    } else {
-      await submitHubspot(
-        {
-          [HS_FIELD.firstname]: prenom,
-          [HS_FIELD.email]: email,
-          [HS_FIELD.ca]: ca,
-          [HS_FIELD.secteur]: secteur,
-          [HS_FIELD.phone]: phone,
-        },
-        { hutk, pageUri },
-      );
     }
+    await submitHubspot(
+      {
+        [HS_FIELD.firstname]: prenom,
+        [HS_FIELD.email]: email,
+        [HS_FIELD.ca]: ca,
+        [HS_FIELD.secteur]: secteur,
+        [HS_FIELD.phone]: phone,
+      },
+      { hutk, pageUri },
+    );
 
     return NextResponse.json({ ok: true, leadQuality });
   }
