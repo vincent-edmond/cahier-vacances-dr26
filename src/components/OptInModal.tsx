@@ -175,8 +175,8 @@ export function OptInModal({
 
           {view === "signup" && step === 2 && (
             <>
-              <FieldSelect label="Votre chiffre d'affaires annuel" value={ca} onChange={setCa} options={CA_OPTIONS} placeholder="Choisir…" />
-              <FieldSelect label="Votre secteur" value={secteur} onChange={setSecteur} options={SECTEUR_OPTIONS} placeholder="Choisir…" />
+              <FieldSelect label="Votre chiffre d'affaires annuel" value={ca} onChange={setCa} options={CA_OPTIONS} placeholder="Choisir…" required />
+              <FieldSelect label="Votre secteur" value={secteur} onChange={setSecteur} options={SECTEUR_OPTIONS} placeholder="Choisir…" required />
               <PhoneField country={country} onCountry={setCountry} value={phone} onChange={setPhone} />
               {phoneInline && <p className="text-xs text-red-600 -mt-1">{phoneInline}</p>}
               {error && <p className="text-sm text-red-600">{error}</p>}
@@ -232,15 +232,15 @@ function FieldInput({
 }
 
 function FieldSelect({
-  label, value, onChange, options, placeholder,
+  label, value, onChange, options, placeholder, required,
 }: {
   label: string; value: string; onChange: (v: string) => void;
-  options: readonly (string | { value: string; label: string })[]; placeholder: string;
+  options: readonly (string | { value: string; label: string })[]; placeholder: string; required?: boolean;
 }) {
   const norm = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
   return (
     <label className="block">
-      <span className="block text-sm font-semibold text-[#00194C] mb-1.5">{label}</span>
+      <span className="block text-sm font-semibold text-[#00194C] mb-1.5">{label}{required && <span className="text-[#0046FF]"> *</span>}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -261,7 +261,7 @@ function PhoneField({
 }) {
   return (
     <div>
-      <label className="block text-sm font-semibold text-[#00194C] mb-1.5">Téléphone</label>
+      <label className="block text-sm font-semibold text-[#00194C] mb-1.5">Téléphone<span className="text-[#0046FF]"> *</span></label>
       <div className="flex gap-2">
         <select
           value={country}
