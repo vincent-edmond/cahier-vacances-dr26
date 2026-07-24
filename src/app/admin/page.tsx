@@ -23,6 +23,23 @@ interface Overview {
   top_leads: { prenom: string | null; email: string; phone: string | null; ca: string | null; secteur: string | null; source: string; capsules_done: number; plan_done: boolean; score: number; tier: string }[];
 }
 
+interface Incidents {
+  counts: { open: number; ia_failure_24h: number; user_report_24h: number };
+  items: {
+    id: string;
+    kind: string;
+    session_id: string | null;
+    capsule_num: number | null;
+    prenom: string | null;
+    email: string | null;
+    phone: string | null;
+    message: string | null;
+    context: Record<string, unknown> | null;
+    status: string;
+    created_at: string;
+  }[];
+}
+
 function TierBadge({ tier }: { tier: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     chaud: { label: "🔥 Chaud", cls: "bg-[#DC2626]/10 text-[#DC2626]" },
@@ -42,6 +59,7 @@ const CAPSULE_TITLES: Record<number, string> = {
 export default function AdminPage() {
   const [pwd, setPwd] = useState("");
   const [data, setData] = useState<Overview | null>(null);
+  const [incidents, setIncidents] = useState<Incidents | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -84,6 +102,18 @@ export default function AdminPage() {
       const json = (await res.json()) as { data: Overview };
       setData(json.data);
       sessionStorage.setItem(PWD_KEY, password);
+
+      // Incidents (bugs IA + signalements) : best-effort, ne bloque jamais les KPIs.
+      try {
+        const r2 = await fetch("/api/admin/incidents", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password, limit: 100 }),
+        });
+        if (r2.ok) setIncidents(((await r2.json()) as { data: Incidents }).data);
+      } catch {
+        /* les KPIs restent affichés */
+      }
     } catch {
       setError("Connexion impossible.");
     } finally {
@@ -102,6 +132,7 @@ export default function AdminPage() {
   function logout() {
     sessionStorage.removeItem(PWD_KEY);
     setData(null);
+    setIncidents(null);
     setPwd("");
   }
 
@@ -188,6 +219,18 @@ export default function AdminPage() {
           </Card>
         </div>
 
+        {/* Incidents : bugs IA captés tout seuls + signalements des prospects */}
+        {incidents && (incidents.items.length > 0 || incidents.counts.open > 0) && (
+          <Card title="🛠️ Incidents (bugs IA détectés + signalements)">
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <Kpi label="À traiter" value={incidents.counts.open} accent={incidents.counts.open > 0 ? "#DC2626" : undefined} />
+              <Kpi label="Échecs IA (24 h)" value={incidents.counts.ia_failure_24h} accent={incidents.counts.ia_failure_24h > 0 ? "#DC2626" : undefined} />
+              <Kpi label="Signalements (24 h)" value={incidents.counts.user_report_24h} />
+            </div>
+            <IncidentsTable rows={incidents.items} />
+          </Card>
+        )}
+
         {/* Top leads à contacter (lead scoring) */}
         <Card title="🔥 Leads à contacter — les plus engagés (score d'engagement)">
           <TopLeads rows={data.top_leads} onOpen={openDetail} />
@@ -254,6 +297,65 @@ function Kpi({ label, value, sub, accent = "#00194C" }: { label: string; value: 
       <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9096A5]">{label}</p>
       <p className="font-display font-extrabold text-2xl mt-1" style={{ color: accent }}>{value}</p>
       {sub && <p className="text-[11px] text-[#9096A5] mt-0.5">{sub}</p>}
+    </div>
+  );
+}
+
+/** Incidents : « bug IA » = détecté tout seul · « signalement » = envoyé par le prospect. */
+function IncidentsTable({ rows }: { rows: Incidents["items"] }) {
+  if (rows.length === 0) return <p className="text-sm text-[#9096A5]">Aucun incident. Tout roule.</p>;
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wide text-[#9096A5] border-b border-[#E2E4EA]">
+            <th className="py-2 pr-3">Quand</th>
+            <th className="py-2 pr-3">Type</th>
+            <th className="py-2 pr-3">Étape</th>
+            <th className="py-2 pr-3">Contact</th>
+            <th className="py-2">Détail</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.id} className="border-b border-[#F0F1F5] align-top">
+              <td className="py-2 pr-3 whitespace-nowrap text-[#555B6E]">{r.created_at}</td>
+              <td className="py-2 pr-3 whitespace-nowrap">
+                {r.kind === "ia_failure" ? (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#DC2626]/10 text-[#DC2626]">Bug IA</span>
+                ) : (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#0046FF]/10 text-[#0046FF]">Signalement</span>
+                )}
+              </td>
+              <td className="py-2 pr-3 whitespace-nowrap text-[#555B6E]">
+                {r.capsule_num ? `C${r.capsule_num}${CAPSULE_TITLES[r.capsule_num] ? ` · ${CAPSULE_TITLES[r.capsule_num]}` : ""}` : "—"}
+              </td>
+              <td className="py-2 pr-3 text-[#00194C]">
+                {r.email ? (
+                  <>
+                    {r.prenom ? `${r.prenom} · ` : ""}
+                    {r.email}
+                    {r.phone ? <span className="block text-[11px] text-[#9096A5]">{r.phone}</span> : null}
+                  </>
+                ) : (
+                  <span className="text-[#9096A5]">anonyme</span>
+                )}
+              </td>
+              <td className="py-2 text-[#555B6E]">
+                {r.message || <span className="text-[#9096A5]">détecté automatiquement</span>}
+                {r.context ? (
+                  <span className="block text-[11px] text-[#9096A5] mt-0.5">
+                    {Object.entries(r.context)
+                      .filter(([k]) => k !== "ua")
+                      .map(([k, v]) => `${k}: ${String(v)}`)
+                      .join(" · ")}
+                  </span>
+                ) : null}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

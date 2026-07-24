@@ -220,6 +220,8 @@ export function getCapsuleProgressLocal(sid: string, num: number): CapsuleProgre
 function writeProgressLocal(sid: string, list: CapsuleProgress[]): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(progressKey(sid), JSON.stringify(list));
+  // Signal pour les composants qui réagissent à l'avancement (ex. la relance DR).
+  window.dispatchEvent(new Event("cdv:progress"));
 }
 
 function upsertLocal(sid: string, patch: Partial<CapsuleProgress> & { capsuleNum: number }): CapsuleProgress {

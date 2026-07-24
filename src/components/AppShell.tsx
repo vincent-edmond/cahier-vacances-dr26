@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getCapsules, isUnlocked, formatDateFr, TOTAL_CAPSULES } from "@/lib/capsules";
 import { HelpPanel } from "@/components/HelpPanel";
+import { DrPopup } from "@/components/DrPopup";
 import {
   getOrCreateSessionId,
   getAllProgressLocal,
@@ -102,6 +103,9 @@ export function AppShell({ active, children }: { active?: number; children: Reac
 
       {/* Aide + signalement de bug (bouton flottant, toutes les pages de l'espace) */}
       <HelpPanel />
+
+      {/* Relance DR : une seule fois, à partir de 3 exercices terminés */}
+      <DrPopup />
     </div>
   );
 }
