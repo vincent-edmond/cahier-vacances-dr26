@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getCapsules, isUnlocked, formatDateFr, TOTAL_CAPSULES } from "@/lib/capsules";
+import { HelpPanel } from "@/components/HelpPanel";
 import {
   getOrCreateSessionId,
   getAllProgressLocal,
@@ -98,6 +99,9 @@ export function AppShell({ active, children }: { active?: number; children: Reac
         <main className="flex-1">{children}</main>
         <Footer />
       </div>
+
+      {/* Aide + signalement de bug (bouton flottant, toutes les pages de l'espace) */}
+      <HelpPanel />
     </div>
   );
 }

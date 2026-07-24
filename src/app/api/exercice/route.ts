@@ -3,6 +3,7 @@ import { getCapsule } from "@/lib/capsules";
 import { buildExerciceMessages, streamCompletion, completeOnce } from "@/lib/providers/anthropic";
 import { leverCost } from "@/lib/cost";
 import { getSupabase } from "@/lib/supabase";
+import { logIncident } from "@/lib/incidents";
 import type { ExerciceReponses } from "@/lib/types";
 
 /**
@@ -127,5 +128,15 @@ export async function POST(req: NextRequest) {
   // Repli non streamé si le flux ne s'établit pas.
   const text = await completeOnce(messages);
   await persistFeedback(text ?? "");
+  // Les deux chemins ont échoué : on le remonte SANS attendre que l'utilisateur
+  // le signale (la plupart partent sans rien dire). Visible dans /admin.
+  if (!text) {
+    await logIncident({
+      kind: "ia_failure",
+      sessionId,
+      capsuleNum,
+      context: { endpoint: "/api/exercice", reason: "stream + repli non streamé en échec" },
+    });
+  }
   return NextResponse.json({ feedbackIA: text });
 }

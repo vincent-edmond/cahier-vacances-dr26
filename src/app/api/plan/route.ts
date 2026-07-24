@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getCapsules, TOTAL_CAPSULES } from "@/lib/capsules";
 import { buildPlanMessages, streamCompletion, completeOnce } from "@/lib/providers/anthropic";
 import { getSupabase } from "@/lib/supabase";
+import { logIncident } from "@/lib/incidents";
 import type { CapsuleProgress } from "@/lib/types";
 
 /**
@@ -63,5 +64,13 @@ export async function POST(req: NextRequest) {
   }
 
   const plan = await completeOnce(messages);
+  if (!plan) {
+    await logIncident({
+      kind: "ia_failure",
+      sessionId: body.sessionId ?? null,
+      capsuleNum: TOTAL_CAPSULES,
+      context: { endpoint: "/api/plan", reason: "stream + repli non streamé en échec" },
+    });
+  }
   return NextResponse.json({ plan, filled: filled.length });
 }
