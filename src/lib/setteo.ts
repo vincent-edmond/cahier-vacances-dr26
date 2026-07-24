@@ -1,0 +1,141 @@
+import { getSupabase } from "@/lib/supabase";
+import { logIncident } from "@/lib/incidents";
+import type { ExerciceReponses } from "@/lib/types";
+
+/**
+ * Webhooks Setteo (agent WhatsApp « Camille », côté Smart Funnel).
+ *
+ * Format imposé par Setteo : POST JSON, contact identifié par le téléphone au
+ * format international SANS le « + ». On y ajoute `variables` (profil + réponses)
+ * pour permettre la segmentation côté Camille.
+ *
+ * Règle métier : on n'envoie JAMAIS un lead sans entreprise (il ne doit pas
+ * converser avec Camille), ni un lead sans téléphone (Setteo ne saurait pas
+ * l'identifier). Même exclusion que la relance DR sur le site.
+ *
+ * Configuration : UNE variable d'env `SETTEO_WEBHOOKS` contenant le JSON des URLs
+ * (une seule valeur à coller côté Netlify plutôt que onze) :
+ *   {"optin":"https://…","c1":"https://…", …, "c9":"https://…","plan":"https://…"}
+ */
+const SANS_ENTREPRISE = "Je n'ai pas encore d'entreprise";
+const MAX_LEN = 300; // on ne déverse pas des pavés à chaque appel
+
+export type SetteoEvent = "optin" | "plan" | `c${number}`;
+
+function urls(): Record<string, string> {
+  const raw = process.env.SETTEO_WEBHOOKS;
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw) as Record<string, string>;
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    console.error("SETTEO_WEBHOOKS: JSON invalide");
+    return {};
+  }
+}
+
+export interface SetteoParticipant {
+  prenom: string | null;
+  email: string | null;
+  phone: string | null;
+  ca: string | null;
+  secteur: string | null;
+  lead_quality: string | null;
+  activite: string | null;
+}
+
+/** Lit le participant rattaché à une session (null s'il n'a pas encore fait l'opt-in). */
+export async function participantForSession(sessionId: string): Promise<SetteoParticipant | null> {
+  const supabase = getSupabase();
+  if (!supabase || !sessionId) return null;
+  const { data, error } = await supabase.rpc("participant_for_webhook", { p_session: sessionId });
+  if (error) {
+    console.error("participant_for_webhook error:", error.message);
+    return null;
+  }
+  const row = Array.isArray(data) ? data[0] : data;
+  return (row as SetteoParticipant) ?? null;
+}
+
+/** Téléphone E.164 (+33…) → format Setteo (33…, sans le +). */
+function phoneSetteo(phone: string | null): string | null {
+  if (!phone) return null;
+  const digits = phone.replace(/[^\d]/g, "");
+  return digits.length >= 8 ? digits : null;
+}
+
+/**
+ * Construit `variables` : profil + réponses de TOUTES les capsules déjà faites,
+ * avec des clés EXPLICITES (`c1_objectif_ca`) plutôt que `reponse_1`, pour que la
+ * donnée reste lisible et ne casse pas si un champ change.
+ */
+export function buildVariables(
+  p: SetteoParticipant,
+  progress: { capsuleNum: number; reponses: ExerciceReponses | null }[],
+): Record<string, string | number> {
+  const out: Record<string, string | number> = {};
+  if (p.ca) out.ca_bracket = p.ca;
+  if (p.secteur) out.secteur = p.secteur;
+  if (p.lead_quality) out.lead_quality = p.lead_quality;
+  if (p.activite) out.activite = p.activite.slice(0, MAX_LEN);
+  out.capsules_completees = progress.filter((r) => r.reponses && Object.keys(r.reponses).length > 0).length;
+
+  for (const row of progress) {
+    if (!row.reponses) continue;
+    for (const [champ, valeur] of Object.entries(row.reponses)) {
+      if (valeur === null || valeur === undefined || `${valeur}`.trim() === "") continue;
+      out[`c${row.capsuleNum}_${champ}`] = `${valeur}`.slice(0, MAX_LEN);
+    }
+  }
+  return out;
+}
+
+/**
+ * Envoie un événement à Setteo. Best-effort et silencieux pour le prospect :
+ * un webhook qui échoue ne doit jamais casser son parcours. Un échec définitif
+ * est tracé dans /admin (sinon il serait invisible).
+ */
+export async function sendSetteo(
+  event: SetteoEvent,
+  p: SetteoParticipant,
+  variables: Record<string, string | number>,
+  sessionId?: string,
+): Promise<void> {
+  const url = urls()[event];
+  if (!url) return;                                   // événement non configuré
+  if (p.ca === SANS_ENTREPRISE) return;               // hors cible : pas de Camille
+  const phone = phoneSetteo(p.phone);
+  if (!phone) return;                                 // Setteo ne pourrait pas l'identifier
+
+  const body = JSON.stringify({
+    first_name: p.prenom ?? "",
+    last_name: "",                                    // non collecté à l'opt-in
+    email: p.email ?? "",
+    phone,
+    variables,
+  });
+
+  for (let essai = 0; essai < 2; essai++) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        signal: AbortSignal.timeout(10000),
+      });
+      if (res.ok) return;
+      console.error(`Setteo ${event} error:`, res.status, (await res.text()).slice(0, 200));
+    } catch (e) {
+      console.error(`Setteo ${event} failed:`, (e as Error).message);
+    }
+    if (essai === 0) await new Promise((r) => setTimeout(r, 600));
+  }
+
+  await logIncident({
+    kind: "ia_failure",
+    sessionId: sessionId ?? null,
+    email: p.email,
+    message: `Webhook Setteo « ${event} » en échec après réessai.`,
+    context: { endpoint: "setteo", event },
+  });
+}

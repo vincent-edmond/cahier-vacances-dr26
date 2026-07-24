@@ -4,6 +4,7 @@ import { resolveMx } from "node:dns/promises";
 import { getSupabase } from "@/lib/supabase";
 import { HS_FIELD, caLeadQuality } from "@/lib/optin";
 import { validateEmailFormat, emailDomain, validatePhone } from "@/lib/validation";
+import { sendSetteo } from "@/lib/setteo";
 import type { CountryCode } from "libphonenumber-js";
 
 /**
@@ -265,6 +266,20 @@ export async function POST(req: NextRequest) {
         [HS_FIELD.phone]: phone,
       },
       { hutk, pageUri },
+    );
+
+    // Webhook Setteo : création du contact + démarrage de Camille. Il part ICI,
+    // donc toujours AVANT le tag « capsule 1 » (l'exercice n'est soumis qu'après
+    // la fermeture de la modale). Les leads sans entreprise sont écartés dans sendSetteo.
+    await sendSetteo(
+      "optin",
+      { prenom: prenom ?? null, email, phone: phone ?? null, ca: ca ?? null, secteur: secteur ?? null, lead_quality: leadQuality ?? null, activite: null },
+      {
+        ...(ca ? { ca_bracket: ca } : {}),
+        ...(secteur ? { secteur } : {}),
+        ...(leadQuality ? { lead_quality: leadQuality } : {}),
+        capsules_completees: 0,
+      },
     );
 
     return NextResponse.json({ ok: true, leadQuality });

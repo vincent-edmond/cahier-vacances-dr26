@@ -4,6 +4,7 @@ import { buildExerciceMessages, streamCompletion, completeOnce } from "@/lib/pro
 import { leverCost } from "@/lib/cost";
 import { getSupabase } from "@/lib/supabase";
 import { logIncident } from "@/lib/incidents";
+import { participantForSession, buildVariables, sendSetteo } from "@/lib/setteo";
 import type { ExerciceReponses } from "@/lib/types";
 
 /**
@@ -64,6 +65,19 @@ export async function POST(req: NextRequest) {
         p_activite: profil.activite.slice(0, 400),
       });
       if (aErr) console.error("set_session_activite error:", aErr.message);
+    }
+  }
+
+  // Webhook Setteo (Camille) : « capsule N terminée » = exercice soumis, c'est le
+  // moment où la donnée existe. Placé AVANT le retour C9 pour couvrir aussi la C9.
+  // Best-effort : n'échoue jamais côté prospect (~300 ms sur une génération de 20 s).
+  if (supabase) {
+    const participant = await participantForSession(sessionId);
+    if (participant) {
+      const { data: rows } = await supabase.from("progress").select("capsule_num, reponses").eq("session_id", sessionId);
+      const progress = ((rows ?? []) as { capsule_num: number; reponses: ExerciceReponses | null }[])
+        .map((r) => ({ capsuleNum: r.capsule_num, reponses: r.reponses }));
+      await sendSetteo(`c${capsuleNum}`, participant, buildVariables(participant, progress), sessionId);
     }
   }
 

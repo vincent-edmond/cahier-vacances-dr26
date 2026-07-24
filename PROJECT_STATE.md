@@ -167,9 +167,16 @@ Tables : `participants` (+ colonne **`activite`**), `progress`, **`sessions`** (
 ## 🚀 Déploiement
 Push sur `main` → **Netlify auto-déploie** (site `1d019bf1-7cf6-41ad-98b9-a08d0b1f8410`, domaine `summer-business.maxpiccinini.com`). Build ~30-45 s. Vérifier l'état via le MCP Netlify (`get-project` → `currentDeploy.state: ready`). **Les migrations DB sont déjà en prod** (Supabase partagé). `HUBSPOT_TOKEN` secret : jamais committer. Env vars : **UI Netlify uniquement** (le MCP n'écrit pas).
 
-## 📋 Reste à faire (au 2026-06-15)
+## 🆘 Support, relance DR & webhooks Camille (ajoutés 2026-07-24)
+- **Incidents** (`cdv.incidents` + RPC `log_incident` / `admin_incidents`) : les **échecs de génération Max IA sont captés AUTOMATIQUEMENT** (stream ET repli en échec) dans `/api/exercice` et `/api/plan`. La plupart des gens ne signalent rien, ils partent : on ne dépend donc pas de leur signalement. Visible dans `/admin` (section « Incidents »).
+- **`HelpPanel`** (bouton flottant « Besoin d'aide ? » monté dans `AppShell`) : 5 réponses **écrites à l'avance, sans IA** (coût nul, réponse immédiate, zéro hallucination, et **pas de 3ᵉ voix** face à Max IA et Camille) + formulaire « Toujours bloqué ? » → `POST /api/report` → base + **Slack** (`SLACK_HELP_WEBHOOK_URL`). Sans l'URL Slack, l'incident est quand même enregistré. Plafond **5 signalements/h/IP** (`cdv.report_gate`). Décision : **pas de chat IA ni de chat live** (doublon avec Camille + coût + promesse de dispo intenable).
+- **`DrPopup`** : relance Destination Réussite **une seule fois**, déclencheur **comportemental = 3 exercices terminés** (exactement la définition de « lead chaud » partagée avec l'équipe → une seule notion de chaud sur site/email/WhatsApp). Jamais bloquante, jamais affichée aux « je n'ai pas d'entreprise » (même exclusion que Camille). `session.ts` émet `cdv:progress` à chaque écriture pour déclencher au bon moment.
+- **Webhooks Setteo** (`src/lib/setteo.ts`) : `optin` (crée le contact, part **avant** le tag capsule car l'opt-in précède la soumission de l'exercice), `c1`→`c9` (**« capsule ok » = exercice soumis**), `plan` (déclenché **en fin de génération**). Format Mathis : POST JSON, **téléphone international sans `+`**, `variables` à **clés explicites** (`c2_priorite_une`…) et non `reponse_1`. `last_name` vide (non collecté). Exclusion des leads **sans entreprise** et **sans téléphone**. 1 réessai, échec définitif tracé en incident. Config = **UNE** variable `SETTEO_WEBHOOKS` (JSON des 11 URLs) à poser dans l'UI Netlify.
+
+## 📋 Reste à faire (au 2026-07-24)
 - [ ] **Vidéos C1→C9** : remplacer `videoUrl: null` quand tournées.
 - [ ] **Fiches C2→C9** : enrichir si besoin depuis les transcripts.
-- [ ] **GTM côté Vincent** : créer les 2 conversions filtrées sur `lead_quality` + brancher Meta CAPI / Google Ads.
-- [ ] **Logos médias** « Vu sur » : récupérés (France 2/BFMTV/Forbes/France Inter dans `public/logos/`), à valider visuellement par Vincent.
-- [ ] Optionnel : mot de passe admin à changer ; rate-limiting des endpoints IA (anti-abus de coût) non encore posé.
+- [ ] **Env Netlify à poser** : `SLACK_HELP_WEBHOOK_URL` (canal support) et `SETTEO_WEBHOOKS` (JSON des 11 webhooks de Mathis).
+- [ ] **Retirer le mode démo** avant le lancement (`isPreview()` renvoie `true` par défaut).
+- [ ] **Logos médias** « Vu sur » : à valider visuellement par Vincent.
+- [ ] Optionnel : mot de passe admin à changer.

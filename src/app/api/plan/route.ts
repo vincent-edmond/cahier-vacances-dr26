@@ -3,6 +3,7 @@ import { getCapsules, TOTAL_CAPSULES } from "@/lib/capsules";
 import { buildPlanMessages, streamCompletion, completeOnce } from "@/lib/providers/anthropic";
 import { getSupabase } from "@/lib/supabase";
 import { logIncident } from "@/lib/incidents";
+import { participantForSession, buildVariables, sendSetteo } from "@/lib/setteo";
 import type { CapsuleProgress } from "@/lib/types";
 
 /**
@@ -52,7 +53,17 @@ export async function POST(req: NextRequest) {
   const messages = buildPlanMessages(getCapsules(), filled, body.profil);
   if (!messages) return NextResponse.json({ plan: null, filled: 0 });
 
-  const stream = await streamCompletion(messages);
+  // Webhook Setteo « plan C9 » : déclenché en FIN de génération (pas au démarrage
+  // du flux), pour ne taguer que les plans réellement produits.
+  const notifierPlan = async () => {
+    if (!supabase || !body.sessionId) return;
+    const participant = await participantForSession(body.sessionId);
+    if (!participant) return;
+    const progression = progress.map((p) => ({ capsuleNum: p.capsuleNum, reponses: p.reponses ?? null }));
+    await sendSetteo("plan", participant, buildVariables(participant, progression), body.sessionId);
+  };
+
+  const stream = await streamCompletion(messages, notifierPlan);
   if (stream) {
     return new Response(stream, {
       headers: {
