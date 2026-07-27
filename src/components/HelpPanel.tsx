@@ -58,17 +58,13 @@ export function HelpPanel() {
     if (pre) setPrenom((v) => v || pre);
   }, [open]);
 
-  // Échap pour fermer + blocage du scroll de fond (même comportement que l'opt-in).
+  // Échap pour fermer. Fenêtre de chat (non modale) : on NE bloque PAS le scroll de
+  // la page, on ne pose pas de voile — le prospect peut continuer à lire derrière.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !sending) setOpen(false); };
     document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
+    return () => document.removeEventListener("keydown", onKey);
   }, [open, sending]);
 
   const capsuleNum = (() => {
@@ -110,33 +106,38 @@ export function HelpPanel() {
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        aria-label="Besoin d'aide ?"
-        className="fixed bottom-5 right-5 z-[90] inline-flex items-center gap-2 rounded-full bg-white border border-[#E2E4EA] shadow-lg hover:border-[#0046FF] text-[#00194C] font-semibold text-sm px-4 py-2.5 transition-all"
-      >
-        <span aria-hidden>💬</span> Besoin d&apos;aide ?
-      </button>
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Besoin d'aide ?"
+          className="fixed bottom-5 right-5 z-[90] inline-flex items-center gap-2 rounded-full bg-white border border-[#E2E4EA] shadow-lg hover:border-[#0046FF] text-[#00194C] font-semibold text-sm px-4 py-2.5 transition-all"
+        >
+          <span aria-hidden>💬</span> Besoin d&apos;aide ?
+        </button>
+      )}
 
       {open && (
-        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4" role="dialog" aria-modal="true">
-          <div className="absolute inset-0 bg-[#000D2B]/70 backdrop-blur-sm" onClick={sending ? undefined : () => setOpen(false)} />
-          <div className="relative w-full sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl ring-1 ring-black/5">
-            <div className="sticky top-0 bg-gradient-to-br from-[#00194C] to-[#000D2B] px-6 pt-5 pb-4 text-white">
-              <div className="flex items-center justify-between">
-                <h3 className="font-display font-extrabold text-lg">Besoin d&apos;aide ?</h3>
-                {!sending && (
-                  <button onClick={() => setOpen(false)} aria-label="Fermer" className="text-white/50 hover:text-white text-xl leading-none">
-                    ×
-                  </button>
-                )}
-              </div>
-              <p className="text-sm text-white/65 mt-1 leading-snug">
-                Les réponses aux blocages les plus courants, et si besoin on prend le relais.
-              </p>
+        <div
+          role="dialog"
+          aria-label="Besoin d'aide"
+          className="help-pop fixed bottom-5 right-5 z-[100] flex flex-col rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 overflow-hidden origin-bottom-right"
+          style={{ width: 380, maxWidth: "calc(100vw - 2.5rem)", maxHeight: "78vh", animation: "helpPop 0.2s ease-out" }}
+        >
+          <div className="shrink-0 bg-gradient-to-br from-[#00194C] to-[#000D2B] px-5 pt-4 pb-3.5 text-white">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display font-extrabold text-base">Besoin d&apos;aide ?</h3>
+              {!sending && (
+                <button onClick={() => setOpen(false)} aria-label="Fermer" className="text-white/50 hover:text-white text-xl leading-none">
+                  ×
+                </button>
+              )}
             </div>
+            <p className="text-xs text-white/65 mt-0.5 leading-snug">
+              Les blocages courants, et si besoin on prend le relais.
+            </p>
+          </div>
 
-            <div className="px-6 py-5">
+          <div className="flex-1 overflow-y-auto px-5 py-4">
               {FAQ.map((f) => (
                 <details key={f.q} className="border-b border-[#E2E4EA] py-3">
                   <summary className="cursor-pointer list-none font-semibold text-[#00194C] text-sm flex items-center justify-between gap-3">
@@ -204,7 +205,6 @@ export function HelpPanel() {
               )}
             </div>
           </div>
-        </div>
       )}
     </>
   );
