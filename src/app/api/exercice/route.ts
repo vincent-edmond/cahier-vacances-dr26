@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCapsule } from "@/lib/capsules";
 import { buildExerciceMessages, streamCompletion, completeOnce } from "@/lib/providers/anthropic";
+import { openaiComplete } from "@/lib/providers/openai";
 import { leverCost } from "@/lib/cost";
 import { getSupabase } from "@/lib/supabase";
 import { logIncident } from "@/lib/incidents";
@@ -139,17 +140,35 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Repli non streamé si le flux ne s'établit pas.
-  const text = await completeOnce(messages);
-  await persistFeedback(text ?? "");
-  // Les deux chemins ont échoué : on le remonte SANS attendre que l'utilisateur
-  // le signale (la plupart partent sans rien dire). Visible dans /admin.
+  // Repli non streamé Anthropic si le flux ne s'établit pas.
+  let text = await completeOnce(messages);
+  let viaBackup = false;
+
+  // BACKUP : Anthropic totalement KO → bascule OpenAI (même prompt, « quasi-Max »).
   if (!text) {
+    text = await openaiComplete(messages);
+    viaBackup = !!text;
+  }
+
+  await persistFeedback(text ?? "");
+
+  if (viaBackup) {
+    // Anthropic est tombé mais le prospect a bien eu son retour : on le trace pour
+    // savoir QUAND et à quelle fréquence Anthropic flanche.
     await logIncident({
       kind: "ia_failure",
       sessionId,
       capsuleNum,
-      context: { endpoint: "/api/exercice", reason: "stream + repli non streamé en échec" },
+      message: "Anthropic indisponible : retour généré par le backup OpenAI.",
+      context: { endpoint: "/api/exercice", fallback: "openai" },
+    });
+  } else if (!text) {
+    // Les deux fournisseurs ont échoué : remonté sans attendre un signalement.
+    await logIncident({
+      kind: "ia_failure",
+      sessionId,
+      capsuleNum,
+      context: { endpoint: "/api/exercice", reason: "anthropic + openai en échec" },
     });
   }
   return NextResponse.json({ feedbackIA: text });

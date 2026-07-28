@@ -10,7 +10,7 @@ const MAX_TOKENS = 1800;
 function dashFix(text: string): string {
   return (text || "").replace(/—/g, ":").replace(/–/g, "-");
 }
-function sanitise(text: string): string {
+export function sanitise(text: string): string {
   return dashFix(text).trim();
 }
 

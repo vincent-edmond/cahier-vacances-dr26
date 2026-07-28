@@ -176,7 +176,8 @@ Push sur `main` → **Netlify auto-déploie** (site `1d019bf1-7cf6-41ad-98b9-a08
 ## 📋 Reste à faire (au 2026-07-24)
 - [ ] **Vidéos C1→C9** : remplacer `videoUrl: null` quand tournées.
 - [ ] **Fiches C2→C9** : enrichir si besoin depuis les transcripts.
-- [ ] **Env Netlify à poser** : `SLACK_HELP_WEBHOOK_URL` (canal support) et `SETTEO_WEBHOOKS` (JSON des 11 webhooks de Mathis).
+- [ ] **Env Netlify à poser** : `SLACK_HELP_WEBHOOK_URL` (canal support), `SETTEO_WEBHOOKS` (JSON des 11 webhooks de Mathis), et **`OPENAI_API_KEY`** (backup IA ; `OPENAI_MODEL` optionnel, défaut `gpt-4o`).
+- **Backup IA OpenAI** (`src/lib/providers/openai.ts`) : Claude reste **primaire** (stream → réessai → repli non streamé). Si Anthropic est **totalement KO**, bascule sur **OpenAI** (`gpt-4o` par défaut, `OPENAI_MODEL` surchargeable) avec le **même prompt** (system+user) → « quasi-Max ». Non streamé (route renvoie `{feedbackIA}`/`{plan}`, le client sait lire). Chaque bascule est **loggée en incident** (`fallback: openai`) → visible dans `/admin` = on voit quand Anthropic tombe. Branché sur `/api/exercice` et `/api/plan`. Testé de bout en bout (clé Anthropic invalidée → bascule OpenAI OK, 4 blocs + vouvoiement respectés).
 - [ ] **Retirer le mode démo** avant le lancement (`isPreview()` renvoie `true` par défaut).
 - [ ] **Logos médias** « Vu sur » : à valider visuellement par Vincent.
 - [ ] Optionnel : mot de passe admin à changer.

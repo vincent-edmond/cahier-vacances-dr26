@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCapsules, TOTAL_CAPSULES } from "@/lib/capsules";
 import { buildPlanMessages, streamCompletion, completeOnce } from "@/lib/providers/anthropic";
+import { openaiComplete } from "@/lib/providers/openai";
 import { getSupabase } from "@/lib/supabase";
 import { logIncident } from "@/lib/incidents";
 import { participantForSession, buildVariables, sendSetteo } from "@/lib/setteo";
@@ -74,13 +75,29 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const plan = await completeOnce(messages);
+  let plan = await completeOnce(messages);
+  let viaBackup = false;
+
+  // BACKUP : Anthropic totalement KO → bascule OpenAI (même prompt).
   if (!plan) {
+    plan = await openaiComplete(messages);
+    viaBackup = !!plan;
+  }
+
+  if (viaBackup) {
     await logIncident({
       kind: "ia_failure",
       sessionId: body.sessionId ?? null,
       capsuleNum: TOTAL_CAPSULES,
-      context: { endpoint: "/api/plan", reason: "stream + repli non streamé en échec" },
+      message: "Anthropic indisponible : plan généré par le backup OpenAI.",
+      context: { endpoint: "/api/plan", fallback: "openai" },
+    });
+  } else if (!plan) {
+    await logIncident({
+      kind: "ia_failure",
+      sessionId: body.sessionId ?? null,
+      capsuleNum: TOTAL_CAPSULES,
+      context: { endpoint: "/api/plan", reason: "anthropic + openai en échec" },
     });
   }
   return NextResponse.json({ plan, filled: filled.length });
