@@ -3,9 +3,15 @@ function youtubeId(url: string): string | null {
   return m ? m[1] : null;
 }
 
-function vimeoId(url: string): string | null {
-  const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-  return m ? m[1] : null;
+/**
+ * URL d'embed Vimeo. Gère les vidéos NON-LISTÉES / PRIVÉES au format
+ * `vimeo.com/{id}/{hash}` : le hash doit être passé en `?h={hash}`, sinon
+ * l'iframe affiche « vidéo privée ». Renvoie `null` si ce n'est pas du Vimeo.
+ */
+function vimeoEmbed(url: string): string | null {
+  const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)(?:\/([A-Za-z0-9]+))?/);
+  if (!m) return null;
+  return `https://player.vimeo.com/video/${m[1]}${m[2] ? `?h=${m[2]}` : ""}`;
 }
 
 interface VideoEmbedProps {
@@ -31,7 +37,7 @@ export function VideoEmbed({ url, titre }: VideoEmbedProps) {
   }
 
   const yt = youtubeId(url);
-  const vm = vimeoId(url);
+  const vm = vimeoEmbed(url);
   const isMp4 = /\.(mp4|webm|ogg)(\?|$)/i.test(url);
 
   if (isMp4) {
@@ -42,11 +48,7 @@ export function VideoEmbed({ url, titre }: VideoEmbedProps) {
     );
   }
 
-  const embedSrc = yt
-    ? `https://www.youtube.com/embed/${yt}`
-    : vm
-      ? `https://player.vimeo.com/video/${vm}`
-      : url;
+  const embedSrc = yt ? `https://www.youtube.com/embed/${yt}` : vm ? vm : url;
 
   return (
     <div className="w-full aspect-video rounded-2xl overflow-hidden bg-black">
