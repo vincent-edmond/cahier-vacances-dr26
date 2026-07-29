@@ -18,7 +18,10 @@ import type { ExerciceReponses } from "@/lib/types";
  *   {"optin":"https://…","c1":"https://…", …, "c9":"https://…","plan":"https://…"}
  */
 const SANS_ENTREPRISE = "Je n'ai pas encore d'entreprise";
-const MAX_LEN = 300; // on ne déverse pas des pavés à chaque appel
+// Réponses envoyées EN ENTIER (Setteo en fait un résumé remonté dans HubSpot).
+// Seule garde : une borne très haute (anti-abus), qu'aucune réponse réelle n'atteint,
+// pour qu'un copier-coller massif malveillant ne casse pas le webhook.
+const SAFETY_LEN = 8000;
 
 export type SetteoEvent = "optin" | "plan" | `c${number}`;
 
@@ -79,14 +82,14 @@ export function buildVariables(
   if (p.ca) out.ca_bracket = p.ca;
   if (p.secteur) out.secteur = p.secteur;
   if (p.lead_quality) out.lead_quality = p.lead_quality;
-  if (p.activite) out.activite = p.activite.slice(0, MAX_LEN);
+  if (p.activite) out.activite = p.activite.slice(0, SAFETY_LEN);
   out.capsules_completees = progress.filter((r) => r.reponses && Object.keys(r.reponses).length > 0).length;
 
   for (const row of progress) {
     if (!row.reponses) continue;
     for (const [champ, valeur] of Object.entries(row.reponses)) {
       if (valeur === null || valeur === undefined || `${valeur}`.trim() === "") continue;
-      out[`c${row.capsuleNum}_${champ}`] = `${valeur}`.slice(0, MAX_LEN);
+      out[`c${row.capsuleNum}_${champ}`] = `${valeur}`.slice(0, SAFETY_LEN);
     }
   }
   return out;
