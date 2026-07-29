@@ -4,7 +4,7 @@ import { resolveMx } from "node:dns/promises";
 import { getSupabase } from "@/lib/supabase";
 import { HS_FIELD, caLeadQuality } from "@/lib/optin";
 import { validateEmailFormat, emailDomain, validatePhone } from "@/lib/validation";
-import { sendSetteo } from "@/lib/setteo";
+import { sendSetteo, markOptinSent } from "@/lib/setteo";
 import type { CountryCode } from "libphonenumber-js";
 
 /**
@@ -271,7 +271,7 @@ export async function POST(req: NextRequest) {
     // Webhook Setteo : création du contact + démarrage de Camille. Il part ICI,
     // donc toujours AVANT le tag « capsule 1 » (l'exercice n'est soumis qu'après
     // la fermeture de la modale). Les leads sans entreprise sont écartés dans sendSetteo.
-    await sendSetteo(
+    const optinOk = await sendSetteo(
       "optin",
       { prenom: prenom ?? null, email, phone: phone ?? null, ca: ca ?? null, secteur: secteur ?? null, lead_quality: leadQuality ?? null, activite: null },
       {
@@ -281,6 +281,8 @@ export async function POST(req: NextRequest) {
         capsules_completees: 0,
       },
     );
+    // Contact bien créé dans Setteo → on ne renverra plus l'opt-in avant les tags.
+    if (optinOk) await markOptinSent(email);
 
     return NextResponse.json({ ok: true, leadQuality });
   }

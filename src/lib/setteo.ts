@@ -42,6 +42,8 @@ export interface SetteoParticipant {
   secteur: string | null;
   lead_quality: string | null;
   activite: string | null;
+  /** L'opt-in a-t-il déjà été envoyé avec succès à Setteo ? (contact créé) */
+  setteo_optin_ok?: boolean;
 }
 
 /** Lit le participant rattaché à une session (null s'il n'a pas encore fait l'opt-in). */
@@ -100,12 +102,12 @@ export async function sendSetteo(
   p: SetteoParticipant,
   variables: Record<string, string | number>,
   sessionId?: string,
-): Promise<void> {
+): Promise<boolean> {
   const url = urls()[event];
-  if (!url) return;                                   // événement non configuré
-  if (p.ca === SANS_ENTREPRISE) return;               // hors cible : pas de Camille
+  if (!url) return false;                             // événement non configuré
+  if (p.ca === SANS_ENTREPRISE) return false;         // hors cible : pas de Camille
   const phone = phoneSetteo(p.phone);
-  if (!phone) return;                                 // Setteo ne pourrait pas l'identifier
+  if (!phone) return false;                           // Setteo ne pourrait pas l'identifier
 
   const body = JSON.stringify({
     first_name: p.prenom ?? "",
@@ -123,7 +125,7 @@ export async function sendSetteo(
         body,
         signal: AbortSignal.timeout(10000),
       });
-      if (res.ok) return;
+      if (res.ok) return true;
       console.error(`Setteo ${event} error:`, res.status, (await res.text()).slice(0, 200));
     } catch (e) {
       console.error(`Setteo ${event} failed:`, (e as Error).message);
@@ -138,4 +140,32 @@ export async function sendSetteo(
     message: `Webhook Setteo « ${event} » en échec après réessai.`,
     context: { endpoint: "setteo", event },
   });
+  return false;
+}
+
+/** Mémorise que l'opt-in Setteo a bien été envoyé (contact créé) → on ne le renverra plus. */
+export async function markOptinSent(email: string | null): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase || !email) return;
+  const { error } = await supabase.rpc("set_setteo_optin_ok", { p_email: email });
+  if (error) console.error("set_setteo_optin_ok error:", error.message);
+}
+
+/**
+ * Envoie un tag capsule / plan en GARANTISSANT d'abord que le contact existe dans
+ * Setteo (exigence Mathis : un tag seul ne crée pas le contact). Si l'opt-in n'a pas
+ * encore réussi (1er webhook tombé), on le renvoie AVANT le tag, puis on le mémorise.
+ * Aucun re-spam : dès que l'opt-in a réussi une fois, on ne le renvoie plus.
+ */
+export async function sendTagWithOptin(
+  event: SetteoEvent,
+  p: SetteoParticipant,
+  variables: Record<string, string | number>,
+  sessionId?: string,
+): Promise<void> {
+  if (!p.setteo_optin_ok) {
+    const ok = await sendSetteo("optin", p, variables, sessionId);
+    if (ok) await markOptinSent(p.email);
+  }
+  await sendSetteo(event, p, variables, sessionId);
 }

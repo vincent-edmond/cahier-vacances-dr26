@@ -5,7 +5,7 @@ import { openaiComplete } from "@/lib/providers/openai";
 import { leverCost } from "@/lib/cost";
 import { getSupabase } from "@/lib/supabase";
 import { logIncident } from "@/lib/incidents";
-import { participantForSession, buildVariables, sendSetteo } from "@/lib/setteo";
+import { participantForSession, buildVariables, sendTagWithOptin } from "@/lib/setteo";
 import type { ExerciceReponses } from "@/lib/types";
 
 /**
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       const { data: rows } = await supabase.from("progress").select("capsule_num, reponses").eq("session_id", sessionId);
       const progress = ((rows ?? []) as { capsule_num: number; reponses: ExerciceReponses | null }[])
         .map((r) => ({ capsuleNum: r.capsule_num, reponses: r.reponses }));
-      await sendSetteo(`c${capsuleNum}`, participant, buildVariables(participant, progress), sessionId);
+      await sendTagWithOptin(`c${capsuleNum}`, participant, buildVariables(participant, progress), sessionId);
     }
   }
 

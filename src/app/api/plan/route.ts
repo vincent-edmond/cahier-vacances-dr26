@@ -4,7 +4,7 @@ import { buildPlanMessages, streamCompletion, completeOnce } from "@/lib/provide
 import { openaiComplete } from "@/lib/providers/openai";
 import { getSupabase } from "@/lib/supabase";
 import { logIncident } from "@/lib/incidents";
-import { participantForSession, buildVariables, sendSetteo } from "@/lib/setteo";
+import { participantForSession, buildVariables, sendTagWithOptin } from "@/lib/setteo";
 import type { CapsuleProgress } from "@/lib/types";
 
 /**
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     const participant = await participantForSession(body.sessionId);
     if (!participant) return;
     const progression = progress.map((p) => ({ capsuleNum: p.capsuleNum, reponses: p.reponses ?? null }));
-    await sendSetteo("plan", participant, buildVariables(participant, progression), body.sessionId);
+    await sendTagWithOptin("plan", participant, buildVariables(participant, progression), body.sessionId);
   };
 
   const stream = await streamCompletion(messages, notifierPlan);
