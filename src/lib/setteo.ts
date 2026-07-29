@@ -13,9 +13,9 @@ import type { ExerciceReponses } from "@/lib/types";
  * converser avec Camille), ni un lead sans téléphone (Setteo ne saurait pas
  * l'identifier). Même exclusion que la relance DR sur le site.
  *
- * Configuration : UNE variable d'env `SETTEO_WEBHOOKS` contenant le JSON des URLs
- * (une seule valeur à coller côté Netlify plutôt que onze) :
- *   {"optin":"https://…","c1":"https://…", …, "c9":"https://…","plan":"https://…"}
+ * Configuration : UNE variable d'env par événement (format .env natif, pas de JSON) :
+ *   SETTEO_URL_OPTIN, SETTEO_URL_C1 … SETTEO_URL_C9, SETTEO_URL_PLAN
+ * (Repli sur l'ancien SETTEO_WEBHOOKS au format JSON s'il est présent.)
  */
 const SANS_ENTREPRISE = "Je n'ai pas encore d'entreprise";
 // Réponses envoyées EN ENTIER (Setteo en fait un résumé remonté dans HubSpot).
@@ -26,7 +26,17 @@ const SAFETY_LEN = 8000;
 export type SetteoEvent = "optin" | "plan" | `c${number}`;
 
 function urls(): Record<string, string> {
-  const raw = process.env.SETTEO_WEBHOOKS;
+  const e = process.env;
+  const map: Record<string, string> = {};
+  const add = (k: string, v?: string) => { const s = (v || "").trim(); if (s) map[k] = s; };
+  // Format .env natif : une variable par événement (facile à importer dans Netlify).
+  add("optin", e.SETTEO_URL_OPTIN);
+  add("plan", e.SETTEO_URL_PLAN);
+  for (let i = 1; i <= 9; i++) add(`c${i}`, e[`SETTEO_URL_C${i}`]);
+  if (Object.keys(map).length) return map;
+
+  // Repli : ancien format JSON monobloc dans SETTEO_WEBHOOKS.
+  const raw = e.SETTEO_WEBHOOKS;
   if (!raw) return {};
   try {
     const parsed = JSON.parse(raw) as Record<string, string>;
