@@ -38,15 +38,25 @@ export function setPrenom(prenom: string): void {
 
 // ─── Mode preview (démo avant le drip réel) ─────────────────────────────────
 
-// Démo ON par défaut (tout débloqué) tant qu'on est en phase de prévisualisation,
-// avant le vrai lancement du drip (C1 le 04/08). Coupable explicitement via le toggle
-// (stocke "0") ou `?preview=0`. À repasser sur false par défaut avant le lancement.
+// INTERRUPTEUR GLOBAL DE LA DÉMO.
+//   false (lancement) : aucun visiteur ne peut voir ni activer la démo — le bouton
+//                       est masqué et `?preview=1` n'a aucun effet. Le drip réel par
+//                       date s'applique pour TOUT LE MONDE.
+//   true  (phase de test) : rouvre la démo (bouton visible + `?preview=1` actif).
+// La logique reste intacte : pour rouvrir la démo, il suffit de repasser à `true`.
+export const DEMO_ENABLED = false;
+
+// Démo ON par défaut (tout débloqué) tant que `DEMO_ENABLED` est vrai. Coupée
+// explicitement via le toggle (stocke "0") ou `?preview=0`. Quand `DEMO_ENABLED`
+// est faux, la démo est totalement neutralisée quel que soit le localStorage.
 export function isPreview(): boolean {
+  if (!DEMO_ENABLED) return false;
   if (typeof window === "undefined") return true;
   return localStorage.getItem(PREVIEW_KEY) !== "0";
 }
 
 export function setPreview(on: boolean): void {
+  if (!DEMO_ENABLED) return; // démo neutralisée : `?preview=1` et le toggle sont sans effet
   if (typeof window === "undefined") return;
   localStorage.setItem(PREVIEW_KEY, on ? "1" : "0");
 }

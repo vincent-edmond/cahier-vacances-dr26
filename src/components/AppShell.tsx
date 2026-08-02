@@ -11,6 +11,7 @@ import {
   syncProgressFromServer,
   isPreview,
   setPreview,
+  DEMO_ENABLED,
 } from "@/lib/session";
 import { Footer } from "./Footer";
 import type { Capsule, CapsuleProgress } from "@/lib/types";
@@ -231,15 +232,17 @@ function SidebarContent({
         >
           Destination Réussite →
         </a>
-        <button
-          onClick={onTogglePreview}
-          className={`w-full text-center rounded-lg text-[11px] font-semibold py-2 border transition-colors ${
-            preview ? "bg-white/10 border-white/20 text-white" : "border-white/15 text-white/45 hover:text-white/80"
-          }`}
-          title="Mode démo : débloque toutes les capsules (avant le drip réel)"
-        >
-          {mounted && preview ? "Mode démo : ON" : "Mode démo : OFF"}
-        </button>
+        {DEMO_ENABLED && (
+          <button
+            onClick={onTogglePreview}
+            className={`w-full text-center rounded-lg text-[11px] font-semibold py-2 border transition-colors ${
+              preview ? "bg-white/10 border-white/20 text-white" : "border-white/15 text-white/45 hover:text-white/80"
+            }`}
+            title="Mode démo : débloque toutes les capsules (avant le drip réel)"
+          >
+            {mounted && preview ? "Mode démo : ON" : "Mode démo : OFF"}
+          </button>
+        )}
       </div>
     </div>
   );
