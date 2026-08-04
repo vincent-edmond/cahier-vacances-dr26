@@ -95,7 +95,7 @@ export default function LandingPage() {
         .lp-who-card strong { color:#00194C; }
 
         /* À PROPOS DE MAX */
-        .lp-about { background:#EDF1F8; padding: 84px 0; }
+        .lp-about { background:#EDF1F8; padding: 84px 0; overflow:hidden; }
         .lp-about-grid { display:grid; grid-template-columns: 0.82fr 1.18fr; gap:48px; align-items:center; max-width: 980px; margin:0 auto; }
         @media (max-width:860px){ .lp-about-grid { grid-template-columns:1fr; gap:30px; text-align:center; } }
         .lp-about-photo { position:relative; }

@@ -179,7 +179,7 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
         .lp-mod h4 { font-weight:700; color:#00194C; font-size:15px; margin:4px 0 6px; line-height:1.3; }
         .lp-mod .date { font-size:12px; color:#9096A5; }
 
-        .lp-about { background:#fff; padding:84px 0; }
+        .lp-about { background:#fff; padding:84px 0; overflow:hidden; }
         .lp-about-grid { display:grid; grid-template-columns:.82fr 1.18fr; gap:48px; align-items:center; max-width:980px; margin:0 auto; }
         @media (max-width:860px){ .lp-about-grid{ grid-template-columns:1fr; gap:30px; text-align:center; } }
         .lp-about-photo { position:relative; }
