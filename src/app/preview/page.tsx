@@ -51,33 +51,33 @@ export default function PreviewLanding() {
         /* ── HERO v2 : split, Max présent, aperçu du carnet ── */
         .lp-hero { position:relative; overflow:hidden; background:linear-gradient(180deg,#000D2B 0%,#001233 100%); padding:60px 0 68px; }
         .lp-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 60% 50% at 20% 0%,rgba(0,70,255,.32),transparent 70%),radial-gradient(ellipse 50% 50% at 92% 90%,rgba(37,99,255,.18),transparent 62%); pointer-events:none; }
-        .lp-hero-grid { position:relative; z-index:1; display:grid; grid-template-columns:1.02fr .98fr; gap:52px; align-items:center; }
-        @media (max-width:940px){ .lp-hero-grid{ grid-template-columns:1fr; gap:36px; } }
+        .lp-hero-inner { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; text-align:center; }
         .lp-kicker { display:inline-flex; align-items:center; gap:9px; background:rgba(0,70,255,.16); border:1px solid rgba(0,70,255,.4); color:#9FC0FF; border-radius:100px; padding:8px 16px; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
         .lp-kicker b { color:#fff; font-weight:800; }
-        .lp-h1 { font-family:var(--font-poppins); font-weight:800; color:#fff; font-size:clamp(33px,4.3vw,52px); line-height:1.05; letter-spacing:-.02em; margin:18px 0 0; text-wrap:balance; }
-        .lp-hero .sub { color:rgba(255,255,255,.72); font-size:clamp(15px,1.3vw,17px); line-height:1.6; margin:16px 0 0; max-width:520px; }
+        .lp-h1 { font-family:var(--font-poppins); font-weight:800; color:#fff; font-size:clamp(34px,4.8vw,56px); line-height:1.04; letter-spacing:-.02em; margin:18px auto 0; max-width:860px; text-wrap:balance; }
+        .lp-hero .sub { color:rgba(255,255,255,.72); font-size:clamp(15px,1.35vw,17.5px); line-height:1.6; margin:16px auto 0; max-width:620px; }
         .lp-hero .sub b { color:#fff; }
-        .lp-bullets { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:11px; }
-        .lp-bullets li { display:flex; align-items:flex-start; gap:11px; color:rgba(255,255,255,.9); font-size:15px; }
-        .lp-bullets .bic { flex-shrink:0; width:22px; height:22px; border-radius:7px; background:rgba(13,148,136,.18); border:1px solid rgba(13,148,136,.5); color:#34D399; display:flex; align-items:center; justify-content:center; margin-top:1px; }
-        .lp-bullets .bic svg { width:13px; height:13px; }
+        .lp-bullets { list-style:none; margin:24px auto 0; padding:0; display:flex; flex-wrap:wrap; justify-content:center; gap:10px 12px; max-width:840px; }
+        .lp-bullets li { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:100px; padding:8px 15px; color:rgba(255,255,255,.88); font-size:13.5px; }
+        .lp-bullets .bic { flex-shrink:0; color:#34D399; display:flex; }
+        .lp-bullets .bic svg { width:15px; height:15px; }
         .lp-bullets b { color:#fff; font-weight:700; }
-        .lp-hero-actions { display:flex; align-items:center; gap:18px; margin-top:28px; flex-wrap:wrap; }
+        .lp-hero-actions { display:flex; align-items:center; justify-content:center; gap:18px; margin-top:28px; flex-wrap:wrap; }
         .lp-cta { position:relative; display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg,#0046FF,#2563FF); color:#fff; padding:16px 34px; border-radius:100px; font-size:16px; font-weight:700; text-decoration:none; box-shadow:0 6px 28px rgba(0,70,255,.45); transition:transform .22s cubic-bezier(.22,.61,.36,1),box-shadow .25s ease; }
         .lp-cta:hover { transform:translateY(-3px) scale(1.03); box-shadow:0 14px 48px rgba(0,70,255,.7); }
         .lp-cta .arrow { transition:transform .22s; }
         .lp-cta:hover .arrow { transform:translateX(5px); }
         .lp-hero-actions .free { color:rgba(255,255,255,.55); font-size:13px; }
-        .lp-hero-cred { display:flex; align-items:center; gap:12px; margin-top:26px; padding-top:22px; border-top:1px solid rgba(255,255,255,.1); }
+        .lp-hero-cred { display:inline-flex; align-items:center; gap:12px; margin-top:24px; text-align:left; }
         .lp-hero-cred img { width:46px; height:46px; border-radius:50%; object-fit:cover; object-position:top center; border:2px solid rgba(107,159,255,.6); }
         .lp-hero-cred .t { color:#fff; font-weight:700; font-size:14px; }
         .lp-hero-cred .s { color:rgba(255,255,255,.55); font-size:12.5px; }
 
-        /* Aperçu du carnet (mockup) */
-        .lp-mock { position:relative; }
-        .lp-mock::before { content:''; position:absolute; inset:-8% -6%; background:radial-gradient(circle at 50% 40%,rgba(0,70,255,.35),transparent 68%); filter:blur(8px); }
-        .lp-mock-win { position:relative; background:#fff; border-radius:16px; box-shadow:0 30px 70px rgba(0,10,40,.55); overflow:hidden; border:1px solid rgba(255,255,255,.12); }
+        /* Aperçu du carnet (GIF de l'app, centré) */
+        .lp-mock { position:relative; width:100%; max-width:860px; margin:40px auto 0; }
+        .lp-mock::before { content:''; position:absolute; inset:-5% -4% 0; background:radial-gradient(circle at 50% 25%,rgba(0,70,255,.42),transparent 64%); filter:blur(12px); }
+        .lp-mock-win { position:relative; background:#fff; border-radius:16px; box-shadow:0 40px 100px rgba(0,10,40,.62); overflow:hidden; border:1px solid rgba(255,255,255,.14); }
+        .lp-mock-gif { display:block; width:100%; height:auto; }
         .lp-mock-bar { display:flex; align-items:center; gap:7px; padding:11px 14px; background:#F4F6FA; border-bottom:1px solid #E6E9F0; }
         .lp-mock-bar i { width:10px; height:10px; border-radius:50%; background:#DfE3EA; }
         .lp-mock-bar span { margin-left:8px; font-size:11px; color:#9096A5; font-weight:600; }
@@ -185,9 +185,7 @@ export default function PreviewLanding() {
 
       {/* HERO v2 */}
       <header className="lp-hero">
-        <div className="container lp-hero-grid">
-          {/* Colonne texte */}
-          <div>
+        <div className="container lp-hero-inner">
             <span className="lp-kicker">
               <span aria-hidden style={{ width: 7, height: 7, borderRadius: "50%", background: "#FFB020", boxShadow: "0 0 10px rgba(255,176,32,.85)" }} />
               Summer Business · <b>avec Max Piccinini</b>
@@ -221,31 +219,14 @@ export default function PreviewLanding() {
                 <div className="s">Élu meilleur coach business · 170 000+ entrepreneurs accompagnés</div>
               </div>
             </div>
-          </div>
 
-          {/* Colonne aperçu du carnet */}
-          <div className="lp-mock">
-            <div className="lp-mock-win">
-              <div className="lp-mock-bar"><i /><i /><i /><span>summer-business · votre espace</span></div>
-              <div className="lp-mock-body">
-                <div className="lp-mock-eyebrow">Étape 1 / 9 · Le bilan de mi-année</div>
-                <div className="lp-mock-h">Le retour de Max IA</div>
-                <div className="lp-mock-card">
-                  <div className="lab" style={{ color: "#00194C" }}><Ic name="target" /> Le constat</div>
-                  <p>Vous êtes à 44% de votre objectif à mi-année, avec une marge nette solide de 18%. Le problème n&apos;est pas votre rentabilité, c&apos;est votre rythme d&apos;acquisition.</p>
-                </div>
-                <div className="lp-mock-card">
-                  <div className="lab" style={{ color: "#0046FF" }}><Ic name="spark" /> Votre action cette semaine</div>
-                  <p>Bloquez 2h pour structurer votre prospection : une cible, un message, un canal. C&apos;est votre levier n°1 sur les 5 mois qui restent.</p>
-                </div>
-                <div className="lp-mock-card lp-mock-cost">
-                  <div className="lab" style={{ color: "#DC2626" }}><Ic name="chart" /> La taxe stupide</div>
-                  <p>Rester sur ce rythme, c&apos;est laisser filer ~180 000€ d&apos;ici décembre.</p>
-                </div>
-                <div className="lp-mock-tag">Généré sur vos chiffres · en quelques secondes</div>
+            <div className="lp-mock">
+              <div className="lp-mock-win">
+                <div className="lp-mock-bar"><i /><i /><i /><span>summer-business · votre espace</span></div>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="lp-mock-gif" src="/app-summer-business.gif" alt="Aperçu de l'espace Summer Business : le menu des 9 piliers puis le contenu d'une capsule" />
               </div>
             </div>
-          </div>
         </div>
       </header>
 
