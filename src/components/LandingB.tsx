@@ -91,11 +91,14 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
 
         /* Mobile : titre plus imposant, CTA sur UNE ligne, hero resserré en haut */
         @media (max-width:560px){
-          .lp-hero { padding:34px 0 42px; }
-          .lp-h1 { font-size:clamp(37px,9.8vw,52px); letter-spacing:-.03em; margin-top:16px; }
+          .lp-hero { padding:30px 0 40px; }
+          .lp-h1 { font-size:clamp(36px,9.6vw,52px); line-height:1.06; letter-spacing:-.02em; margin-top:16px; }
           .lp-hero .sub { font-size:15px; margin-top:14px; }
           .lp-cta { padding:16px 26px; font-size:16px; gap:9px; }
           .lp-kicker { font-size:10.5px; letter-spacing:.04em; padding:7px 12px; }
+          /* Bullets en colonne alignée à gauche, bloc centré (coches alignées) */
+          .lp-bullets { flex-direction:column; align-items:flex-start; gap:11px; width:max-content; max-width:100%; margin:18px auto 0; }
+          .lp-bullets .brk { display:none; }
         }
         .lp-mock-bar { display:flex; align-items:center; gap:7px; padding:11px 14px; background:#F4F6FA; border-bottom:1px solid #E6E9F0; }
         .lp-mock-bar i { width:10px; height:10px; border-radius:50%; background:#DfE3EA; }
