@@ -96,8 +96,9 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
           .lp-hero .sub { font-size:15px; margin-top:14px; }
           .lp-cta { padding:16px 26px; font-size:16px; gap:9px; }
           .lp-kicker { font-size:10.5px; letter-spacing:.04em; padding:7px 12px; }
-          /* Bullets en colonne alignée à gauche, bloc centré (coches alignées) */
-          .lp-bullets { flex-direction:column; align-items:flex-start; gap:11px; width:max-content; max-width:100%; margin:18px auto 0; }
+          /* Bullets : colonne de puces de même largeur, centrées en bloc (coches alignées) */
+          .lp-bullets { flex-direction:column; align-items:center; gap:11px; max-width:100%; margin:18px auto 0; }
+          .lp-bullets li { width:295px; max-width:100%; }
           .lp-bullets .brk { display:none; }
         }
         .lp-mock-bar { display:flex; align-items:center; gap:7px; padding:11px 14px; background:#F4F6FA; border-bottom:1px solid #E6E9F0; }
@@ -217,7 +218,7 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
               Summer Business · <b>avec Max Piccinini</b>
             </span>
             <h1 className="lp-h1">
-              Identifiez vos plus grandes <span className="grad">opportunités de croissance</span>.
+              Cet été, identifiez vos plus grandes <span className="grad">opportunités de croissance</span>.
             </h1>
             <p className="sub">
               Un audit de votre entreprise <b>sur vos vrais chiffres</b>, guidé par Max IA, et un
