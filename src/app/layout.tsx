@@ -33,7 +33,7 @@ export default function RootLayout({
       lang="fr"
       className={`${inter.variable} ${poppins.variable} antialiased`}
     >
-      <body className="min-h-dvh flex flex-col bg-background text-foreground">
+      <body className="min-h-dvh bg-background text-foreground">
         <GtmScript />
         <UtmCapture />
         {children}
