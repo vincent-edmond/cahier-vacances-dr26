@@ -18,7 +18,7 @@ import type { NextRequest } from "next/server";
 //   true  = split 50/50 actif (A = LP actuelle · B = nouvelle)
 //   false = kill-switch → 100% LP actuelle (le `/` est servi inchangé)
 // Bascule = cette seule ligne + un push (aucune variable Netlify nécessaire).
-const AB_TEST_ENABLED = false;
+const AB_TEST_ENABLED = true;
 
 export function proxy(request: NextRequest) {
   const force = request.nextUrl.searchParams.get("lp"); // "a" | "b"
