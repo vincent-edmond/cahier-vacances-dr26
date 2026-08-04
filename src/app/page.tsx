@@ -146,8 +146,8 @@ export default function LandingPage() {
             <span className="accent">Pendant que vos concurrents lèvent le pied.</span>
           </h1>
           <p className="sub reveal reveal-delay-2">
-            9 étapes guidées par Max Piccinini pour gagner en perspectives, activer vos leviers
-            de croissance et repartir avec un plan d&apos;action clair pour faire une fin d&apos;année explosive&nbsp;!
+            Auditez votre entreprise sur vos vrais chiffres. Max IA vous répond sans complaisance
+            et vous repartez avec votre plan d&apos;action pour finir l&apos;année sur vos objectifs, voire au-dessus.
           </p>
           <Link href="/espace" className="lp-cta reveal reveal-delay-2">Je commence gratuitement <span className="arrow">→</span></Link>
           <p className="reassure reveal reveal-delay-3">Accès libre · à votre rythme · pour chefs d&apos;entreprise établis</p>
