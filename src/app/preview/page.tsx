@@ -68,8 +68,9 @@ export default function PreviewLanding() {
         .lp-h1 { font-family:var(--font-poppins); font-weight:800; color:#fff; font-size:clamp(34px,4.8vw,56px); line-height:1.04; letter-spacing:-.02em; margin:18px auto 0; max-width:860px; text-wrap:balance; }
         .lp-hero .sub { color:rgba(255,255,255,.72); font-size:clamp(15px,1.35vw,17.5px); line-height:1.6; margin:16px auto 0; max-width:620px; }
         .lp-hero .sub b { color:#fff; }
-        .lp-bullets { list-style:none; margin:22px auto 0; padding:0; display:flex; flex-wrap:wrap; justify-content:center; gap:9px 26px; max-width:680px; }
+        .lp-bullets { list-style:none; margin:22px auto 0; padding:0; display:grid; grid-template-columns:repeat(2,minmax(0,auto)); justify-content:center; gap:13px 44px; }
         .lp-bullets li { display:inline-flex; align-items:center; gap:8px; color:rgba(255,255,255,.72); font-size:14px; }
+        @media (max-width:600px){ .lp-bullets{ grid-template-columns:1fr; justify-items:center; gap:11px; } }
         .lp-bullets .bic { flex-shrink:0; color:#34D399; display:flex; }
         .lp-bullets .bic svg { width:15px; height:15px; }
         .lp-bullets b { color:#fff; font-weight:700; }
@@ -81,10 +82,10 @@ export default function PreviewLanding() {
         @keyframes lpCtaPulse { 0%,100%{ box-shadow:0 8px 32px rgba(0,70,255,.5);} 50%{ box-shadow:0 10px 42px rgba(0,70,255,.78);} }
         @media (prefers-reduced-motion:reduce){ .lp-cta{ animation:none; } }
         .lp-hero-actions .free { color:rgba(255,255,255,.5); font-size:12.5px; }
-        .lp-hero-cred { display:inline-flex; align-items:center; gap:11px; margin-top:32px; text-align:left; opacity:.88; }
-        .lp-hero-cred img { width:40px; height:40px; border-radius:50%; object-fit:cover; object-position:top center; border:2px solid rgba(107,159,255,.55); }
-        .lp-hero-cred .t { color:rgba(255,255,255,.9); font-weight:700; font-size:13px; }
-        .lp-hero-cred .s { color:rgba(255,255,255,.5); font-size:12px; }
+        .lp-hero-cred { display:inline-flex; align-items:center; gap:12px; margin-top:34px; text-align:left; }
+        .lp-hero-cred img { width:46px; height:46px; border-radius:50%; object-fit:cover; object-position:top center; border:2px solid rgba(107,159,255,.6); }
+        .lp-hero-cred .t { color:#fff; font-weight:700; font-size:14px; }
+        .lp-hero-cred .s { color:rgba(255,255,255,.55); font-size:12.5px; }
 
         /* Aperçu du carnet (GIF de l'app, centré) */
         .lp-mock { position:relative; width:100%; max-width:860px; margin:40px auto 0; }
@@ -216,8 +217,8 @@ export default function PreviewLanding() {
             </p>
             <ul className="lp-bullets">
               {[
-                <><b>9 piliers</b> passés au crible</>,
                 <>Retour <b>sans complaisance</b> de Max IA</>,
+                <><b>9 piliers</b> passés au crible</>,
                 <><b>~15 min</b> par semaine</>,
                 <>Un <b>plan d&apos;action daté</b></>,
               ].map((b, i) => (
@@ -228,20 +229,21 @@ export default function PreviewLanding() {
               <Link href="/espace" className="lp-cta">Je commence gratuitement <span className="arrow">→</span></Link>
               <span className="free">100% gratuit · sans carte</span>
             </div>
-            <div className="lp-hero-cred">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/max-p.png" alt="Max Piccinini" />
-              <div>
-                <div className="t">Conçu par Max Piccinini</div>
-                <div className="s">Élu meilleur coach business · 170 000+ entrepreneurs accompagnés</div>
-              </div>
-            </div>
 
             <div className="lp-mock">
               <div className="lp-mock-win">
                 <div className="lp-mock-bar"><i /><i /><i /><span>summer-business · votre espace</span></div>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className="lp-mock-gif" src="/app-summer-business.gif" alt="Aperçu de l'espace Summer Business : le menu des 9 piliers puis le contenu d'une capsule" />
+              </div>
+            </div>
+
+            <div className="lp-hero-cred">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/max-p.png" alt="Max Piccinini" />
+              <div>
+                <div className="t">Conçu par Max Piccinini</div>
+                <div className="s">Élu meilleur coach business · 170 000+ entrepreneurs accompagnés</div>
               </div>
             </div>
         </div>
