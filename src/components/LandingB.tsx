@@ -88,6 +88,15 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
         .lp-mock::before { content:''; position:absolute; inset:-5% -4% 0; background:radial-gradient(circle at 50% 25%,rgba(0,70,255,.42),transparent 64%); filter:blur(12px); }
         .lp-mock-win { position:relative; background:#fff; border-radius:16px; box-shadow:0 40px 100px rgba(0,10,40,.62); overflow:hidden; border:1px solid rgba(255,255,255,.14); }
         .lp-mock-gif { display:block; width:100%; height:auto; }
+
+        /* Mobile : titre plus imposant, CTA sur UNE ligne, hero resserré en haut */
+        @media (max-width:560px){
+          .lp-hero { padding:34px 0 42px; }
+          .lp-h1 { font-size:clamp(37px,9.8vw,52px); letter-spacing:-.03em; margin-top:16px; }
+          .lp-hero .sub { font-size:15px; margin-top:14px; }
+          .lp-cta { padding:16px 26px; font-size:16px; gap:9px; }
+          .lp-kicker { font-size:10.5px; letter-spacing:.04em; padding:7px 12px; }
+        }
         .lp-mock-bar { display:flex; align-items:center; gap:7px; padding:11px 14px; background:#F4F6FA; border-bottom:1px solid #E6E9F0; }
         .lp-mock-bar i { width:10px; height:10px; border-radius:50%; background:#DfE3EA; }
         .lp-mock-bar span { margin-left:8px; font-size:11px; color:#9096A5; font-weight:600; }
