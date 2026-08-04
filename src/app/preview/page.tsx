@@ -68,13 +68,13 @@ export default function PreviewLanding() {
         .lp-h1 { font-family:var(--font-poppins); font-weight:800; color:#fff; font-size:clamp(34px,4.8vw,56px); line-height:1.04; letter-spacing:-.02em; margin:18px auto 0; max-width:860px; text-wrap:balance; }
         .lp-hero .sub { color:rgba(255,255,255,.72); font-size:clamp(15px,1.35vw,17.5px); line-height:1.6; margin:16px auto 0; max-width:620px; }
         .lp-hero .sub b { color:#fff; }
-        .lp-bullets { list-style:none; margin:22px auto 0; padding:0; display:flex; flex-wrap:wrap; justify-content:center; gap:13px 44px; max-width:760px; }
-        .lp-bullets li { display:inline-flex; align-items:center; gap:8px; color:rgba(255,255,255,.72); font-size:14px; }
+        .lp-bullets { list-style:none; margin:20px auto 0; padding:0; display:flex; flex-wrap:wrap; justify-content:center; gap:6px 46px; max-width:790px; }
+        .lp-bullets li { display:inline-flex; align-items:center; gap:9px; color:rgba(255,255,255,.8); font-size:15px; }
         .lp-bullets .brk { flex-basis:100%; height:0; margin:0; gap:0; }
         .lp-bullets .bic { flex-shrink:0; color:#34D399; display:flex; }
-        .lp-bullets .bic svg { width:15px; height:15px; }
+        .lp-bullets .bic svg { width:16px; height:16px; }
         .lp-bullets b { color:#fff; font-weight:700; }
-        .lp-hero-actions { display:flex; flex-direction:column; align-items:center; gap:9px; margin-top:36px; }
+        .lp-hero-actions { display:flex; flex-direction:column; align-items:center; gap:9px; margin-top:30px; }
         .lp-cta { position:relative; display:inline-flex; align-items:center; gap:11px; background:linear-gradient(135deg,#0046FF,#2563FF); color:#fff; padding:19px 46px; border-radius:100px; font-size:17.5px; font-weight:700; text-decoration:none; box-shadow:0 8px 32px rgba(0,70,255,.5); transition:transform .22s cubic-bezier(.22,.61,.36,1),box-shadow .25s ease; animation:lpCtaPulse 2.8s ease-in-out infinite; }
         .lp-cta:hover { transform:translateY(-3px) scale(1.035); box-shadow:0 16px 52px rgba(0,70,255,.75); animation:none; }
         .lp-cta .arrow { transition:transform .22s; }
@@ -118,11 +118,11 @@ export default function PreviewLanding() {
         @media (prefers-reduced-motion:reduce){ .lp-marquee-track{ animation:none; } }
 
         /* ── Strip de chiffres ── */
-        .lp-nums { background:#EDF1F8; padding:34px 0; }
+        .lp-nums { background:#001233; padding:28px 0 38px; }
         .lp-nums-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; text-align:center; }
-        @media (max-width:720px){ .lp-nums-grid{ grid-template-columns:repeat(2,1fr); gap:24px; } }
-        .lp-num .n { font-family:var(--font-poppins); font-weight:800; color:#0046FF; font-size:clamp(26px,3.4vw,36px); line-height:1; }
-        .lp-num .l { color:#555B6E; font-size:13px; margin-top:6px; }
+        @media (max-width:720px){ .lp-nums-grid{ grid-template-columns:repeat(2,1fr); gap:26px; } }
+        .lp-num .n { font-family:var(--font-poppins); font-weight:800; color:#6B9FFF; font-size:clamp(26px,3.4vw,36px); line-height:1; }
+        .lp-num .l { color:rgba(255,255,255,.55); font-size:13px; margin-top:6px; }
 
         .lp-section-label { font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:#0046FF; text-align:center; margin-bottom:10px; }
         .lp-section-title { font-family:var(--font-poppins); font-weight:800; color:#00194C; text-align:center; font-size:clamp(24px,4vw,38px); line-height:1.2; margin-bottom:14px; }
@@ -256,20 +256,7 @@ export default function PreviewLanding() {
         </div>
       </header>
 
-      {/* BANDEAU MÉDIAS — marquee défilant (repris de Destination Réussite) */}
-      <section className="lp-band">
-        <span className="lbl">Vu &amp; reconnu dans les médias</span>
-        <div className="lp-marquee" aria-hidden>
-          <div className="lp-marquee-track">
-            {[...PRESS_LOGOS, ...PRESS_LOGOS].map((f, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={i} src={`/press/${f}`} alt="Média" loading="lazy" />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* STRIP DE CHIFFRES */}
+      {/* STRIP DE CHIFFRES (sombre, prolonge la hero) */}
       <section className="lp-nums">
         <div className="container lp-nums-grid">
           {[
@@ -280,6 +267,19 @@ export default function PreviewLanding() {
           ].map((s) => (
             <div key={s.l} className="lp-num"><div className="n">{s.n}</div><div className="l">{s.l}</div></div>
           ))}
+        </div>
+      </section>
+
+      {/* BANDEAU MÉDIAS — marquee défilant (repris de Destination Réussite) */}
+      <section className="lp-band">
+        <span className="lbl">Vu &amp; reconnu dans les médias</span>
+        <div className="lp-marquee" aria-hidden>
+          <div className="lp-marquee-track">
+            {[...PRESS_LOGOS, ...PRESS_LOGOS].map((f, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={i} src={`/press/${f}`} alt="Média" loading="lazy" />
+            ))}
+          </div>
         </div>
       </section>
 
