@@ -131,7 +131,6 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
         .lp-marquee-track img { height:30px; width:auto; opacity:.55; filter:grayscale(1); transition:opacity .2s,filter .2s; }
         .lp-marquee-track img:hover { opacity:1; filter:grayscale(0); }
         @keyframes lpMarquee { from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
-        @media (prefers-reduced-motion:reduce){ .lp-marquee-track{ animation:none; } }
 
         /* ── Strip de chiffres ── */
         .lp-nums { background:#001233; padding:28px 0 38px; }
