@@ -20,7 +20,7 @@ interface Overview {
   funnel: { capsule: number; vu: number; done: number }[];
   engagement: { sessions: number; did_exercise: number; plan_done: number };
   recent: { prenom: string | null; email: string; ca: string | null; lead_quality: string | null; secteur: string | null; source: string; created_at: string; capsules_done: number; score: number; tier: string }[];
-  top_leads: { prenom: string | null; email: string; phone: string | null; ca: string | null; secteur: string | null; source: string; capsules_done: number; plan_done: boolean; score: number; tier: string }[];
+  top_leads: { prenom: string | null; email: string; phone: string | null; ca: string | null; secteur: string | null; source: string; created_at: string; capsules_done: number; plan_done: boolean; score: number; tier: string }[];
 }
 
 interface Incidents {
@@ -440,7 +440,8 @@ function TopLeads({ rows, onOpen }: { rows: Overview["top_leads"]; onOpen: (emai
             <th className="py-2 pr-3 font-semibold">CA</th>
             <th className="py-2 pr-3 font-semibold">Secteur</th>
             <th className="py-2 pr-3 font-semibold">Source</th>
-            <th className="py-2 font-semibold text-center">Étapes</th>
+            <th className="py-2 pr-3 font-semibold text-center">Étapes</th>
+            <th className="py-2 font-semibold">Date opt-in</th>
           </tr>
         </thead>
         <tbody>
@@ -456,7 +457,8 @@ function TopLeads({ rows, onOpen }: { rows: Overview["top_leads"]; onOpen: (emai
               <td className="py-2 pr-3 text-[#555B6E] whitespace-nowrap">{r.ca ? r.ca.replace(/ de C\.A annuel/, "") : "—"}</td>
               <td className="py-2 pr-3 text-[#555B6E]">{r.secteur || "—"}</td>
               <td className="py-2 pr-3 text-[#555B6E]">{r.source}</td>
-              <td className="py-2 text-center text-[#00194C] font-semibold">{r.capsules_done > 0 ? `${r.capsules_done}/9` : "—"}{r.plan_done ? " ✓plan" : ""}</td>
+              <td className="py-2 pr-3 text-center text-[#00194C] font-semibold">{r.capsules_done > 0 ? `${r.capsules_done}/9` : "—"}{r.plan_done ? " ✓plan" : ""}</td>
+              <td className="py-2 text-[#9096A5] whitespace-nowrap">{r.created_at}</td>
             </tr>
           ))}
         </tbody>
