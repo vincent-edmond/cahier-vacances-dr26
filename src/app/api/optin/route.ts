@@ -317,12 +317,19 @@ export async function POST(req: NextRequest) {
         existingPrenom = row.prenom || prenom;
       } else {
         token = randomUUID();
+        // A/B test : on colle la variante vue (cookie ab_lp) à l'attribution du lead
+        // (reporting /admin uniquement, jamais envoyé à HubSpot).
+        const abVariant = req.cookies.get("ab_lp")?.value;
+        const attribution =
+          abVariant === "A" || abVariant === "B"
+            ? { ...(body.attribution ?? {}), ab_variant: abVariant }
+            : body.attribution ?? null;
         const { error: insErr } = await supabase.from("participants").insert({
           token,
           email,
           prenom: prenom || null,
           session_id: sessionId || null,
-          attribution: body.attribution ?? null,
+          attribution,
         });
         if (insErr) console.error("participants insert error:", insErr.message);
       }

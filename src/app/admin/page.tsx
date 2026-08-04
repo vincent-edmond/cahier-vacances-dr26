@@ -15,6 +15,7 @@ interface Overview {
   visitors: { unique: number; visits: number; optin_unique: number; today_unique: number; by_day: { day: string; count: number }[] };
   by_source: { label: string; count: number }[];
   by_channel: { canal: string; leads: number; quali: number; classique: number }[];
+  ab_test?: { variant: string; views: number; optins: number }[];
   by_secteur: { label: string; count: number }[];
   by_ca: { label: string; count: number }[];
   by_day: { day: string; count: number }[];
@@ -210,6 +211,17 @@ export default function AdminPage() {
           <Kpi label="Visiteurs non opt-in" value={nonOptin} sub="entrés mais pas encore inscrits" accent="#9096A5" />
         </section>
 
+        {/* Test A/B des landing pages (variante A = LP actuelle · B = nouvelle) */}
+        {data.ab_test && data.ab_test.some((r) => r.views > 0 || r.optins > 0) && (
+          <Card title="🧪 Test A/B des landing pages — taux d'opt-in par variante">
+            <AbTestTable rows={data.ab_test} />
+            <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
+              Variante A = LP actuelle · Variante B = nouvelle LP. Trafic réparti 50/50. Le « taux » = opt-ins ÷ vues de la LP.
+              Attendez plusieurs centaines de vues par variante avant de conclure.
+            </p>
+          </Card>
+        )}
+
         {/* Visiteurs vs opt-ins par jour */}
         <div className="grid md:grid-cols-2 gap-6">
           <Card title="Visiteurs uniques par jour (30 j)">
@@ -376,6 +388,41 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
     <div className="rounded-2xl bg-white border border-[#E2E4EA] p-5">
       <h2 className="font-display font-bold text-[#00194C] text-sm mb-4">{title}</h2>
       {children}
+    </div>
+  );
+}
+
+function AbTestTable({ rows }: { rows: NonNullable<Overview["ab_test"]> }) {
+  const labels: Record<string, string> = { A: "A — LP actuelle", B: "B — Nouvelle LP" };
+  const withRate = rows.map((r) => ({ ...r, rate: r.views > 0 ? (r.optins / r.views) * 100 : 0 }));
+  const best = withRate.filter((r) => r.views > 0).sort((a, b) => b.rate - a.rate)[0];
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wide text-[#9096A5] border-b border-[#E2E4EA]">
+            <th className="py-2 pr-3 font-semibold">Variante</th>
+            <th className="py-2 pr-3 font-semibold text-right">Vues LP</th>
+            <th className="py-2 pr-3 font-semibold text-right">Opt-ins</th>
+            <th className="py-2 font-semibold text-right">Taux d&apos;opt-in</th>
+          </tr>
+        </thead>
+        <tbody>
+          {withRate.map((r) => (
+            <tr key={r.variant} className="border-b border-[#F0F1F5]">
+              <td className="py-2 pr-3 font-medium text-[#00194C]">
+                {labels[r.variant] ?? r.variant}
+                {best && best.variant === r.variant && best.optins > 0 && (
+                  <span className="ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#0D9488]/10 text-[#0D9488]">en tête</span>
+                )}
+              </td>
+              <td className="py-2 pr-3 text-right text-[#555B6E]">{r.views}</td>
+              <td className="py-2 pr-3 text-right text-[#555B6E]">{r.optins}</td>
+              <td className="py-2 text-right font-display font-extrabold text-[#00194C]">{r.rate.toFixed(1)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
