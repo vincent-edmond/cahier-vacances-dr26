@@ -68,9 +68,9 @@ export default function PreviewLanding() {
         .lp-h1 { font-family:var(--font-poppins); font-weight:800; color:#fff; font-size:clamp(34px,4.8vw,56px); line-height:1.04; letter-spacing:-.02em; margin:18px auto 0; max-width:860px; text-wrap:balance; }
         .lp-hero .sub { color:rgba(255,255,255,.72); font-size:clamp(15px,1.35vw,17.5px); line-height:1.6; margin:16px auto 0; max-width:620px; }
         .lp-hero .sub b { color:#fff; }
-        .lp-bullets { list-style:none; margin:22px auto 0; padding:0; display:grid; grid-template-columns:repeat(2,minmax(0,auto)); justify-content:center; gap:13px 44px; }
-        .lp-bullets li { display:inline-flex; align-items:center; gap:8px; color:rgba(255,255,255,.72); font-size:14px; }
-        @media (max-width:600px){ .lp-bullets{ grid-template-columns:1fr; justify-items:center; gap:11px; } }
+        .lp-bullets { list-style:none; margin:22px auto 0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:13px 28px; max-width:660px; }
+        .lp-bullets li { justify-self:start; display:inline-flex; align-items:center; gap:8px; color:rgba(255,255,255,.72); font-size:14px; }
+        @media (max-width:600px){ .lp-bullets{ grid-template-columns:1fr; gap:11px; } }
         .lp-bullets .bic { flex-shrink:0; color:#34D399; display:flex; }
         .lp-bullets .bic svg { width:15px; height:15px; }
         .lp-bullets b { color:#fff; font-weight:700; }
@@ -233,8 +233,18 @@ export default function PreviewLanding() {
             <div className="lp-mock">
               <div className="lp-mock-win">
                 <div className="lp-mock-bar"><i /><i /><i /><span>summer-business · votre espace</span></div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className="lp-mock-gif" src="/app-summer-business.gif" alt="Aperçu de l'espace Summer Business : le menu des 9 piliers puis le contenu d'une capsule" />
+                <video
+                  className="lp-mock-gif"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  poster="/app-summer-business-poster.jpg"
+                  aria-label="Aperçu de l'espace Summer Business : le menu des 9 piliers puis le contenu d'une capsule"
+                >
+                  <source src="/app-summer-business.mp4" type="video/mp4" />
+                </video>
               </div>
             </div>
 
