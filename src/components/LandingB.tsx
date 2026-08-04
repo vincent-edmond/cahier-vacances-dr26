@@ -43,7 +43,7 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
   return (
     <div className="lp">
       <style>{`
-        .lp { font-family: var(--font-inter), sans-serif; color:#0A0A0F; background:#fff; line-height:1.6; overflow-x:clip; }
+        .lp { font-family: var(--font-inter), sans-serif; color:#0A0A0F; background:#fff; line-height:1.6; }
         .lp .container { max-width:1120px; margin:0 auto; padding:0 24px; }
         .lp .display { font-family: var(--font-poppins), sans-serif; }
         .lp .grad { background-image:linear-gradient(90deg,#6B9FFF 0%,#2563FF 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent; }
@@ -59,6 +59,8 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
         .lp-hero { position:relative; overflow:hidden; background:linear-gradient(180deg,#000D2B 0%,#001233 100%); padding:60px 0 68px; }
         .lp-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 60% 50% at 20% 0%,rgba(0,70,255,.32),transparent 70%),radial-gradient(ellipse 50% 50% at 92% 90%,rgba(37,99,255,.18),transparent 62%); pointer-events:none; }
         .lp-hero-inner { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; text-align:center; }
+        /* Wrapper « carte » (sous-titre + bullets + CTA) : transparent en desktop, carte en mobile */
+        .lp-hero-card { display:contents; }
         .lp-kicker { display:inline-flex; align-items:center; gap:9px; background:rgba(0,70,255,.16); border:1px solid rgba(0,70,255,.4); color:#9FC0FF; border-radius:100px; padding:8px 16px; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
         .lp-kicker b { color:#fff; font-weight:800; }
         .lp-h1 { font-family:var(--font-poppins); font-weight:800; color:#fff; font-size:clamp(34px,4.8vw,56px); line-height:1.04; letter-spacing:-.02em; margin:18px auto 0; max-width:860px; text-wrap:balance; }
@@ -100,6 +102,11 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
           .lp-bullets { flex-direction:column; align-items:center; gap:11px; max-width:100%; margin:18px auto 0; }
           .lp-bullets li { width:295px; max-width:100%; }
           .lp-bullets .brk { display:none; }
+          /* Carte : regroupe sous-titre + bullets + CTA sur un fond légèrement plus clair */
+          .lp-hero-card { display:block; width:100%; margin-top:22px; padding:20px 14px 22px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:22px; box-shadow:0 10px 34px rgba(0,0,0,.22); }
+          .lp-hero-card .sub { margin-top:0; }
+          .lp-hero-card .lp-bullets { margin-top:16px; }
+          .lp-hero-card .lp-hero-actions { margin-top:20px; }
         }
         .lp-mock-bar { display:flex; align-items:center; gap:7px; padding:11px 14px; background:#F4F6FA; border-bottom:1px solid #E6E9F0; }
         .lp-mock-bar i { width:10px; height:10px; border-radius:50%; background:#DfE3EA; }
@@ -220,6 +227,7 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
             <h1 className="lp-h1">
               Cet été, identifiez vos plus grandes <span className="grad">opportunités de croissance</span>.
             </h1>
+            <div className="lp-hero-card">
             <p className="sub">
               Un audit de votre entreprise <b>sur vos vrais chiffres</b>, guidé par Max IA, et un
               plan d&apos;action clair pour finir l&apos;année en force.
@@ -235,6 +243,7 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
               <Link href="/espace" className="lp-cta">Je commence gratuitement <span className="arrow">→</span></Link>
               <span className="free">100% gratuit · sans carte</span>
             </div>
+            </div>{/* /lp-hero-card */}
 
             <div className="lp-mock">
               <div className="lp-mock-win">
