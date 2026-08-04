@@ -7,11 +7,16 @@ import { CA_OPTIONS, SECTEUR_OPTIONS, PHONE_COUNTRIES, caLeadQuality } from "@/l
 import { validateEmailFormat, validatePhone } from "@/lib/validation";
 import { trackLead, newEventId } from "@/lib/track";
 
+// Lead sans entreprise : exclu de Camille (WhatsApp) → on ne lui promet pas ce suivi.
+// Doit correspondre à la 1ʳᵉ option de CA_OPTIONS et à SANS_ENTREPRISE côté Setteo.
+const SANS_ENTREPRISE = "Je n'ai pas encore d'entreprise";
+
 /**
  * Opt-in déclenché à la 1ʳᵉ demande de retour Max IA (une seule fois).
  * Deux portes : « créer mon espace » (prénom + email → CA + secteur) ou
- * « j'ai déjà un espace » (reconnexion par email). À la fin → onComplete()
- * qui reprend l'action IA en attente.
+ * « j'ai déjà un espace » (reconnexion par email). Étape 3 (leads avec entreprise) :
+ * notification « Camille vous suit sur WhatsApp ». À la fin → onComplete() qui reprend
+ * l'action IA en attente.
  */
 export function OptInModal({
   open,
@@ -23,7 +28,7 @@ export function OptInModal({
   onComplete: () => void;
 }) {
   const [view, setView] = useState<"signup" | "login">("signup");
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
   const [prenom, setPrenom] = useState("");
   const [email, setEmail] = useState("");
   const [ca, setCa] = useState("");
@@ -33,10 +38,26 @@ export function OptInModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  function finish(switched: boolean) {
+    if (switched) {
+      window.location.reload(); // session canonique adoptée → recharge la progression
+      return;
+    }
+    onComplete();
+  }
+
+  // Fermeture : à l'étape 3 (Camille), l'opt-in est DÉJÀ validé → fermer = poursuivre
+  // la génération (jamais annuler). Aux étapes 1/2, fermer = annuler l'opt-in.
+  function handleDismiss() {
+    if (loading) return;
+    if (step === 3) { finish(false); return; }
+    onClose();
+  }
+
   // Échap pour fermer (sauf pendant un envoi) + blocage du scroll de la page derrière.
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !loading) onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") handleDismiss(); };
     document.addEventListener("keydown", onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -44,7 +65,8 @@ export function OptInModal({
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
     };
-  }, [open, loading, onClose]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, loading, step, onClose]);
 
   if (!open) return null;
 
@@ -54,14 +76,6 @@ export function OptInModal({
   // Messages inline (uniquement quand le champ est non vide et invalide).
   const emailInline = email.trim() && !emailOk ? ("reason" in emailCheck ? emailCheck.reason : "Email invalide.") : null;
   const phoneInline = phone.trim() && !phoneOk ? "Ce numéro ne semble pas valide." : null;
-
-  function finish(switched: boolean) {
-    if (switched) {
-      window.location.reload(); // session canonique adoptée → recharge la progression
-      return;
-    }
-    onComplete();
-  }
 
   async function handleSignupStep1() {
     if (!prenom.trim() || !emailOk || loading) return;
@@ -101,7 +115,10 @@ export function OptInModal({
       secteur,
       attribution: getAttribution(),
     });
-    finish(false);
+    // Leads AVEC entreprise → étape 3 (Camille les contactera sur WhatsApp).
+    // Leads sans entreprise → pas de Camille, on enchaîne directement.
+    if (ca === SANS_ENTREPRISE) { finish(false); return; }
+    setStep(3);
   }
 
   async function handleLogin() {
@@ -123,16 +140,16 @@ export function OptInModal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <div className="absolute inset-0 bg-[#000D2B]/70 backdrop-blur-sm" onClick={loading ? undefined : onClose} />
+      <div className="absolute inset-0 bg-[#000D2B]/70 backdrop-blur-sm" onClick={loading ? undefined : handleDismiss} />
       <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 overflow-hidden">
         {/* Bandeau */}
         <div className="bg-gradient-to-br from-[#00194C] to-[#000D2B] px-6 pt-6 pb-5 text-white">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B9FFF]">
-              {view === "login" ? "Reconnexion" : step === 1 ? "Votre espace Summer Business" : "Dernière étape"}
+              {view === "login" ? "Reconnexion" : step === 1 ? "Votre espace Summer Business" : step === 2 ? "Dernière étape" : "Votre espace est prêt ✓"}
             </span>
-            {!loading && (
-              <button onClick={onClose} aria-label="Fermer" className="text-white/50 hover:text-white text-lg leading-none">
+            {!loading && step !== 3 && (
+              <button onClick={handleDismiss} aria-label="Fermer" className="text-white/50 hover:text-white text-lg leading-none">
                 ×
               </button>
             )}
@@ -142,14 +159,18 @@ export function OptInModal({
               ? "Retrouvez votre espace"
               : step === 1
                 ? "Recevez le retour de Max IA (100% Gratuit)"
-                : "Parlez-nous de votre entreprise"}
+                : step === 2
+                  ? "Parlez-nous de votre entreprise"
+                  : "Encore une chose"}
           </h3>
           <p className="text-sm text-white/65 mt-1.5 leading-snug">
             {view === "login"
               ? "Entrez l'email utilisé pour créer votre espace."
               : step === 1
                 ? "Créez votre espace pour recevoir l'analyse de Max IA et garder votre progression tout l'été."
-                : "Pour que Max IA vous réponde juste, à votre taille et dans votre métier. Pas du conseil générique."}
+                : step === 2
+                  ? "Pour que Max IA vous réponde juste, à votre taille et dans votre métier. Pas du conseil générique."
+                  : "Votre accompagnement ne s'arrête pas à la plateforme."}
           </p>
         </div>
 
@@ -204,8 +225,64 @@ export function OptInModal({
               </button>
             </>
           )}
+
+          {step === 3 && <CamilleStep onDone={() => finish(false)} />}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Étape post-opt-in : prévient le prospect (avec entreprise) que Camille le
+ * contactera sur WhatsApp. Objectif = faire enregistrer le numéro (taux d'ouverture)
+ * et poser que répondre fait partie de l'accompagnement.
+ */
+function CamilleStep({ onDone }: { onDone: () => void }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 rounded-2xl border border-[#E2E4EA] bg-[#F8F9FB] p-3">
+        <CamilleAvatar />
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="font-display font-extrabold text-[#00194C]">Camille</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B9FFF]">Votre assistante</span>
+          </div>
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#16A34A]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" aria-hidden />
+            en ligne
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-2.5 text-sm text-[#2A2D35] leading-relaxed">
+        <p>
+          Votre accès ne s&apos;arrête pas là. <strong className="text-[#00194C]">Camille</strong>, votre assistante
+          dédiée, va vous écrire sur <strong className="text-[#00194C]">WhatsApp</strong>{" "}
+          pour vous accompagner tout l&apos;été : vos questions, les bonnes ressources, un coup de pouce pour avancer plus vite.
+        </p>
+        <div className="rounded-xl border border-[#0046FF]/15 bg-[#0046FF]/[0.04] px-4 py-3 text-[13px] text-[#00194C]">
+          👉 <strong>Enregistrez son numéro</strong> dès son premier message, et <strong>répondez-lui</strong> : ses
+          messages font partie de votre accompagnement.
+        </div>
+      </div>
+
+      <PrimaryBtn onClick={onDone}>C&apos;est noté, place à Max IA →</PrimaryBtn>
+    </div>
+  );
+}
+
+/** Avatar de Camille (photo dans /public, repli sur un rond de marque si absente). */
+function CamilleAvatar() {
+  return (
+    <div className="relative shrink-0">
+      <div
+        className="w-14 h-14 rounded-full bg-cover bg-center bg-[#00194C] ring-2 ring-[#DDE6FF]"
+        style={{ backgroundImage: "url(/Camille.png)" }}
+        role="img"
+        aria-label="Camille"
+      />
+      <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#22C55E] ring-2 ring-white" aria-hidden />
     </div>
   );
 }

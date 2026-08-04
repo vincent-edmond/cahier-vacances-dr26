@@ -139,23 +139,26 @@ export function ExerciceForm({
             <FeedbackLoading mode={mode} />
           )
         ) : feedback ? (
-          mode === "plan" ? (
-            <div className="rounded-2xl border border-[#0046FF]/25 bg-gradient-to-br from-[#0046FF]/[0.06] to-[#00194C]/[0.03] p-6 sm:p-7">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg">📋</span>
-                <h4 className="font-display font-bold text-[#00194C] text-lg">Votre plan d&apos;action</h4>
+          <div className="space-y-2">
+            {mode === "plan" ? (
+              <div className="rounded-2xl border border-[#0046FF]/25 bg-gradient-to-br from-[#0046FF]/[0.06] to-[#00194C]/[0.03] p-6 sm:p-7">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">📋</span>
+                  <h4 className="font-display font-bold text-[#00194C] text-lg">Votre plan d&apos;action</h4>
+                </div>
+                <p className="text-[#2A2D35] leading-relaxed whitespace-pre-line">{feedback}</p>
               </div>
-              <p className="text-[#2A2D35] leading-relaxed whitespace-pre-line">{feedback}</p>
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-[#0046FF]/20 bg-[#0046FF]/[0.04] p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-lg">💬</span>
-                <h4 className="font-bold text-[#00194C]">Le retour de Max IA</h4>
+            ) : (
+              <div className="rounded-2xl border border-[#0046FF]/20 bg-[#0046FF]/[0.04] p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-lg">💬</span>
+                  <h4 className="font-bold text-[#00194C]">Le retour de Max IA</h4>
+                </div>
+                <FeedbackBlocks text={feedback} />
               </div>
-              <FeedbackBlocks text={feedback} />
-            </div>
-          )
+            )}
+            <AiDisclaimer />
+          </div>
         ) : null}
 
         {!generating && error && (
@@ -449,6 +452,17 @@ function FeedbackBlocks({ text }: { text: string }) {
         )
       )}
     </div>
+  );
+}
+
+// ─── Mention légère « généré par IA » (sous chaque retour / plan) ──────────────
+
+function AiDisclaimer() {
+  return (
+    <p className="px-1 text-[11px] leading-snug text-[#9096A5]">
+      NB : réponse générée par IA, susceptible de contenir des erreurs. En cas d&apos;incohérence,
+      n&apos;hésitez pas à nous contacter via « Besoin d&apos;aide ? ».
+    </p>
   );
 }
 
