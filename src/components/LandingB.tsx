@@ -116,7 +116,7 @@ export function LandingB({ preview = false }: { preview?: boolean }) {
         .lp-mock-tag { margin-top:12px; font-size:11px; color:#9096A5; text-align:right; }
 
         /* ── Bandeau médias (remonté sous la hero) ── */
-        .lp-band { background:#F4F6FA; padding:36px 0 32px; border-bottom:1px solid #E6E9F0; }
+        .lp-band { background:#F4F6FA; padding:36px 0 32px; border-bottom:1px solid #E6E9F0; overflow:hidden; max-width:100vw; }
         .lp-band .lbl { display:block; text-align:center; color:#9096A5; font-size:12.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin-bottom:22px; }
         .lp-marquee { overflow:hidden; -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent); mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent); }
         .lp-marquee-track { display:flex; gap:56px; align-items:center; width:max-content; animation:lpMarquee 45s linear infinite; }
