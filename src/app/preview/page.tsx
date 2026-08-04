@@ -68,9 +68,9 @@ export default function PreviewLanding() {
         .lp-h1 { font-family:var(--font-poppins); font-weight:800; color:#fff; font-size:clamp(34px,4.8vw,56px); line-height:1.04; letter-spacing:-.02em; margin:18px auto 0; max-width:860px; text-wrap:balance; }
         .lp-hero .sub { color:rgba(255,255,255,.72); font-size:clamp(15px,1.35vw,17.5px); line-height:1.6; margin:16px auto 0; max-width:620px; }
         .lp-hero .sub b { color:#fff; }
-        .lp-bullets { list-style:none; margin:22px auto 0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:13px 28px; max-width:660px; }
-        .lp-bullets li { justify-self:start; display:inline-flex; align-items:center; gap:8px; color:rgba(255,255,255,.72); font-size:14px; }
-        @media (max-width:600px){ .lp-bullets{ grid-template-columns:1fr; gap:11px; } }
+        .lp-bullets { list-style:none; margin:22px auto 0; padding:0; display:flex; flex-wrap:wrap; justify-content:center; gap:13px 44px; max-width:760px; }
+        .lp-bullets li { display:inline-flex; align-items:center; gap:8px; color:rgba(255,255,255,.72); font-size:14px; }
+        .lp-bullets .brk { flex-basis:100%; height:0; margin:0; gap:0; }
         .lp-bullets .bic { flex-shrink:0; color:#34D399; display:flex; }
         .lp-bullets .bic svg { width:15px; height:15px; }
         .lp-bullets b { color:#fff; font-weight:700; }
@@ -216,14 +216,11 @@ export default function PreviewLanding() {
               plan d&apos;action clair pour finir l&apos;année en force.
             </p>
             <ul className="lp-bullets">
-              {[
-                <>Retour <b>sans complaisance</b> de Max IA</>,
-                <><b>9 piliers</b> passés au crible</>,
-                <><b>~15 min</b> par semaine</>,
-                <>Un <b>plan d&apos;action daté</b></>,
-              ].map((b, i) => (
-                <li key={i}><span className="bic"><Ic name="check" /></span><span>{b}</span></li>
-              ))}
+              <li><span className="bic"><Ic name="check" /></span><span>Retour <b>sans complaisance</b> de Max IA</span></li>
+              <li><span className="bic"><Ic name="check" /></span><span><b>9 piliers</b> passés au crible</span></li>
+              <li className="brk" aria-hidden />
+              <li><span className="bic"><Ic name="check" /></span><span><b>~15 min</b> par semaine</span></li>
+              <li><span className="bic"><Ic name="check" /></span><span>Un <b>plan d&apos;action daté</b></span></li>
             </ul>
             <div className="lp-hero-actions">
               <Link href="/espace" className="lp-cta">Je commence gratuitement <span className="arrow">→</span></Link>
