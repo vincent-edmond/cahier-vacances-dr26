@@ -14,6 +14,7 @@ interface Overview {
   totals: { leads: number; quali: number; classique: number; with_phone: number; qualified: number; today: number; last7: number; last30: number };
   visitors: { unique: number; visits: number; optin_unique: number; today_unique: number; by_day: { day: string; count: number }[] };
   by_source: { label: string; count: number }[];
+  by_channel: { canal: string; leads: number; quali: number; classique: number }[];
   by_secteur: { label: string; count: number }[];
   by_ca: { label: string; count: number }[];
   by_day: { day: string; count: number }[];
@@ -240,8 +241,18 @@ export default function AdminPage() {
           </p>
         </Card>
 
+        {/* Performance par canal d'acquisition (Meta / YouTube / Email) */}
+        <Card title="📊 Performance par canal (Meta · YouTube · Email)">
+          <ChannelPerf rows={data.by_channel} />
+          <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
+            Canal déduit de l&apos;attribution : <b>Meta</b> = fbclid ou utm_source facebook/meta/instagram · <b>YouTube / Google</b> = gclid ou utm_source youtube/google ·
+            <b> Email</b> = utm_source interne/email (campagnes SB26) · <b>Organique / Direct</b> = sans utm.
+            Pour que Meta &amp; YouTube remontent, les liens d&apos;ads doivent porter les bons utm (à caler avec Dylan).
+          </p>
+        </Card>
+
         <div className="grid md:grid-cols-2 gap-6">
-          <Card title="Par source (utm_source)">
+          <Card title="Par source (utm_source brut)">
             <BarList items={data.by_source} accent="#0046FF" />
           </Card>
           <Card title="Qualité du lead">
@@ -365,6 +376,48 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
     <div className="rounded-2xl bg-white border border-[#E2E4EA] p-5">
       <h2 className="font-display font-bold text-[#00194C] text-sm mb-4">{title}</h2>
       {children}
+    </div>
+  );
+}
+
+const CHANNEL_COLORS: Record<string, string> = {
+  "Meta": "#0866FF",
+  "YouTube / Google": "#DC2626",
+  "Email": "#0D9488",
+  "Organique / Direct": "#9096A5",
+  "Autre": "#8B5CF6",
+};
+
+function ChannelPerf({ rows }: { rows: Overview["by_channel"] }) {
+  if (!rows || rows.length === 0) return <p className="text-sm text-[#9096A5]">Aucune donnée d&apos;acquisition pour l&apos;instant.</p>;
+  const totalLeads = rows.reduce((s, r) => s + r.leads, 0) || 1;
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wide text-[#9096A5] border-b border-[#E2E4EA]">
+            <th className="py-2 pr-3 font-semibold">Canal</th>
+            <th className="py-2 pr-3 font-semibold text-right">Opt-ins</th>
+            <th className="py-2 pr-3 font-semibold text-right">Quali</th>
+            <th className="py-2 pr-3 font-semibold text-right">Classique</th>
+            <th className="py-2 font-semibold text-right">% des opt-ins</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.canal} className="border-b border-[#F0F1F5]">
+              <td className="py-2 pr-3 font-medium text-[#00194C]">
+                <span className="inline-block w-2.5 h-2.5 rounded-full mr-2 align-middle" style={{ background: CHANNEL_COLORS[r.canal] ?? "#8B5CF6" }} />
+                {r.canal}
+              </td>
+              <td className="py-2 pr-3 text-right font-display font-extrabold text-[#00194C]">{r.leads}</td>
+              <td className="py-2 pr-3 text-right text-[#0D9488] font-semibold">{r.quali}</td>
+              <td className="py-2 pr-3 text-right text-[#555B6E]">{r.classique}</td>
+              <td className="py-2 text-right text-[#555B6E]">{Math.round((r.leads / totalLeads) * 100)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
