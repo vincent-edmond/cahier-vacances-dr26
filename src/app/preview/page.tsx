@@ -30,6 +30,17 @@ function Ic({ name }: { name: string }) {
   );
 }
 
+// Logos presse (repris de Destination Réussite) — marquee défilant.
+const PRESS_LOGOS = [
+  "DS_Mxp_Og_2_L1_DS-14.png", "DS_Mxp_Og_2_L2_DS-10.png", "DS_Mxp_Og_2_L3_DS-12.png",
+  "DS_Mxp_Og_2_L4_DS-11.png", "DS_Mxp_Og_2_L5_DS-10.png", "DS_Mxp_Og_2_L6_DS-12.png",
+  "DS_Mxp_Og_2_L7_DS-11.png", "DS_Mxp_Og_2_L8_DS-11.png", "DS_Mxp_Og_2_L9_DS-11.png",
+  "DS_Mxp_Og_2_L10_DS-14.png", "DS_Mxp_Og_2_L11_DS-14-e1752230142257.png",
+  "DS_Mxp_Og_2_L12_DS-13-e1752230195267.png", "DS_Mxp_Og_2_L13_DS-13.png",
+  "DS_Mxp_Og_2_L14_DS-14-e1752230118108.png", "DS_Mxp_Og_2_L15_DS-12-e1752230240949.png",
+  "DS_Mxp_Og_2_L16_DS-10.png",
+];
+
 export default function PreviewLanding() {
   const capsules = getCapsules();
 
@@ -93,11 +104,15 @@ export default function PreviewLanding() {
         .lp-mock-tag { margin-top:12px; font-size:11px; color:#9096A5; text-align:right; }
 
         /* ── Bandeau médias (remonté sous la hero) ── */
-        .lp-band { background:#0A1636; padding:22px 0; border-bottom:1px solid rgba(255,255,255,.06); }
-        .lp-band-inner { display:flex; align-items:center; justify-content:center; gap:26px; flex-wrap:wrap; }
-        .lp-band .lbl { color:rgba(255,255,255,.5); font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
-        .lp-band img { height:26px; width:auto; max-width:120px; object-fit:contain; filter:grayscale(1) brightness(0) invert(1) opacity(.75); transition:opacity .2s; }
-        .lp-band img:hover { opacity:1; }
+        .lp-band { background:#F4F6FA; padding:36px 0 32px; border-bottom:1px solid #E6E9F0; }
+        .lp-band .lbl { display:block; text-align:center; color:#9096A5; font-size:12.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin-bottom:22px; }
+        .lp-marquee { overflow:hidden; -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent); mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent); }
+        .lp-marquee-track { display:flex; gap:56px; align-items:center; width:max-content; animation:lpMarquee 45s linear infinite; }
+        .lp-marquee:hover .lp-marquee-track { animation-play-state:paused; }
+        .lp-marquee-track img { height:30px; width:auto; opacity:.55; filter:grayscale(1); transition:opacity .2s,filter .2s; }
+        .lp-marquee-track img:hover { opacity:1; filter:grayscale(0); }
+        @keyframes lpMarquee { from{ transform:translateX(0); } to{ transform:translateX(-50%); } }
+        @media (prefers-reduced-motion:reduce){ .lp-marquee-track{ animation:none; } }
 
         /* ── Strip de chiffres ── */
         .lp-nums { background:#EDF1F8; padding:34px 0; }
@@ -230,19 +245,16 @@ export default function PreviewLanding() {
         </div>
       </header>
 
-      {/* BANDEAU MÉDIAS */}
+      {/* BANDEAU MÉDIAS — marquee défilant (repris de Destination Réussite) */}
       <section className="lp-band">
-        <div className="container lp-band-inner">
-          <span className="lbl">Vu &amp; reconnu dans les médias</span>
-          {[
-            { src: "/logos/france2.svg", alt: "France 2" },
-            { src: "/logos/bfmtv.svg", alt: "BFM TV" },
-            { src: "/logos/forbes.svg", alt: "Forbes" },
-            { src: "/logos/franceinter.svg", alt: "France Inter" },
-          ].map((l) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={l.alt} src={l.src} alt={l.alt} loading="lazy" />
-          ))}
+        <span className="lbl">Vu &amp; reconnu dans les médias</span>
+        <div className="lp-marquee" aria-hidden>
+          <div className="lp-marquee-track">
+            {[...PRESS_LOGOS, ...PRESS_LOGOS].map((f, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={i} src={`/press/${f}`} alt="Média" loading="lazy" />
+            ))}
+          </div>
         </div>
       </section>
 
