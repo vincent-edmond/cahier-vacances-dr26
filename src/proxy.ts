@@ -14,9 +14,15 @@ import type { NextRequest } from "next/server";
  *
  * En Next.js 16, le fichier « middleware » s'appelle « proxy ».
  */
+// ═══ INTERRUPTEUR DU TEST A/B ═══
+//   true  = split 50/50 actif (A = LP actuelle · B = nouvelle)
+//   false = kill-switch → 100% LP actuelle (le `/` est servi inchangé)
+// Bascule = cette seule ligne + un push (aucune variable Netlify nécessaire).
+const AB_TEST_ENABLED = false;
+
 export function proxy(request: NextRequest) {
   const force = request.nextUrl.searchParams.get("lp"); // "a" | "b"
-  const enabled = process.env.AB_TEST_ENABLED === "true";
+  const enabled = AB_TEST_ENABLED;
 
   let variant = request.cookies.get("ab_lp")?.value;
   if (force === "a") variant = "A";
