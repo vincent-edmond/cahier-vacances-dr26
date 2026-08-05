@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { CountryCode } from "libphonenumber-js";
-import { optinSignup, optinQualify, optinLogin, getAttribution } from "@/lib/session";
+import { optinSignup, optinQualify, optinLogin, getAttribution, getParticipant } from "@/lib/session";
 import { CA_OPTIONS, SECTEUR_OPTIONS, PHONE_COUNTRIES, caLeadQuality } from "@/lib/optin";
 import { validateEmailFormat, validatePhone } from "@/lib/validation";
 import { trackLead, newEventId } from "@/lib/track";
@@ -23,6 +23,7 @@ export function OptInModal({
   onClose,
   onComplete,
   mandatory = false,
+  resume = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -30,11 +31,14 @@ export function OptInModal({
   /** Gate d'entrée : l'opt-in débloque l'accès → pas de croix, Échap et clic-fond
    *  neutralisés aux étapes 1/2 (impossible de contourner). La reconnexion reste dispo. */
   mandatory?: boolean;
+  /** Reprise : compte déjà créé (étape 1 faite) mais pas qualifié → on ouvre directement
+   *  à l'étape 2, prénom/email pré-remplis depuis le participant local. */
+  resume?: boolean;
 }) {
   const [view, setView] = useState<"signup" | "login">("signup");
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [prenom, setPrenom] = useState("");
-  const [email, setEmail] = useState("");
+  const [step, setStep] = useState<1 | 2 | 3>(resume ? 2 : 1);
+  const [prenom, setPrenom] = useState(() => (resume ? getParticipant()?.prenom ?? "" : ""));
+  const [email, setEmail] = useState(() => (resume ? getParticipant()?.email ?? "" : ""));
   const [ca, setCa] = useState("");
   const [secteur, setSecteur] = useState("");
   const [phone, setPhone] = useState("");
@@ -92,11 +96,11 @@ export function OptInModal({
       setError(r.error || "Un souci est survenu. Réessayez dans un instant.");
       return;
     }
-    // Email déjà inscrit → déjà qualifié, on reprend directement.
-    if (r.existing) {
-      finish(r.switched);
-      return;
-    }
+    // Revenant DÉJÀ qualifié → accès direct (pas de re-qualif = pas de double conversion).
+    if (r.qualified) { finish(r.switched); return; }
+    // Session canonique adoptée mais pas encore qualifié → reload → reprise à l'étape 2.
+    if (r.switched) { window.location.reload(); return; }
+    // Nouveau, ou compte existant non qualifié → on complète la qualif (étape 2).
     setStep(2);
   }
 
@@ -138,6 +142,16 @@ export function OptInModal({
     }
     if (!r.found) {
       setError("Aucun espace trouvé pour cet email. Créez le vôtre, c'est gratuit.");
+      return;
+    }
+    // Compte trouvé mais qualif jamais terminée → on la complète (étape 2) au lieu
+    // de donner l'accès à un lead incomplet.
+    if (!r.qualified) {
+      const p = getParticipant();
+      setPrenom(p?.prenom ?? "");
+      setEmail(p?.email ?? email.trim().toLowerCase());
+      setView("signup");
+      setStep(2);
       return;
     }
     finish(r.switched);
@@ -206,7 +220,7 @@ export function OptInModal({
               <PhoneField country={country} onCountry={setCountry} value={phone} onChange={setPhone} />
               {ca !== SANS_ENTREPRISE && (
                 <p className="text-[11px] text-[#9096A5] -mt-2 leading-snug">
-                  Pour que Camille, votre assistante, vous accompagne sur WhatsApp.
+                  Camille, votre conseillère, vous accompagne sur WhatsApp.
                 </p>
               )}
               {phoneInline && <p className="text-xs text-red-600 -mt-1">{phoneInline}</p>}
@@ -256,7 +270,7 @@ function CamilleStep({ onDone }: { onDone: () => void }) {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-display font-extrabold text-[#00194C]">Camille</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B9FFF]">Votre assistante</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B9FFF]">Votre conseillère</span>
           </div>
           <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#16A34A]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" aria-hidden />
@@ -267,7 +281,7 @@ function CamilleStep({ onDone }: { onDone: () => void }) {
 
       <div className="space-y-2.5 text-sm text-[#2A2D35] leading-relaxed">
         <p>
-          Votre accès ne s&apos;arrête pas là. <strong className="text-[#00194C]">Camille</strong>, votre assistante
+          Votre accès ne s&apos;arrête pas là. <strong className="text-[#00194C]">Camille</strong>, votre conseillère
           dédiée, va vous écrire sur <strong className="text-[#00194C]">WhatsApp</strong>{" "}
           pour vous accompagner tout l&apos;été : vos questions, les bonnes ressources, un coup de pouce pour avancer plus vite.
         </p>

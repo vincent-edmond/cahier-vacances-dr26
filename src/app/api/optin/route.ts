@@ -201,6 +201,10 @@ export async function POST(req: NextRequest) {
       token: row.token,
       prenom: row.prenom ?? "",
       sessionId: row.session_id ?? "",
+      // qualifié = CA déjà renseigné → le client évite de le faire re-qualifier.
+      qualified: !!row.ca,
+      ca: row.ca ?? "",
+      secteur: row.secteur ?? "",
       configured: true,
     });
   }
@@ -304,6 +308,8 @@ export async function POST(req: NextRequest) {
     let canonicalSession = sessionId;
     let existing = false;
     let existingPrenom = prenom;
+    let existingCa = "";
+    let existingSecteur = "";
 
     if (supabase) {
       const { data, error } = await supabase.rpc("find_participant", { p_email: email });
@@ -315,6 +321,8 @@ export async function POST(req: NextRequest) {
         token = row.token;
         canonicalSession = row.session_id || sessionId;
         existingPrenom = row.prenom || prenom;
+        existingCa = row.ca ?? "";
+        existingSecteur = row.secteur ?? "";
       } else {
         token = randomUUID();
         // A/B test : on colle la variante vue (cookie ab_lp) à l'attribution du lead
@@ -346,6 +354,10 @@ export async function POST(req: NextRequest) {
       prenom: existingPrenom,
       sessionId: canonicalSession,
       existing,
+      // qualifié = compte existant AVEC CA déjà renseigné (sinon → passer par l'étape 2).
+      qualified: existing && !!existingCa,
+      ca: existingCa,
+      secteur: existingSecteur,
       configured: !!supabase,
     });
   }

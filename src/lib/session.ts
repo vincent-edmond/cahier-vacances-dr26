@@ -74,9 +74,19 @@ export function getParticipant(): Participant | null {
   }
 }
 
-/** A déjà créé son espace (opt-in fait) ? Gate du retour Max IA. */
-export function hasOptedIn(): boolean {
+/** Participant identifié localement (étape 1 faite), qualifié ou non. */
+export function hasParticipant(): boolean {
   return getParticipant() !== null;
+}
+
+/**
+ * Opt-in COMPLET = participant identifié ET qualifié (CA renseigné). C'est la condition
+ * du gate d'entrée et du retour Max IA : un simple prénom+email ne suffit pas, sinon le
+ * lead entrerait sans CA/secteur/tél (donc sans lead_quality, sans generate_lead, sans
+ * Setteo). Tant que le CA manque, le gate fait reprendre la modale à l'étape 2.
+ */
+export function hasOptedIn(): boolean {
+  return getParticipant() !== null && !!getQualif()?.ca?.trim();
 }
 
 function setParticipantLocal(p: Participant): void {
@@ -135,7 +145,7 @@ function adoptSession(sessionId: string): boolean {
 export async function optinSignup(
   prenom: string,
   email: string,
-): Promise<{ ok: boolean; switched: boolean; existing: boolean; error?: string }> {
+): Promise<{ ok: boolean; switched: boolean; existing: boolean; qualified: boolean; error?: string }> {
   const sessionId = getOrCreateSessionId();
   try {
     const res = await fetch("/api/optin", {
@@ -145,15 +155,21 @@ export async function optinSignup(
     });
     if (!res.ok) {
       const data = (await res.json().catch(() => ({}))) as { error?: string };
-      return { ok: false, switched: false, existing: false, error: data.error };
+      return { ok: false, switched: false, existing: false, qualified: false, error: data.error };
     }
-    const data = (await res.json()) as { token: string; prenom: string; sessionId: string; existing?: boolean };
+    const data = (await res.json()) as { token: string; prenom: string; sessionId: string; existing?: boolean; qualified?: boolean; ca?: string; secteur?: string };
     setParticipantLocal({ token: data.token, email: email.trim().toLowerCase(), prenom: data.prenom || prenom });
     setPrenom(data.prenom || prenom);
+    // Revenant DÉJÀ qualifié → on restaure son profil (CA/secteur) pour ne pas le faire
+    // re-qualifier (sinon double generate_lead / Setteo). On préserve une activité captée.
+    if (data.qualified && data.ca) {
+      const prev = getQualif();
+      localStorage.setItem(QUALIF_KEY, JSON.stringify({ ca: data.ca, secteur: data.secteur, activite: prev?.activite }));
+    }
     const switched = data.sessionId ? adoptSession(data.sessionId) : false;
-    return { ok: true, switched, existing: !!data.existing };
+    return { ok: true, switched, existing: !!data.existing, qualified: !!data.qualified };
   } catch {
-    return { ok: false, switched: false, existing: false };
+    return { ok: false, switched: false, existing: false, qualified: false };
   }
 }
 
@@ -192,22 +208,27 @@ export async function optinQualify(
 /** Reconnexion par email (autre appareil / cache vidé). */
 export async function optinLogin(
   email: string,
-): Promise<{ ok: boolean; found: boolean; switched: boolean }> {
+): Promise<{ ok: boolean; found: boolean; switched: boolean; qualified: boolean }> {
   try {
     const res = await fetch("/api/optin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ mode: "login", email }),
     });
-    if (!res.ok) return { ok: false, found: false, switched: false };
-    const data = (await res.json()) as { found: boolean; token?: string; prenom?: string; sessionId?: string };
-    if (!data.found || !data.token) return { ok: true, found: false, switched: false };
+    if (!res.ok) return { ok: false, found: false, switched: false, qualified: false };
+    const data = (await res.json()) as { found: boolean; token?: string; prenom?: string; sessionId?: string; qualified?: boolean; ca?: string; secteur?: string };
+    if (!data.found || !data.token) return { ok: true, found: false, switched: false, qualified: false };
     setParticipantLocal({ token: data.token, email: email.trim().toLowerCase(), prenom: data.prenom || "" });
     if (data.prenom) setPrenom(data.prenom);
+    // Revenant déjà qualifié → on restaure son profil pour ne pas le refaire qualifier.
+    if (data.qualified && data.ca) {
+      const prev = getQualif();
+      localStorage.setItem(QUALIF_KEY, JSON.stringify({ ca: data.ca, secteur: data.secteur, activite: prev?.activite }));
+    }
     const switched = data.sessionId ? adoptSession(data.sessionId) : false;
-    return { ok: true, found: true, switched };
+    return { ok: true, found: true, switched, qualified: !!data.qualified };
   } catch {
-    return { ok: false, found: false, switched: false };
+    return { ok: false, found: false, switched: false, qualified: false };
   }
 }
 
