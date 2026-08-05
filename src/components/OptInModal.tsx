@@ -151,7 +151,7 @@ export function OptInModal({
         <div className="bg-gradient-to-br from-[#00194C] to-[#000D2B] px-6 pt-6 pb-5 text-white">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B9FFF]">
-              {view === "login" ? "Reconnexion" : step === 1 ? "Votre espace Summer Business" : step === 2 ? "Dernière étape" : "Votre espace est prêt ✓"}
+              {view === "login" ? "Reconnexion" : step === 1 ? "Summer Business · Accès gratuit" : step === 2 ? "Dernière étape" : "Votre espace est prêt ✓"}
             </span>
             {!loading && step !== 3 && !mandatory && (
               <button onClick={handleDismiss} aria-label="Fermer" className="text-white/50 hover:text-white text-lg leading-none">
@@ -163,7 +163,7 @@ export function OptInModal({
             {view === "login"
               ? "Retrouvez votre espace"
               : step === 1
-                ? "Débloquez votre espace"
+                ? "Plus qu'une étape pour accéder à votre espace"
                 : step === 2
                   ? "Parlez-nous de votre entreprise"
                   : "Encore une chose"}
@@ -172,7 +172,7 @@ export function OptInModal({
             {view === "login"
               ? "Entrez l'email utilisé pour créer votre espace."
               : step === 1
-                ? "Vos plus grandes opportunités de croissance et un plan d'action daté pour dépasser vos objectifs d'ici décembre. Sur vos vrais chiffres, avec Max IA. C'est gratuit."
+                ? "Découvrez vos plus grandes opportunités de croissance ainsi qu'un plan d'action pour dépasser vos objectifs."
                 : step === 2
                   ? "Pour que Max IA vous réponde juste : en fonction de vos chiffres et de votre secteur. Pas du conseil générique."
                   : "Votre accompagnement ne s'arrête pas à la plateforme."}
