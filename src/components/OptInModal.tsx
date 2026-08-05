@@ -291,7 +291,7 @@ function CamilleStep({ onDone }: { onDone: () => void }) {
         </div>
       </div>
 
-      <PrimaryBtn onClick={onDone}>C&apos;est noté, place à Max IA →</PrimaryBtn>
+      <PrimaryBtn onClick={onDone}>C&apos;est noté, j&apos;accède à mon espace →</PrimaryBtn>
     </div>
   );
 }
