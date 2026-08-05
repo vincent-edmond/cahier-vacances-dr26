@@ -85,11 +85,14 @@ grant select, insert, update on cdv.participants to anon, authenticated;
 grant all on cdv.progress, cdv.comments, cdv.participants to service_role;
 
 -- Reconnexion par email (security definer : n'expose qu'une ligne).
-create or replace function cdv.find_participant(p_email text)
-returns table(token text, prenom text, session_id text)
+-- Renvoie aussi ca+secteur → le client sait si le lead est DÉJÀ qualifié (évite de le
+-- faire re-qualifier = pas de double generate_lead).
+drop function if exists cdv.find_participant(text);
+create function cdv.find_participant(p_email text)
+returns table(token text, prenom text, session_id text, ca text, secteur text)
 language sql security definer set search_path = cdv
 as $$
-  select p.token, p.prenom, p.session_id
+  select p.token, p.prenom, p.session_id, p.ca, p.secteur
   from cdv.participants p
   where lower(p.email) = lower(p_email)
   limit 1;
