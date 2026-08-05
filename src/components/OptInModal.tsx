@@ -22,10 +22,14 @@ export function OptInModal({
   open,
   onClose,
   onComplete,
+  mandatory = false,
 }: {
   open: boolean;
   onClose: () => void;
   onComplete: () => void;
+  /** Gate d'entrée : l'opt-in débloque l'accès → pas de croix, Échap et clic-fond
+   *  neutralisés aux étapes 1/2 (impossible de contourner). La reconnexion reste dispo. */
+  mandatory?: boolean;
 }) {
   const [view, setView] = useState<"signup" | "login">("signup");
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -51,6 +55,7 @@ export function OptInModal({
   function handleDismiss() {
     if (loading) return;
     if (step === 3) { finish(false); return; }
+    if (mandatory) return; // gate d'entrée : on ne peut pas fermer sans opt-in
     onClose();
   }
 
@@ -148,7 +153,7 @@ export function OptInModal({
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#6B9FFF]">
               {view === "login" ? "Reconnexion" : step === 1 ? "Votre espace Summer Business" : step === 2 ? "Dernière étape" : "Votre espace est prêt ✓"}
             </span>
-            {!loading && step !== 3 && (
+            {!loading && step !== 3 && !mandatory && (
               <button onClick={handleDismiss} aria-label="Fermer" className="text-white/50 hover:text-white text-lg leading-none">
                 ×
               </button>
