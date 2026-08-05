@@ -163,7 +163,7 @@ export function OptInModal({
             {view === "login"
               ? "Retrouvez votre espace"
               : step === 1
-                ? "Recevez le retour de Max IA (100% Gratuit)"
+                ? "Débloquez votre espace"
                 : step === 2
                   ? "Parlez-nous de votre entreprise"
                   : "Encore une chose"}
@@ -172,9 +172,9 @@ export function OptInModal({
             {view === "login"
               ? "Entrez l'email utilisé pour créer votre espace."
               : step === 1
-                ? "Créez votre espace pour recevoir l'analyse de Max IA et garder votre progression tout l'été."
+                ? "30 secondes pour débloquer les 9 leviers de l'été et l'analyse de Max IA. Votre progression est gardée tout l'été, gratuitement."
                 : step === 2
-                  ? "Pour que Max IA vous réponde juste, à votre taille et dans votre métier. Pas du conseil générique."
+                  ? "Pour que Max IA vous réponde juste : en fonction de vos chiffres et de votre secteur. Pas du conseil générique."
                   : "Votre accompagnement ne s'arrête pas à la plateforme."}
           </p>
         </div>
@@ -207,7 +207,7 @@ export function OptInModal({
               {phoneInline && <p className="text-xs text-red-600 -mt-1">{phoneInline}</p>}
               {error && <p className="text-sm text-red-600">{error}</p>}
               <PrimaryBtn disabled={!ca || !secteur || !phoneOk || loading} onClick={handleSignupStep2}>
-                {loading ? "Un instant…" : "Recevoir mon retour de Max IA →"}
+                {loading ? "Un instant…" : "Accéder à mon espace →"}
               </PrimaryBtn>
               <p className="text-[11px] text-[#9096A5] text-center leading-snug">
                 Gratuit. Vos réponses restent privées et servent à personnaliser vos retours.
