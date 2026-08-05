@@ -204,6 +204,11 @@ export function OptInModal({
               <FieldSelect label="Votre chiffre d'affaires annuel" value={ca} onChange={setCa} options={CA_OPTIONS} placeholder="Choisir…" required />
               <FieldSelect label="Votre secteur" value={secteur} onChange={setSecteur} options={SECTEUR_OPTIONS} placeholder="Choisir…" required />
               <PhoneField country={country} onCountry={setCountry} value={phone} onChange={setPhone} />
+              {ca !== SANS_ENTREPRISE && (
+                <p className="text-[11px] text-[#9096A5] -mt-2 leading-snug">
+                  Pour que Camille, votre assistante, vous accompagne sur WhatsApp.
+                </p>
+              )}
               {phoneInline && <p className="text-xs text-red-600 -mt-1">{phoneInline}</p>}
               {error && <p className="text-sm text-red-600">{error}</p>}
               <PrimaryBtn disabled={!ca || !secteur || !phoneOk || loading} onClick={handleSignupStep2}>
