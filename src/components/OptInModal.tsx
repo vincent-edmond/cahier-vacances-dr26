@@ -172,7 +172,7 @@ export function OptInModal({
             {view === "login"
               ? "Entrez l'email utilisé pour créer votre espace."
               : step === 1
-                ? "30 secondes pour débloquer les 9 leviers de l'été et l'analyse de Max IA. Votre progression est gardée tout l'été, gratuitement."
+                ? "Vos plus grandes opportunités de croissance et un plan d'action daté pour dépasser vos objectifs d'ici décembre. Sur vos vrais chiffres, avec Max IA. C'est gratuit."
                 : step === 2
                   ? "Pour que Max IA vous réponde juste : en fonction de vos chiffres et de votre secteur. Pas du conseil générique."
                   : "Votre accompagnement ne s'arrête pas à la plateforme."}
