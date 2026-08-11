@@ -22,6 +22,14 @@ export const CA_OPTIONS: { value: string; label: string }[] = [
 /** Indicatifs téléphoniques proposés (France par défaut). `iso` pilote la validation. */
 export const PHONE_COUNTRIES: { iso: CountryCode; flag: string; dial: string; name: string }[] = [
   { iso: "FR", flag: "🇫🇷", dial: "+33", name: "France" },
+  // Outre-mer (DOM-TOM) — indicatifs propres, sinon numéros rejetés à l'étape 2.
+  { iso: "RE", flag: "🇷🇪", dial: "+262", name: "La Réunion" },
+  { iso: "YT", flag: "🇾🇹", dial: "+262", name: "Mayotte" },
+  { iso: "GP", flag: "🇬🇵", dial: "+590", name: "Guadeloupe" },
+  { iso: "MQ", flag: "🇲🇶", dial: "+596", name: "Martinique" },
+  { iso: "GF", flag: "🇬🇫", dial: "+594", name: "Guyane" },
+  { iso: "PF", flag: "🇵🇫", dial: "+689", name: "Polynésie française" },
+  { iso: "NC", flag: "🇳🇨", dial: "+687", name: "Nouvelle-Calédonie" },
   { iso: "BE", flag: "🇧🇪", dial: "+32", name: "Belgique" },
   { iso: "CH", flag: "🇨🇭", dial: "+41", name: "Suisse" },
   { iso: "LU", flag: "🇱🇺", dial: "+352", name: "Luxembourg" },
