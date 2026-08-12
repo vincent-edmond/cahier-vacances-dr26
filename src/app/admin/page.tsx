@@ -43,6 +43,30 @@ interface Incidents {
   }[];
 }
 
+// Statut HubSpot d'un lead (croisement pour les commerciaux).
+interface HsStatus {
+  in_hubspot: boolean;
+  created_at?: string | null;
+  ancien?: boolean;
+  owner?: string | null;
+  last_contacted?: string | null;
+  lifecycle?: string | null;
+  verdict: string;
+  verdict_kind: "a_contacter" | "suivi" | "a_rappeler" | "contacte" | "absent";
+}
+
+function HsBadge({ s }: { s?: HsStatus }) {
+  if (!s) return <span className="text-[#C7CBD4]">…</span>;
+  const map: Record<string, string> = {
+    a_contacter: "bg-[#10B981]/12 text-[#0D9488]",   // nouveau, jamais contacté → GO
+    a_rappeler: "bg-[#F59E0B]/15 text-[#B45309]",     // ancien contact jamais contacté
+    contacte: "bg-[#F0F1F5] text-[#9096A5]",          // déjà contacté
+    suivi: "bg-[#0046FF]/10 text-[#0033CC]",          // déjà suivi par un commercial
+    absent: "bg-[#DC2626]/10 text-[#DC2626]",         // pas dans HubSpot
+  };
+  return <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${map[s.verdict_kind] ?? map.contacte}`}>{s.verdict}</span>;
+}
+
 function TierBadge({ tier }: { tier: string }) {
   const map: Record<string, { label: string; cls: string }> = {
     chaud: { label: "🔥 Chaud", cls: "bg-[#DC2626]/10 text-[#DC2626]" },
@@ -63,6 +87,7 @@ export default function AdminPage() {
   const [pwd, setPwd] = useState("");
   const [data, setData] = useState<Overview | null>(null);
   const [incidents, setIncidents] = useState<Incidents | null>(null);
+  const [hubspot, setHubspot] = useState<Record<string, HsStatus> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -117,6 +142,19 @@ export default function AdminPage() {
       } catch {
         /* les KPIs restent affichés */
       }
+
+      // Croisement HubSpot des 🔥 top leads (déjà suivi ? ancien ? jamais contacté ?).
+      try {
+        const emails = (json.data.top_leads ?? []).map((l) => l.email);
+        const r3 = await fetch("/api/admin/hubspot-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password, emails }),
+        });
+        if (r3.ok) setHubspot(((await r3.json()) as { statuses: Record<string, HsStatus> }).statuses);
+      } catch {
+        /* best-effort : les leads restent affichés sans le statut HubSpot */
+      }
     } catch {
       setError("Connexion impossible.");
     } finally {
@@ -136,6 +174,7 @@ export default function AdminPage() {
     sessionStorage.removeItem(PWD_KEY);
     setData(null);
     setIncidents(null);
+    setHubspot(null);
     setPwd("");
   }
 
@@ -259,10 +298,15 @@ export default function AdminPage() {
 
         {/* Top leads à contacter (lead scoring) */}
         <Card title="🔥 Leads à contacter — les plus engagés (score d'engagement)">
-          <TopLeads rows={data.top_leads} onOpen={openDetail} />
+          <TopLeads rows={data.top_leads} onOpen={openDetail} hubspot={hubspot} />
           <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
             Score /100 = CA (quali +40 · classique +15) · téléphone fourni (+10) · exercices faits (+5 chacun, max 45) · plan final atteint (+10).
             <span className="text-[#DC2626] font-semibold"> 🔥 Chaud ≥ 70</span> · Tiède 40-69 · Froid &lt; 40.
+          </p>
+          <p className="text-[11px] text-[#9096A5] mt-2 leading-relaxed">
+            <b>Suivi commercial (HubSpot)</b> : <span className="text-[#0D9488] font-semibold">Nouveau lead, jamais contacté</span> = à appeler ·
+            <span className="text-[#B45309] font-semibold"> Ancien contact jamais contacté</span> = déjà dans la base (avant la campagne), à réactiver ·
+            <span className="text-[#0033CC] font-semibold"> Suivi par …</span> = déjà pris en charge par un commercial · <span className="text-[#9096A5] font-semibold">Déjà contacté</span> = ne pas doublonner.
           </p>
         </Card>
 
@@ -573,7 +617,7 @@ function FunnelChart({ funnel }: { funnel: { capsule: number; vu: number; done: 
   );
 }
 
-function TopLeads({ rows, onOpen }: { rows: Overview["top_leads"]; onOpen: (email: string) => void }) {
+function TopLeads({ rows, onOpen, hubspot }: { rows: Overview["top_leads"]; onOpen: (email: string) => void; hubspot: Record<string, HsStatus> | null }) {
   if (rows.length === 0) return <p className="text-sm text-[#9096A5]">Aucun lead pour l&apos;instant.</p>;
   return (
     <div className="overflow-x-auto">
@@ -587,6 +631,7 @@ function TopLeads({ rows, onOpen }: { rows: Overview["top_leads"]; onOpen: (emai
             <th className="py-2 pr-3 font-semibold">CA</th>
             <th className="py-2 pr-3 font-semibold">Secteur</th>
             <th className="py-2 pr-3 font-semibold">Source</th>
+            <th className="py-2 pr-3 font-semibold">Suivi commercial (HubSpot)</th>
             <th className="py-2 pr-3 font-semibold text-center">Étapes</th>
             <th className="py-2 font-semibold">Date opt-in</th>
           </tr>
@@ -604,6 +649,7 @@ function TopLeads({ rows, onOpen }: { rows: Overview["top_leads"]; onOpen: (emai
               <td className="py-2 pr-3 text-[#555B6E] whitespace-nowrap">{r.ca ? r.ca.replace(/ de C\.A annuel/, "") : "—"}</td>
               <td className="py-2 pr-3 text-[#555B6E]">{r.secteur || "—"}</td>
               <td className="py-2 pr-3 text-[#555B6E]">{r.source}</td>
+              <td className="py-2 pr-3"><HsBadge s={hubspot?.[r.email]} /></td>
               <td className="py-2 pr-3 text-center text-[#00194C] font-semibold">{r.capsules_done > 0 ? `${r.capsules_done}/9` : "—"}{r.plan_done ? " ✓plan" : ""}</td>
               <td className="py-2 text-[#9096A5] whitespace-nowrap">{r.created_at}</td>
             </tr>
