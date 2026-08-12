@@ -214,10 +214,11 @@ export default function AdminPage() {
 
         {/* Test A/B des landing pages (variante A = LP actuelle · B = nouvelle) */}
         {data.ab_test && data.ab_test.some((r) => r.views > 0 || r.optins > 0) && (
-          <Card title="🧪 Test A/B des landing pages — taux d'opt-in par variante">
+          <Card title="🧪 Test A/B des landing pages — trafic META uniquement (taux d'opt-in)">
             <AbTestTable rows={data.ab_test} />
             <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
-              Variante A = LP actuelle · Variante B = nouvelle LP. Trafic réparti 50/50. Le « taux » = opt-ins ÷ vues de la LP.
+              Ciblé <b>trafic Meta</b> (fbclid / utm meta) : l&apos;email et l&apos;organique gardent la LP A.
+              A = LP actuelle · B = nouvelle LP, réparties 50/50 sur le seul trafic Meta. Le « taux » = opt-ins ÷ vues de la LP.
               Attendez plusieurs centaines de vues par variante avant de conclure.
             </p>
           </Card>

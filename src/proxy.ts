@@ -15,10 +15,21 @@ import type { NextRequest } from "next/server";
  * En Next.js 16, le fichier « middleware » s'appelle « proxy ».
  */
 // ═══ INTERRUPTEUR DU TEST A/B ═══
-//   true  = split 50/50 actif (A = LP actuelle · B = nouvelle)
+//   true  = split 50/50 actif, CIBLÉ MÉTA (A = LP actuelle · B = nouvelle)
 //   false = kill-switch → 100% LP actuelle (le `/` est servi inchangé)
 // Bascule = cette seule ligne + un push (aucune variable Netlify nécessaire).
-const AB_TEST_ENABLED = false;
+const AB_TEST_ENABLED = true;
+
+/**
+ * Trafic Meta payant ? (fbclid, ou utm_source facebook/meta/instagram). Seul ce trafic
+ * entre dans le test A/B — l'email / l'organique / le direct gardent la LP A éprouvée.
+ */
+function isPaidMeta(request: NextRequest): boolean {
+  const p = request.nextUrl.searchParams;
+  if (p.get("fbclid")) return true;
+  const src = (p.get("utm_source") || "").toLowerCase();
+  return /(facebook|meta|instagram|^ig$|^fb$)/.test(src);
+}
 
 export function proxy(request: NextRequest) {
   const force = request.nextUrl.searchParams.get("lp"); // "a" | "b"
@@ -32,6 +43,9 @@ export function proxy(request: NextRequest) {
   if (!enabled && !force) return NextResponse.next();
 
   if (variant !== "A" && variant !== "B") {
+    // Pas encore dans le test : on n'assigne une variante QU'au trafic Meta (ou forçage).
+    // Hors Meta (email/organique/direct) → LP A servie normalement, aucun cookie.
+    if (!force && !isPaidMeta(request)) return NextResponse.next();
     variant = Math.random() < 0.5 ? "A" : "B";
   }
 
