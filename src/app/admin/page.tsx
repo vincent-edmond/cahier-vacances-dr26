@@ -51,8 +51,25 @@ interface HsStatus {
   owner?: string | null;
   last_contacted?: string | null;
   lifecycle?: string | null;
+  client_programs?: string[];
   verdict: string;
   verdict_kind: "a_contacter" | "suivi" | "a_rappeler" | "contacte" | "absent";
+}
+
+function ClientBadge({ progs }: { progs?: string[] }) {
+  if (!progs || progs.length === 0) return <span className="text-[#C7CBD4]">—</span>;
+  return (
+    <span className="inline-flex flex-wrap gap-1">
+      {progs.map((p) => {
+        const actif = /actif/i.test(p) && !/non actif/i.test(p);
+        return (
+          <span key={p} className={`text-[11px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${actif ? "bg-[#0D9488]/15 text-[#0D9488]" : "bg-[#8B5CF6]/12 text-[#7C3AED]"}`}>
+            {p}
+          </span>
+        );
+      })}
+    </span>
+  );
 }
 
 function HsBadge({ s }: { s?: HsStatus }) {
@@ -632,6 +649,7 @@ function TopLeads({ rows, onOpen, hubspot }: { rows: Overview["top_leads"]; onOp
             <th className="py-2 pr-3 font-semibold">Secteur</th>
             <th className="py-2 pr-3 font-semibold">Source</th>
             <th className="py-2 pr-3 font-semibold">Suivi commercial (HubSpot)</th>
+            <th className="py-2 pr-3 font-semibold">Déjà client ? (MM/3MD/3MP)</th>
             <th className="py-2 pr-3 font-semibold text-center">Étapes</th>
             <th className="py-2 font-semibold">Date opt-in</th>
           </tr>
@@ -650,6 +668,7 @@ function TopLeads({ rows, onOpen, hubspot }: { rows: Overview["top_leads"]; onOp
               <td className="py-2 pr-3 text-[#555B6E]">{r.secteur || "—"}</td>
               <td className="py-2 pr-3 text-[#555B6E]">{r.source}</td>
               <td className="py-2 pr-3"><HsBadge s={hubspot?.[r.email]} /></td>
+              <td className="py-2 pr-3"><ClientBadge progs={hubspot?.[r.email]?.client_programs} /></td>
               <td className="py-2 pr-3 text-center text-[#00194C] font-semibold">{r.capsules_done > 0 ? `${r.capsules_done}/9` : "—"}{r.plan_done ? " ✓plan" : ""}</td>
               <td className="py-2 text-[#9096A5] whitespace-nowrap">{r.created_at}</td>
             </tr>

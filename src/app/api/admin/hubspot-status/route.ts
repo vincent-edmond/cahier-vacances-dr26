@@ -51,7 +51,11 @@ export async function POST(req: NextRequest) {
   if (emails.length === 0) return NextResponse.json({ configured: true, statuses: {} });
 
   const headers = { Authorization: `Bearer ${HS_TOKEN}`, "Content-Type": "application/json" };
-  const props = ["email", "createdate", "hubspot_owner_id", "lifecyclestage", "notes_last_contacted", "hs_lead_status"];
+  const props = [
+    "email", "createdate", "hubspot_owner_id", "lifecyclestage", "notes_last_contacted", "hs_lead_status",
+    // Déjà client MM / 3MD / 3MP ? (plusieurs propriétés croisées pour fiabilité)
+    "achat_produit", "client_mm", "clients_3m", "n3m___clients",
+  ];
 
   const statuses: Record<string, unknown> = {};
   try {
@@ -88,6 +92,18 @@ export async function POST(req: NextRequest) {
       const owner = ownerId ? owners.get(ownerId) || "assigné" : null;
       const lastContacted = p.notes_last_contacted ? p.notes_last_contacted.slice(0, 10) : null;
 
+      // Déjà client MM / 3MD / 3MP ? achat_produit = liste all-time, croisée avec les
+      // statuts actifs (client_mm, clients_3m) pour fiabilité.
+      const achat = (p.achat_produit || "").split(";").map((s) => s.trim());
+      const choix3m = p.clients_3m || ""; // "3MD Actif" / "3MP Actif"
+      const client_programs: string[] = [];
+      if (achat.includes("MM") || (p.client_mm || "").startsWith("MM")) {
+        const st = (p.client_mm || "").replace(/^MM\s*/i, "").trim(); // Actif / Non Actif / En Pause
+        client_programs.push(st ? `MM ${st}` : "MM");
+      }
+      if (achat.includes("3MD") || choix3m.includes("3MD")) client_programs.push("3MD");
+      if (achat.includes("3MP") || choix3m.includes("3MP")) client_programs.push("3MP");
+
       let verdict: string;
       let kind: string;
       if (owner) {
@@ -111,6 +127,7 @@ export async function POST(req: NextRequest) {
         owner,
         last_contacted: lastContacted,
         lifecycle: p.lifecyclestage ?? null,
+        client_programs, // ["MM Actif", "3MD", …] ou [] si non client MM/3MD/3MP
         verdict,
         verdict_kind: kind,
       };
