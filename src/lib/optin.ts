@@ -24,7 +24,6 @@ export const PHONE_COUNTRIES: { iso: CountryCode; flag: string; dial: string; na
   { iso: "FR", flag: "🇫🇷", dial: "+33", name: "France" },
   // Outre-mer (DOM-TOM) — indicatifs propres, sinon numéros rejetés à l'étape 2.
   { iso: "RE", flag: "🇷🇪", dial: "+262", name: "La Réunion" },
-  { iso: "YT", flag: "🇾🇹", dial: "+262", name: "Mayotte" },
   { iso: "GP", flag: "🇬🇵", dial: "+590", name: "Guadeloupe" },
   { iso: "MQ", flag: "🇲🇶", dial: "+596", name: "Martinique" },
   { iso: "GF", flag: "🇬🇫", dial: "+594", name: "Guyane" },
