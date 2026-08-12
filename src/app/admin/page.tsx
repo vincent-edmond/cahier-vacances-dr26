@@ -23,6 +23,7 @@ interface Overview {
   engagement: { sessions: number; did_exercise: number; plan_done: number };
   recent: { prenom: string | null; email: string; ca: string | null; lead_quality: string | null; secteur: string | null; source: string; created_at: string; capsules_done: number; score: number; tier: string }[];
   top_leads: { prenom: string | null; email: string; phone: string | null; ca: string | null; secteur: string | null; source: string; created_at: string; capsules_done: number; plan_done: boolean; score: number; tier: string }[];
+  setteo_ko?: { prenom: string | null; email: string; phone: string | null; ca: string | null; secteur: string | null; lead_quality: string | null; created_at: string }[];
 }
 
 interface Incidents {
@@ -244,6 +245,17 @@ export default function AdminPage() {
           </Card>
         )}
 
+        {/* Camille / Setteo — leads NON transmis (à rattraper manuellement) */}
+        {data.setteo_ko && data.setteo_ko.length > 0 && (
+          <Card title="📵 Camille / Setteo — leads NON transmis (à rattraper)">
+            <SetteoKo rows={data.setteo_ko} />
+            <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
+              Leads avec entreprise + téléphone dont l&apos;opt-in n&apos;a jamais été confirmé côté Setteo (webhook en échec) →
+              <b> Camille ne les a pas reçus</b>. À réimporter dans Camille + remonter à Mathis (fiabilité de l&apos;endpoint).
+            </p>
+          </Card>
+        )}
+
         {/* Top leads à contacter (lead scoring) */}
         <Card title="🔥 Leads à contacter — les plus engagés (score d'engagement)">
           <TopLeads rows={data.top_leads} onOpen={openDetail} />
@@ -419,6 +431,40 @@ function AbTestTable({ rows }: { rows: NonNullable<Overview["ab_test"]> }) {
               <td className="py-2 pr-3 text-right text-[#555B6E]">{r.views}</td>
               <td className="py-2 pr-3 text-right text-[#555B6E]">{r.optins}</td>
               <td className="py-2 text-right font-display font-extrabold text-[#00194C]">{r.rate.toFixed(1)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function SetteoKo({ rows }: { rows: NonNullable<Overview["setteo_ko"]> }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wide text-[#9096A5] border-b border-[#E2E4EA]">
+            <th className="py-2 pr-3 font-semibold">Prénom</th>
+            <th className="py-2 pr-3 font-semibold">Email</th>
+            <th className="py-2 pr-3 font-semibold">Téléphone</th>
+            <th className="py-2 pr-3 font-semibold">CA</th>
+            <th className="py-2 pr-3 font-semibold">Secteur</th>
+            <th className="py-2 font-semibold">Inscrit le</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.email} className="border-b border-[#F0F1F5]">
+              <td className="py-2 pr-3 font-medium text-[#00194C] whitespace-nowrap">
+                {r.prenom || "—"}
+                {r.lead_quality === "quali" && <span className="ml-1.5 text-[10px] font-bold text-[#0D9488]">QUALI</span>}
+              </td>
+              <td className="py-2 pr-3 text-[#555B6E]">{r.email}</td>
+              <td className="py-2 pr-3 text-[#555B6E] whitespace-nowrap">{r.phone || "—"}</td>
+              <td className="py-2 pr-3 text-[#555B6E]">{r.ca || "—"}</td>
+              <td className="py-2 pr-3 text-[#555B6E]">{r.secteur || "—"}</td>
+              <td className="py-2 text-[#9096A5] whitespace-nowrap">{r.created_at}</td>
             </tr>
           ))}
         </tbody>

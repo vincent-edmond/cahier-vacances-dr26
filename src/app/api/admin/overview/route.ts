@@ -25,5 +25,8 @@ export async function POST(req: NextRequest) {
   if (data && (data as { error?: string }).error === "unauthorized") {
     return NextResponse.json({ error: "Mot de passe incorrect" }, { status: 401 });
   }
-  return NextResponse.json({ data });
+  // Leads non transmis à Camille (Setteo) — RPC dédiée, mergée dans la même réponse.
+  const { data: ko } = await supabase.rpc("admin_setteo_ko", { p_pass: body.password ?? "" });
+  const setteo_ko = ko && !(ko as { error?: string }).error ? (ko as { setteo_ko?: unknown }).setteo_ko : [];
+  return NextResponse.json({ data: { ...(data as object), setteo_ko } });
 }
