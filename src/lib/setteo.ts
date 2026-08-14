@@ -47,6 +47,21 @@ function urls(): Record<string, string> {
   }
 }
 
+/**
+ * URLs du 2ᵉ numéro (agent 2). Même structure : une variable par événement
+ * (SETTEO_URL_AGENT2_OPTIN, _C1…_C9, _PLAN). Utilisées UNIQUEMENT pour un lead
+ * agent_2=true, à la place des URLs actuelles (jamais en plus).
+ */
+function urlsAgent2(): Record<string, string> {
+  const e = process.env;
+  const map: Record<string, string> = {};
+  const add = (k: string, v?: string) => { const s = (v || "").trim(); if (s) map[k] = s; };
+  add("optin", e.SETTEO_URL_AGENT2_OPTIN);
+  add("plan", e.SETTEO_URL_AGENT2_PLAN);
+  for (let i = 1; i <= 9; i++) add(`c${i}`, e[`SETTEO_URL_AGENT2_C${i}`]);
+  return map;
+}
+
 export interface SetteoParticipant {
   prenom: string | null;
   email: string | null;
@@ -57,6 +72,9 @@ export interface SetteoParticipant {
   activite: string | null;
   /** L'opt-in a-t-il déjà été envoyé avec succès à Setteo ? (contact créé) */
   setteo_optin_ok?: boolean;
+  /** Basculé sur le 2ᵉ numéro WhatsApp (agent 2) ? Fige false→true, jamais recalculé.
+   *  Absent/undefined = false. Route le webhook vers les URLs agent_2 au lieu des URLs actuelles. */
+  agent_2?: boolean;
 }
 
 /** Lit le participant rattaché à une session (null s'il n'a pas encore fait l'opt-in). */
@@ -116,8 +134,21 @@ export async function sendSetteo(
   variables: Record<string, string | number>,
   sessionId?: string,
 ): Promise<boolean> {
-  const url = urls()[event];
-  if (!url) return false;                             // événement non configuré
+  // Partie B — routage : lead agent_2=true → URLs du 2ᵉ numéro UNIQUEMENT (jamais l'URL
+  // actuelle). Si l'URL agent_2 de cet événement manque, on N'ENVOIE PAS (ne jamais
+  // retomber sur le 1er numéro, sinon le lead partirait sur les deux). Incident tracé.
+  const agent2 = p.agent_2 === true;
+  const url = (agent2 ? urlsAgent2() : urls())[event];
+  if (!url) {
+    if (agent2) {
+      await logIncident({
+        kind: "ia_failure", sessionId: sessionId ?? null, email: p.email,
+        message: `Setteo agent 2 : URL manquante pour « ${event} » → webhook NON envoyé (sécurité).`,
+        context: { endpoint: "setteo", event, agent_2: true },
+      });
+    }
+    return false;                                     // événement non configuré
+  }
   if (p.ca === SANS_ENTREPRISE) return false;         // hors cible : pas de Camille
   const phone = phoneSetteo(p.phone);
   if (!phone) return false;                           // Setteo ne pourrait pas l'identifier
