@@ -232,6 +232,29 @@ export async function optinLogin(
   }
 }
 
+// ─── Intérêt Destination Réussite (clic CTA / popup) ────────────────────────
+
+/**
+ * Enregistre un clic « intérêt DR » — le signal d'intention le plus fort du parcours.
+ * `source` : "cta" (bas de capsule) ou "popup" (relance DR). `keepalive` pour que le
+ * ping survive à la navigation vers la page DR. Best-effort, jamais bloquant.
+ */
+export function trackDrClick(source: "cta" | "popup", capsule?: number): void {
+  if (typeof window === "undefined") return;
+  const sessionId = getOrCreateSessionId();
+  if (!sessionId) return;
+  try {
+    fetch("/api/dr-click", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, source, capsule }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    /* non bloquant */
+  }
+}
+
 // ─── Progression locale ─────────────────────────────────────────────────────
 
 export function getAllProgressLocal(sid: string): CapsuleProgress[] {

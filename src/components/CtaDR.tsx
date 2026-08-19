@@ -1,12 +1,17 @@
+"use client";
+
 import type { CapsuleCTA } from "@/lib/types";
+import { trackDrClick } from "@/lib/session";
 
 interface CtaDRProps {
   cta: CapsuleCTA;
   /** Variante renforcée (capsule finale / synthèse). */
   strong?: boolean;
+  /** Numéro de capsule — enregistré avec le clic (intérêt DR). */
+  capsule?: number;
 }
 
-export function CtaDR({ cta, strong = false }: CtaDRProps) {
+export function CtaDR({ cta, strong = false, capsule }: CtaDRProps) {
   return (
     <section
       className="relative overflow-hidden rounded-2xl text-center"
@@ -48,6 +53,7 @@ export function CtaDR({ cta, strong = false }: CtaDRProps) {
           target="_blank"
           rel="noopener noreferrer"
           data-cta="destination-reussite"
+          onClick={() => trackDrClick("cta", capsule)}
           className="cta-glow inline-flex items-center gap-2 rounded-full bg-[#0046FF] hover:bg-[#0033CC] text-white font-bold"
           style={{ padding: strong ? "18px 40px" : "15px 32px", fontSize: strong ? 18 : 16 }}
         >

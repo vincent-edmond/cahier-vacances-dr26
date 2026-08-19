@@ -133,7 +133,7 @@ export default function CapsulePage() {
           </section>
 
           {/* CTA Destination Réussite */}
-          <CtaDR cta={capsule.cta} strong={isFinal} />
+          <CtaDR cta={capsule.cta} strong={isFinal} capsule={capsule.num} />
         </div>
       )}
     </AppShell>

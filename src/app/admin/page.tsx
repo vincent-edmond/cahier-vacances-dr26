@@ -29,6 +29,23 @@ interface Overview {
     breakdown: { label: string; count: number }[];
     leads: { secteur_devine: string; domaine: string; ca: string | null; activite: string | null }[];
   } | null;
+  dr?: {
+    total_sessions: number;
+    clicks_total: number;
+    by_source: { source: string; count: number }[];
+    leads: {
+      prenom: string | null;
+      email: string;
+      phone: string | null;
+      ca: string | null;
+      secteur: string | null;
+      activite: string | null;
+      cta: number;
+      popup: number;
+      clicks: number;
+      last_at: string;
+    }[];
+  } | null;
 }
 
 interface Incidents {
@@ -110,7 +127,7 @@ export default function AdminPage() {
   const [data, setData] = useState<Overview | null>(null);
   const [incidents, setIncidents] = useState<Incidents | null>(null);
   const [hubspot, setHubspot] = useState<Record<string, HsStatus> | null>(null);
-  const [tab, setTab] = useState<"overview" | "leads" | "autre" | "camille" | "incidents">("overview");
+  const [tab, setTab] = useState<"overview" | "leads" | "dr" | "autre" | "camille" | "incidents">("overview");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -262,6 +279,7 @@ export default function AdminPage() {
         <div className="flex flex-wrap gap-1 mb-7 border-b border-[#E2E4EA]">
           <TabBtn active={tab === "overview"} onClick={() => setTab("overview")}>Vue d&apos;ensemble</TabBtn>
           <TabBtn active={tab === "leads"} onClick={() => setTab("leads")}>🔥 Leads à contacter</TabBtn>
+          <TabBtn active={tab === "dr"} onClick={() => setTab("dr")} badge={data.dr?.total_sessions || 0}>🎯 Intérêt DR</TabBtn>
           <TabBtn active={tab === "autre"} onClick={() => setTab("autre")} badge={data.autre?.total || 0}>🔍 Secteur « Autre »</TabBtn>
           <TabBtn active={tab === "camille"} onClick={() => setTab("camille")} badge={data.setteo_ko?.length || 0}>📵 Camille / Setteo</TabBtn>
           <TabBtn active={tab === "incidents"} onClick={() => setTab("incidents")} badge={incidents?.counts.open || 0} danger>🛠️ Incidents</TabBtn>
@@ -370,6 +388,34 @@ export default function AdminPage() {
               <RecentTable rows={data.recent} onOpen={openDetail} />
             </Card>
             <p className="text-[11px] text-[#9096A5] text-center">Cliquez sur un prospect pour voir sa fiche complète (réponses + retours Max IA).</p>
+          </div>
+        )}
+
+        {/* ─── Onglet Intérêt DR ─── */}
+        {tab === "dr" && (
+          <div className="space-y-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Kpi label="Leads intéressés DR" value={data.dr?.total_sessions ?? 0} sub="ont cliqué vers DR" accent="#0046FF" />
+              <Kpi label="Clics DR au total" value={data.dr?.clicks_total ?? 0} />
+              <Kpi label="Clics CTA (capsule)" value={data.dr?.by_source.find((s) => s.source === "cta")?.count ?? 0} />
+              <Kpi label="Clics popup DR" value={data.dr?.by_source.find((s) => s.source === "popup")?.count ?? 0} />
+            </div>
+
+            {data.dr && data.dr.leads.length > 0 ? (
+              <Card title={`🎯 Leads chauds DR — ont cliqué vers Destination Réussite (${data.dr.leads.length})`}>
+                <DrTable rows={data.dr.leads} />
+                <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
+                  Signal d&apos;intention le <b>plus fort</b> du parcours : ils sont allés voir la page de vente DR.
+                  <span className="text-[#0046FF] font-semibold"> À rappeler en priorité.</span> « CTA » = clic en bas d&apos;une capsule · « Popup » = clic sur la relance DR.
+                </p>
+              </Card>
+            ) : (
+              <Card title="🎯 Intérêt Destination Réussite">
+                <p className="text-sm text-[#9096A5]">
+                  Aucun clic DR enregistré pour l&apos;instant. Le suivi vient d&apos;être activé — les clics sur les CTA de fin de capsule et sur le popup DR apparaîtront ici.
+                </p>
+              </Card>
+            )}
           </div>
         )}
 
@@ -598,6 +644,44 @@ function AutreTable({ rows }: { rows: NonNullable<Overview["autre"]>["leads"] })
               <td className="py-2 pr-3 whitespace-nowrap text-[#555B6E]">{r.ca ? r.ca.replace(/ de C\.A annuel/, "") : "—"}</td>
               <td className="py-2 pr-3 whitespace-nowrap text-[#9096A5]">{r.domaine}</td>
               <td className="py-2 text-[#2A2D35]">{r.activite || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function DrTable({ rows }: { rows: NonNullable<Overview["dr"]>["leads"] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wide text-[#9096A5] border-b border-[#E2E4EA]">
+            <th className="py-2 pr-3 font-semibold">Prénom</th>
+            <th className="py-2 pr-3 font-semibold">Email</th>
+            <th className="py-2 pr-3 font-semibold">Téléphone</th>
+            <th className="py-2 pr-3 font-semibold">CA</th>
+            <th className="py-2 pr-3 font-semibold">Secteur</th>
+            <th className="py-2 pr-3 font-semibold text-center">Clics</th>
+            <th className="py-2 font-semibold">Dernier clic</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className="border-b border-[#F0F1F5] align-top">
+              <td className="py-2 pr-3 whitespace-nowrap font-medium text-[#00194C]">{r.prenom || "—"}</td>
+              <td className="py-2 pr-3 whitespace-nowrap text-[#555B6E]">{r.email}</td>
+              <td className="py-2 pr-3 whitespace-nowrap text-[#555B6E]">{r.phone || "—"}</td>
+              <td className="py-2 pr-3 whitespace-nowrap text-[#555B6E]">{r.ca ? r.ca.replace(/ de C\.A annuel/, "") : "—"}</td>
+              <td className="py-2 pr-3 whitespace-nowrap text-[#9096A5]">{r.secteur || "—"}</td>
+              <td className="py-2 pr-3 whitespace-nowrap text-center">
+                <span className="font-display font-extrabold text-[#0046FF]">{r.clicks}</span>
+                <span className="text-[10px] text-[#9096A5] ml-1">
+                  {r.cta > 0 && `${r.cta} CTA`}{r.cta > 0 && r.popup > 0 && " · "}{r.popup > 0 && `${r.popup} popup`}
+                </span>
+              </td>
+              <td className="py-2 whitespace-nowrap text-[#9096A5]">{r.last_at}</td>
             </tr>
           ))}
         </tbody>

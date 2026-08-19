@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getOrCreateSessionId, getAllProgressLocal, getQualif, getPrenom } from "@/lib/session";
+import { getOrCreateSessionId, getAllProgressLocal, getQualif, getPrenom, trackDrClick } from "@/lib/session";
 import { DR_URL } from "@/lib/capsules";
 
 /**
@@ -121,7 +121,7 @@ export function DrPopup() {
             target="_blank"
             rel="noopener noreferrer"
             data-cta="destination-reussite"
-            onClick={fermer}
+            onClick={() => { trackDrClick("popup"); fermer(); }}
             className="cta-glow flex items-center justify-center gap-2 rounded-xl bg-[#0046FF] hover:bg-[#0033CC] text-white font-bold px-6 py-3.5 transition-all"
           >
             Découvrir Destination Réussite <span className="arrow">→</span>

@@ -31,5 +31,8 @@ export async function POST(req: NextRequest) {
   // Analyse des secteurs cachés derrière « Autre » (leads quali).
   const { data: autreData } = await supabase.rpc("admin_autre_secteurs", { p_pass: body.password ?? "" });
   const autre = autreData && !(autreData as { error?: string }).error ? autreData : null;
-  return NextResponse.json({ data: { ...(data as object), setteo_ko, autre } });
+  // Intérêt Destination Réussite (clics CTA / popup DR) — signal d'intention fort.
+  const { data: drData } = await supabase.rpc("admin_dr_interest", { p_pass: body.password ?? "" });
+  const dr = drData && !(drData as { error?: string }).error ? drData : null;
+  return NextResponse.json({ data: { ...(data as object), setteo_ko, autre, dr } });
 }
