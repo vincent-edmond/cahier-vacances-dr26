@@ -18,7 +18,7 @@ import type { NextRequest } from "next/server";
 //   true  = split 50/50 actif, CIBLÉ MÉTA (A = LP actuelle · B = nouvelle)
 //   false = kill-switch → 100% LP actuelle (le `/` est servi inchangé)
 // Bascule = cette seule ligne + un push (aucune variable Netlify nécessaire).
-const AB_TEST_ENABLED = true;
+const AB_TEST_ENABLED = false;
 
 /**
  * Trafic Meta payant ? (fbclid, ou utm_source facebook/meta/instagram). Seul ce trafic
