@@ -223,10 +223,13 @@ export async function POST(req: NextRequest) {
     if (!phoneCheck.ok) return NextResponse.json({ error: phoneCheck.reason }, { status: 400 });
     const phone = phoneCheck.e164;
 
+    // agent_2 du lead (peut être déjà true si Setteo l'a pré-flaggé avant l'opt-in) →
+    // détermine si l'opt-in part sur le 1er ou le 2ᵉ numéro.
+    let agent2 = false;
     if (supabase) {
       // Via RPC security-definer (bypasse RLS : un UPDATE direct serait filtré à 0
       // ligne faute de policy SELECT — choix volontaire pour ne pas exposer les emails).
-      const { error } = await supabase.rpc("set_participant_qualif", {
+      const { data, error } = await supabase.rpc("set_participant_qualif", {
         p_email: email,
         p_ca: ca ?? null,
         p_secteur: secteur ?? null,
@@ -234,6 +237,7 @@ export async function POST(req: NextRequest) {
         p_lead_quality: leadQuality ?? null,
       });
       if (error) console.error("set_participant_qualif error:", error.message);
+      else agent2 = data === true;
     }
 
     // HubSpot — DEUX canaux complémentaires (le contact est dédoublonné par email,
@@ -277,7 +281,7 @@ export async function POST(req: NextRequest) {
     // la fermeture de la modale). Les leads sans entreprise sont écartés dans sendSetteo.
     const optinOk = await sendSetteo(
       "optin",
-      { prenom: prenom ?? null, email, phone: phone ?? null, ca: ca ?? null, secteur: secteur ?? null, lead_quality: leadQuality ?? null, activite: null },
+      { prenom: prenom ?? null, email, phone: phone ?? null, ca: ca ?? null, secteur: secteur ?? null, lead_quality: leadQuality ?? null, activite: null, agent_2: agent2 },
       {
         ...(ca ? { ca_bracket: ca } : {}),
         ...(secteur ? { secteur } : {}),
