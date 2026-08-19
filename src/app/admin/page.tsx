@@ -105,6 +105,7 @@ export default function AdminPage() {
   const [data, setData] = useState<Overview | null>(null);
   const [incidents, setIncidents] = useState<Incidents | null>(null);
   const [hubspot, setHubspot] = useState<Record<string, HsStatus> | null>(null);
+  const [tab, setTab] = useState<"overview" | "leads" | "camille" | "incidents">("overview");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -251,132 +252,159 @@ export default function AdminPage() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-5 py-8 space-y-8">
-        {/* KPIs acquisition */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Kpi label="Leads (total)" value={t.leads} />
-          <Kpi label="Leads quali (≥100K)" value={t.quali} sub={`${pctQuali}% des qualifiés`} accent="#0D9488" />
-          <Kpi label="Leads classique (<100K)" value={t.classique} accent="#9096A5" />
-          <Kpi label="Aujourd'hui" value={t.today} sub={`${t.last7} sur 7j · ${t.last30} sur 30j`} />
-        </section>
-
-        {/* Visiteurs du SaaS (entrée /espace) — type Google Analytics */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Kpi label="Visiteurs uniques" value={v.unique} sub={`${v.today_unique} aujourd'hui`} accent="#0046FF" />
-          <Kpi label="Visites (total)" value={v.visits} sub="nouvelle visite après 30 min d'inactivité" />
-          <Kpi label="Opt-in / visiteurs" value={`${optinRate}%`} sub={`${v.optin_unique} inscrits sur ${v.unique} visiteurs`} accent="#0D9488" />
-          <Kpi label="Visiteurs non opt-in" value={nonOptin} sub="entrés mais pas encore inscrits" accent="#9096A5" />
-        </section>
-
-        {/* Test A/B des landing pages (variante A = LP actuelle · B = nouvelle) */}
-        {data.ab_test && data.ab_test.some((r) => r.views > 0 || r.optins > 0) && (
-          <Card title="🧪 Test A/B des landing pages — trafic META uniquement (taux d'opt-in)">
-            <AbTestTable rows={data.ab_test} />
-            <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
-              Ciblé <b>trafic Meta</b> (fbclid / utm meta) : l&apos;email et l&apos;organique gardent la LP A.
-              A = LP actuelle · B = nouvelle LP, réparties 50/50 sur le seul trafic Meta. Le « taux » = opt-ins ÷ vues de la LP.
-              Attendez plusieurs centaines de vues par variante avant de conclure.
-            </p>
-          </Card>
-        )}
-
-        {/* Visiteurs vs opt-ins par jour */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card title="Visiteurs uniques par jour (30 j)">
-            <DayChart days={v.by_day} />
-          </Card>
-          <Card title="Opt-ins par jour (30 j)">
-            <DayChart days={data.by_day} />
-          </Card>
+      <main className="max-w-6xl mx-auto px-5 py-8">
+        {/* Onglets — évite le scroll infini : chaque gros bloc a sa page */}
+        <div className="flex flex-wrap gap-1 mb-7 border-b border-[#E2E4EA]">
+          <TabBtn active={tab === "overview"} onClick={() => setTab("overview")}>Vue d&apos;ensemble</TabBtn>
+          <TabBtn active={tab === "leads"} onClick={() => setTab("leads")}>🔥 Leads à contacter</TabBtn>
+          <TabBtn active={tab === "camille"} onClick={() => setTab("camille")} badge={data.setteo_ko?.length || 0}>📵 Camille / Setteo</TabBtn>
+          <TabBtn active={tab === "incidents"} onClick={() => setTab("incidents")} badge={incidents?.counts.open || 0} danger>🛠️ Incidents</TabBtn>
         </div>
 
-        {/* Incidents : bugs IA captés tout seuls + signalements des prospects */}
-        {incidents && (incidents.items.length > 0 || incidents.counts.open > 0) && (
-          <Card title="🛠️ Incidents (bugs IA détectés + signalements)">
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              <Kpi label="À traiter" value={incidents.counts.open} accent={incidents.counts.open > 0 ? "#DC2626" : undefined} />
-              <Kpi label="Échecs IA (24 h)" value={incidents.counts.ia_failure_24h} accent={incidents.counts.ia_failure_24h > 0 ? "#DC2626" : undefined} />
-              <Kpi label="Signalements (24 h)" value={incidents.counts.user_report_24h} />
+        {/* ─── Onglet Vue d'ensemble ─── */}
+        {tab === "overview" && (
+          <div className="space-y-8">
+            {/* KPIs acquisition */}
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Kpi label="Leads (total)" value={t.leads} />
+              <Kpi label="Leads quali (≥100K)" value={t.quali} sub={`${pctQuali}% des qualifiés`} accent="#0D9488" />
+              <Kpi label="Leads classique (<100K)" value={t.classique} accent="#9096A5" />
+              <Kpi label="Aujourd'hui" value={t.today} sub={`${t.last7} sur 7j · ${t.last30} sur 30j`} />
+            </section>
+
+            {/* Visiteurs du SaaS (entrée /espace) — type Google Analytics */}
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Kpi label="Visiteurs uniques" value={v.unique} sub={`${v.today_unique} aujourd'hui`} accent="#0046FF" />
+              <Kpi label="Visites (total)" value={v.visits} sub="nouvelle visite après 30 min d'inactivité" />
+              <Kpi label="Opt-in / visiteurs" value={`${optinRate}%`} sub={`${v.optin_unique} inscrits sur ${v.unique} visiteurs`} accent="#0D9488" />
+              <Kpi label="Visiteurs non opt-in" value={nonOptin} sub="entrés mais pas encore inscrits" accent="#9096A5" />
+            </section>
+
+            {/* Test A/B des landing pages */}
+            {data.ab_test && data.ab_test.some((r) => r.views > 0 || r.optins > 0) && (
+              <Card title="🧪 Test A/B des landing pages — trafic META uniquement (taux d'opt-in)">
+                <AbTestTable rows={data.ab_test} />
+                <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
+                  Ciblé <b>trafic Meta</b> (fbclid / utm meta) : l&apos;email et l&apos;organique gardent la LP A.
+                  A = LP actuelle · B = nouvelle LP, réparties 50/50 sur le seul trafic Meta. Le « taux » = opt-ins ÷ vues de la LP.
+                  Attendez plusieurs centaines de vues par variante avant de conclure.
+                </p>
+              </Card>
+            )}
+
+            {/* Visiteurs vs opt-ins par jour */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card title="Visiteurs uniques par jour (30 j)"><DayChart days={v.by_day} /></Card>
+              <Card title="Opt-ins par jour (30 j)"><DayChart days={data.by_day} /></Card>
             </div>
-            <IncidentsTable rows={incidents.items} />
-          </Card>
+
+            {/* Performance par canal d'acquisition */}
+            <Card title="📊 Performance par canal (Meta · YouTube · Email)">
+              <ChannelPerf rows={data.by_channel} />
+              <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
+                Canal déduit de l&apos;attribution : <b>Meta</b> = fbclid ou utm_source facebook/meta/instagram · <b>YouTube / Google</b> = gclid ou utm_source youtube/google ·
+                <b> Email</b> = utm_source interne/email (campagnes SB26) · <b>Organique / Direct</b> = sans utm.
+              </p>
+            </Card>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card title="Par source (utm_source brut)">
+                <BarList items={data.by_source} accent="#0046FF" />
+              </Card>
+              <Card title="Qualité du lead">
+                <BarList
+                  items={[
+                    { label: "Quali (≥100K)", count: t.quali },
+                    { label: "Classique (<100K)", count: t.classique },
+                    { label: "Non renseigné (opt-in incomplet)", count: Math.max(0, t.leads - t.qualified) },
+                  ]}
+                  accent="#0D9488"
+                />
+              </Card>
+              <Card title="Par secteur">
+                <BarList items={data.by_secteur} accent="#8B5CF6" />
+              </Card>
+              <Card title="Par tranche de CA">
+                <BarList items={data.by_ca} accent="#F59E0B" />
+              </Card>
+            </div>
+
+            {/* Engagement */}
+            <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Kpi label="Sessions actives" value={e.sessions} sub="ont au moins ouvert une étape" />
+              <Kpi label="Ont fait ≥1 exercice" value={e.did_exercise} accent="#0046FF" />
+              <Kpi label="Taux d'activation" value={`${actRate}%`} sub="leads → ≥1 exercice" accent="#10B981" />
+              <Kpi label="Plan final généré (C9)" value={e.plan_done} accent="#EC4899" />
+            </section>
+
+            {/* Funnel par capsule */}
+            <Card title="Entonnoir par étape (vidéos vues vs exercices faits)">
+              <FunnelChart funnel={data.funnel} />
+            </Card>
+          </div>
         )}
 
-        {/* Camille / Setteo — leads NON transmis (à rattraper manuellement) */}
-        {data.setteo_ko && data.setteo_ko.length > 0 && (
-          <Card title="📵 Camille / Setteo — leads NON transmis (à rattraper)">
-            <SetteoKo rows={data.setteo_ko} />
-            <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
-              Leads avec entreprise + téléphone dont l&apos;opt-in n&apos;a jamais été confirmé côté Setteo (webhook en échec) →
-              <b> Camille ne les a pas reçus</b>. À réimporter dans Camille + remonter à Mathis (fiabilité de l&apos;endpoint).
-            </p>
-          </Card>
+        {/* ─── Onglet Leads à contacter ─── */}
+        {tab === "leads" && (
+          <div className="space-y-8">
+            <Card title="🔥 Leads à contacter — les plus engagés (score d'engagement)">
+              <TopLeads rows={data.top_leads} onOpen={openDetail} hubspot={hubspot} />
+              <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
+                Score /100 = CA (quali +40 · classique +15) · téléphone fourni (+10) · exercices faits (+5 chacun, max 45) · plan final atteint (+10).
+                <span className="text-[#DC2626] font-semibold"> 🔥 Chaud ≥ 70</span> · Tiède 40-69 · Froid &lt; 40.
+              </p>
+              <p className="text-[11px] text-[#9096A5] mt-2 leading-relaxed">
+                <b>Suivi commercial (HubSpot)</b> : <span className="text-[#0D9488] font-semibold">Nouveau lead, jamais contacté</span> = à appeler ·
+                <span className="text-[#B45309] font-semibold"> Ancien contact jamais contacté</span> = déjà dans la base (avant la campagne), à réactiver ·
+                <span className="text-[#0033CC] font-semibold"> Suivi par …</span> = déjà pris en charge par un commercial · <span className="text-[#9096A5] font-semibold">Déjà contacté</span> = ne pas doublonner.
+              </p>
+            </Card>
+
+            <Card title={`Derniers inscrits (${data.recent.length})`}>
+              <RecentTable rows={data.recent} onOpen={openDetail} />
+            </Card>
+            <p className="text-[11px] text-[#9096A5] text-center">Cliquez sur un prospect pour voir sa fiche complète (réponses + retours Max IA).</p>
+          </div>
         )}
 
-        {/* Top leads à contacter (lead scoring) */}
-        <Card title="🔥 Leads à contacter — les plus engagés (score d'engagement)">
-          <TopLeads rows={data.top_leads} onOpen={openDetail} hubspot={hubspot} />
-          <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
-            Score /100 = CA (quali +40 · classique +15) · téléphone fourni (+10) · exercices faits (+5 chacun, max 45) · plan final atteint (+10).
-            <span className="text-[#DC2626] font-semibold"> 🔥 Chaud ≥ 70</span> · Tiède 40-69 · Froid &lt; 40.
-          </p>
-          <p className="text-[11px] text-[#9096A5] mt-2 leading-relaxed">
-            <b>Suivi commercial (HubSpot)</b> : <span className="text-[#0D9488] font-semibold">Nouveau lead, jamais contacté</span> = à appeler ·
-            <span className="text-[#B45309] font-semibold"> Ancien contact jamais contacté</span> = déjà dans la base (avant la campagne), à réactiver ·
-            <span className="text-[#0033CC] font-semibold"> Suivi par …</span> = déjà pris en charge par un commercial · <span className="text-[#9096A5] font-semibold">Déjà contacté</span> = ne pas doublonner.
-          </p>
-        </Card>
+        {/* ─── Onglet Camille / Setteo ─── */}
+        {tab === "camille" && (
+          <div className="space-y-8">
+            {data.setteo_ko && data.setteo_ko.length > 0 ? (
+              <Card title="📵 Camille / Setteo — leads NON transmis (à rattraper)">
+                <SetteoKo rows={data.setteo_ko} />
+                <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
+                  Leads avec entreprise + téléphone dont l&apos;opt-in n&apos;a jamais été confirmé côté Setteo (webhook en échec) →
+                  <b> Camille ne les a pas reçus</b>. À réimporter dans Camille + remonter à Mathis (fiabilité de l&apos;endpoint).
+                </p>
+              </Card>
+            ) : (
+              <Card title="📵 Camille / Setteo — leads NON transmis">
+                <p className="text-sm text-[#0D9488] font-medium">✅ Aucun lead en attente : tous les opt-ins ont bien été transmis à Camille.</p>
+              </Card>
+            )}
+          </div>
+        )}
 
-        {/* Performance par canal d'acquisition (Meta / YouTube / Email) */}
-        <Card title="📊 Performance par canal (Meta · YouTube · Email)">
-          <ChannelPerf rows={data.by_channel} />
-          <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
-            Canal déduit de l&apos;attribution : <b>Meta</b> = fbclid ou utm_source facebook/meta/instagram · <b>YouTube / Google</b> = gclid ou utm_source youtube/google ·
-            <b> Email</b> = utm_source interne/email (campagnes SB26) · <b>Organique / Direct</b> = sans utm.
-            Pour que Meta &amp; YouTube remontent, les liens d&apos;ads doivent porter les bons utm (à caler avec Dylan).
-          </p>
-        </Card>
-
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card title="Par source (utm_source brut)">
-            <BarList items={data.by_source} accent="#0046FF" />
-          </Card>
-          <Card title="Qualité du lead">
-            <BarList
-              items={[
-                { label: "Quali (≥100K)", count: t.quali },
-                { label: "Classique (<100K)", count: t.classique },
-                { label: "Non qualifié (signup seul)", count: Math.max(0, t.leads - t.qualified) },
-              ]}
-              accent="#0D9488"
-            />
-          </Card>
-          <Card title="Par secteur">
-            <BarList items={data.by_secteur} accent="#8B5CF6" />
-          </Card>
-          <Card title="Par tranche de CA">
-            <BarList items={data.by_ca} accent="#F59E0B" />
-          </Card>
-        </div>
-
-        {/* Engagement */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Kpi label="Sessions actives" value={e.sessions} sub="ont au moins ouvert une étape" />
-          <Kpi label="Ont fait ≥1 exercice" value={e.did_exercise} accent="#0046FF" />
-          <Kpi label="Taux d'activation" value={`${actRate}%`} sub="leads → ≥1 exercice" accent="#10B981" />
-          <Kpi label="Plan final généré (C9)" value={e.plan_done} accent="#EC4899" />
-        </section>
-
-        {/* Funnel par capsule */}
-        <Card title="Entonnoir par étape (vidéos vues vs exercices faits)">
-          <FunnelChart funnel={data.funnel} />
-        </Card>
-
-        {/* Derniers inscrits */}
-        <Card title={`Derniers inscrits (${data.recent.length})`}>
-          <RecentTable rows={data.recent} onOpen={openDetail} />
-        </Card>
-        <p className="text-[11px] text-[#9096A5] text-center">Cliquez sur un prospect pour voir sa fiche complète (réponses + retours Max IA).</p>
+        {/* ─── Onglet Incidents ─── */}
+        {tab === "incidents" && (
+          <div className="space-y-8">
+            {incidents && (incidents.items.length > 0 || incidents.counts.open > 0) ? (
+              <Card title="🛠️ Incidents (bugs IA détectés + signalements)">
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <Kpi label="À traiter" value={incidents.counts.open} accent={incidents.counts.open > 0 ? "#DC2626" : undefined} />
+                  <Kpi label="Échecs IA (24 h)" value={incidents.counts.ia_failure_24h} accent={incidents.counts.ia_failure_24h > 0 ? "#DC2626" : undefined} />
+                  <Kpi label="Signalements (24 h)" value={incidents.counts.user_report_24h} />
+                </div>
+                <IncidentsTable rows={incidents.items} />
+              </Card>
+            ) : (
+              <Card title="🛠️ Incidents">
+                <p className="text-sm text-[#0D9488] font-medium">✅ Aucun incident détecté ni signalé.</p>
+              </Card>
+            )}
+          </div>
+        )}
       </main>
 
       {(detail || detailLoading) && (
@@ -387,6 +415,22 @@ export default function AdminPage() {
 }
 
 // ─── Composants ─────────────────────────────────────────────────────────────
+
+function TabBtn({ active, onClick, badge, danger, children }: { active: boolean; onClick: () => void; badge?: number; danger?: boolean; children: React.ReactNode }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative px-4 py-2.5 text-sm font-semibold rounded-t-lg -mb-px border-b-2 transition-colors ${
+        active ? "border-[#0046FF] text-[#00194C] bg-white" : "border-transparent text-[#9096A5] hover:text-[#00194C]"
+      }`}
+    >
+      {children}
+      {badge ? (
+        <span className={`ml-2 inline-flex items-center justify-center text-[10px] font-bold px-1.5 py-0.5 rounded-full ${danger ? "bg-[#DC2626] text-white" : "bg-[#0046FF] text-white"}`}>{badge}</span>
+      ) : null}
+    </button>
+  );
+}
 
 function Kpi({ label, value, sub, accent = "#00194C" }: { label: string; value: number | string; sub?: string; accent?: string }) {
   return (
