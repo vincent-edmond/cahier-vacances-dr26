@@ -28,5 +28,8 @@ export async function POST(req: NextRequest) {
   // Leads non transmis à Camille (Setteo) — RPC dédiée, mergée dans la même réponse.
   const { data: ko } = await supabase.rpc("admin_setteo_ko", { p_pass: body.password ?? "" });
   const setteo_ko = ko && !(ko as { error?: string }).error ? (ko as { setteo_ko?: unknown }).setteo_ko : [];
-  return NextResponse.json({ data: { ...(data as object), setteo_ko } });
+  // Analyse des secteurs cachés derrière « Autre » (leads quali).
+  const { data: autreData } = await supabase.rpc("admin_autre_secteurs", { p_pass: body.password ?? "" });
+  const autre = autreData && !(autreData as { error?: string }).error ? autreData : null;
+  return NextResponse.json({ data: { ...(data as object), setteo_ko, autre } });
 }

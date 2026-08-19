@@ -24,6 +24,11 @@ interface Overview {
   recent: { prenom: string | null; email: string; ca: string | null; lead_quality: string | null; secteur: string | null; source: string; created_at: string; capsules_done: number; score: number; tier: string }[];
   top_leads: { prenom: string | null; email: string; phone: string | null; ca: string | null; secteur: string | null; source: string; created_at: string; capsules_done: number; plan_done: boolean; score: number; tier: string }[];
   setteo_ko?: { prenom: string | null; email: string; phone: string | null; ca: string | null; secteur: string | null; lead_quality: string | null; created_at: string }[];
+  autre?: {
+    total: number;
+    breakdown: { label: string; count: number }[];
+    leads: { secteur_devine: string; domaine: string; ca: string | null; activite: string | null }[];
+  } | null;
 }
 
 interface Incidents {
@@ -105,7 +110,7 @@ export default function AdminPage() {
   const [data, setData] = useState<Overview | null>(null);
   const [incidents, setIncidents] = useState<Incidents | null>(null);
   const [hubspot, setHubspot] = useState<Record<string, HsStatus> | null>(null);
-  const [tab, setTab] = useState<"overview" | "leads" | "camille" | "incidents">("overview");
+  const [tab, setTab] = useState<"overview" | "leads" | "autre" | "camille" | "incidents">("overview");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -257,6 +262,7 @@ export default function AdminPage() {
         <div className="flex flex-wrap gap-1 mb-7 border-b border-[#E2E4EA]">
           <TabBtn active={tab === "overview"} onClick={() => setTab("overview")}>Vue d&apos;ensemble</TabBtn>
           <TabBtn active={tab === "leads"} onClick={() => setTab("leads")}>🔥 Leads à contacter</TabBtn>
+          <TabBtn active={tab === "autre"} onClick={() => setTab("autre")} badge={data.autre?.total || 0}>🔍 Secteur « Autre »</TabBtn>
           <TabBtn active={tab === "camille"} onClick={() => setTab("camille")} badge={data.setteo_ko?.length || 0}>📵 Camille / Setteo</TabBtn>
           <TabBtn active={tab === "incidents"} onClick={() => setTab("incidents")} badge={incidents?.counts.open || 0} danger>🛠️ Incidents</TabBtn>
         </div>
@@ -367,6 +373,32 @@ export default function AdminPage() {
           </div>
         )}
 
+        {/* ─── Onglet Secteur « Autre » ─── */}
+        {tab === "autre" && (
+          <div className="space-y-8">
+            <Card title={`🔍 Que cachent les « Autre » ? — ${data.autre?.total ?? 0} leads quali (≥100K)`}>
+              {data.autre && data.autre.breakdown.length > 0 ? (
+                <>
+                  <BarList items={data.autre.breakdown} accent="#8B5CF6" />
+                  <p className="text-[11px] text-[#9096A5] mt-3 leading-relaxed">
+                    Secteurs <b>déduits automatiquement</b> de la description d&apos;activité (mots-clés) — se met à jour tout seul.
+                    « Non décrit » = leads qui n&apos;ont pas fait d&apos;exercice (activité inconnue). Le tableau ci-dessous liste les fiches réelles (preuve).
+                    <br />👉 Les secteurs les plus fréquents ici = ceux à <b>ajouter à la liste déroulante</b> du formulaire.
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-[#9096A5]">Aucun lead « Autre » quali pour l&apos;instant.</p>
+              )}
+            </Card>
+
+            {data.autre && data.autre.leads.length > 0 && (
+              <Card title={`Détail des fiches « Autre » quali (${data.autre.leads.length} avec activité décrite)`}>
+                <AutreTable rows={data.autre.leads} />
+              </Card>
+            )}
+          </div>
+        )}
+
         {/* ─── Onglet Camille / Setteo ─── */}
         {tab === "camille" && (
           <div className="space-y-8">
@@ -464,6 +496,8 @@ function IncidentsTable({ rows }: { rows: Incidents["items"] }) {
               <td className="py-2 pr-3 whitespace-nowrap">
                 {r.kind === "ia_failure" ? (
                   <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#DC2626]/10 text-[#DC2626]">Bug IA</span>
+                ) : r.kind === "setteo" ? (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#B45309]/10 text-[#B45309]">Setteo</span>
                 ) : (
                   <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#0046FF]/10 text-[#0046FF]">Signalement</span>
                 )}
@@ -537,6 +571,33 @@ function AbTestTable({ rows }: { rows: NonNullable<Overview["ab_test"]> }) {
               <td className="py-2 pr-3 text-right text-[#555B6E]">{r.views}</td>
               <td className="py-2 pr-3 text-right text-[#555B6E]">{r.optins}</td>
               <td className="py-2 text-right font-display font-extrabold text-[#00194C]">{r.rate.toFixed(1)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function AutreTable({ rows }: { rows: NonNullable<Overview["autre"]>["leads"] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wide text-[#9096A5] border-b border-[#E2E4EA]">
+            <th className="py-2 pr-3 font-semibold">Secteur deviné</th>
+            <th className="py-2 pr-3 font-semibold">CA</th>
+            <th className="py-2 pr-3 font-semibold">Domaine</th>
+            <th className="py-2 font-semibold">Activité décrite</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className="border-b border-[#F0F1F5] align-top">
+              <td className="py-2 pr-3 whitespace-nowrap font-medium text-[#7C3AED]">{r.secteur_devine}</td>
+              <td className="py-2 pr-3 whitespace-nowrap text-[#555B6E]">{r.ca ? r.ca.replace(/ de C\.A annuel/, "") : "—"}</td>
+              <td className="py-2 pr-3 whitespace-nowrap text-[#9096A5]">{r.domaine}</td>
+              <td className="py-2 text-[#2A2D35]">{r.activite || "—"}</td>
             </tr>
           ))}
         </tbody>
@@ -642,16 +703,26 @@ function BarList({ items, accent }: { items: { label: string; count: number }[];
 }
 
 function DayChart({ days }: { days: { day: string; count: number }[] }) {
-  if (days.length === 0) return <p className="text-sm text-[#9096A5]">Aucun opt-in sur la période.</p>;
+  if (days.length === 0) return <p className="text-sm text-[#9096A5]">Aucune donnée sur la période.</p>;
   const max = Math.max(1, ...days.map((d) => d.count));
   return (
-    <div className="flex items-end gap-1 h-32">
-      {days.map((d) => (
-        <div key={d.day} className="flex-1 flex flex-col items-center justify-end group" title={`${d.day} : ${d.count}`}>
-          <div className="w-full rounded-t bg-[#0046FF]/80 group-hover:bg-[#0046FF] transition-colors" style={{ height: `${(d.count / max) * 100}%`, minHeight: d.count > 0 ? 3 : 0 }} />
-          <span className="text-[8px] text-[#9096A5] mt-1 rotate-0">{d.day.slice(8)}</span>
-        </div>
-      ))}
+    <div>
+      {/* Barres : enfants DIRECTS d'un conteneur à hauteur définie → les % se résolvent. */}
+      <div className="flex items-end gap-1 h-32">
+        {days.map((d) => (
+          <div
+            key={d.day}
+            title={`${d.day} : ${d.count}`}
+            className="flex-1 rounded-t bg-[#0046FF]/80 hover:bg-[#0046FF] transition-colors"
+            style={{ height: `${d.count > 0 ? Math.max((d.count / max) * 100, 4) : 0}%` }}
+          />
+        ))}
+      </div>
+      <div className="flex gap-1 mt-1">
+        {days.map((d) => (
+          <span key={d.day} className="flex-1 text-center text-[8px] text-[#9096A5]">{d.day.slice(8)}</span>
+        ))}
+      </div>
     </div>
   );
 }
