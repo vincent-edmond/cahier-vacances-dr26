@@ -4,110 +4,117 @@ import { useEffect, useRef } from "react";
 
 /**
  * Relecture/validation des questions du diagnostic — outil interne ISOLÉ.
- * Rendu identique à la maquette visuelle. Max réécrit un libellé, marque
- * « Validée »/« À revoir », commente ; tout est auto-enregistré en base
- * (cdv.audit_review via /api/audit-review) et partagé par simple lien.
  *
- * Volontairement autonome : aucun import du SaaS (AppShell, session, opt-in),
- * styles scindés sous « .arvroot ». Ne peut pas casser l'app existante.
+ * Affiche le RENDU de l'audit tel qu'il sera livré (champs, choix en chips,
+ * curseurs 1–10), et permet à Max de réécrire le libellé d'une question,
+ * de la marquer « Validée »/« À revoir » et de commenter — directement dessus.
+ *
+ * Persistance : seules les modifications (libellé réécrit, statut, commentaire)
+ * sont sauvegardées, indexées par question, via /api/audit-review (table dédiée
+ * cdv.audit_review). Le rendu (options, curseurs) vient du modèle par défaut.
+ *
+ * Autonome : aucun import du SaaS, styles scindés sous « .arvroot ».
  */
 
-type Q = { l: string; d: string; s: string; c: string };
+type QType = "text" | "area" | "num" | "choice" | "scale" | "rates";
+type Q = { l: string; t: QType; o?: string[]; ex?: string; g?: string; u?: string };
 type Section = { tag: string; title: string; desc: string; qs: Q[] };
-type State = { v: number; sections: Section[] };
+type Edit = { l?: string; s?: string; c?: string };
+type Edits = Record<string, Edit>;
 
-const DEFAULT: State = {
-  v: 1,
-  sections: [
-    { tag: "A", title: "Qualification", desc: "À l'entrée — crée l'espace et qualifie le lead.", qs: [
-      { l: "Prénom", d: "", s: "", c: "" },
-      { l: "Email", d: "", s: "", c: "" },
-      { l: "Votre chiffre d'affaires annuel", d: "Choix : Pas encore d'entreprise · 0–30K · 30–100K · 100–300K · 300K–1M · 1–10M · +10M", s: "", c: "" },
-      { l: "Votre secteur", d: "Choix : Saas · Coach/Consultant · BTP · Immo · Dentiste · Avocat · Chirurgien · Business en ligne · Opticien · CGP · Expert-comptable · Autre", s: "", c: "" },
-      { l: "Téléphone", d: "Indicatif pays + numéro", s: "", c: "" },
-    ] },
-    { tag: "B", title: "Diagnostic express", desc: "~5 min — donne le score, le radar et le coût de l'inaction.", qs: [
-      { l: "Décrivez votre activité en une phrase : que vendez-vous, et à qui ?", d: "→ ex : « Je pose des cuisines sur-mesure pour des particuliers haut de gamme autour de Lyon. »", s: "", c: "" },
-      { l: "Objectif de CA sur les 12 prochains mois", d: "Nombre (€) · ex : 800 000", s: "", c: "" },
-      { l: "CA réalisé sur les 12 derniers mois", d: "Nombre (€) · ex : 520 000", s: "", c: "" },
-      { l: "Sur 100 € vendus, combien vous reste-t-il une fois toutes les charges payées ?", d: "Choix : + de 15 € · 8–15 € · – de 8 € · Je ne sais pas", s: "", c: "" },
-      { l: "Si vos ventes s'arrêtaient demain, combien de temps votre trésorerie tiendrait ?", d: "Choix : + de 3 mois · 1–3 mois · – d'un mois · Je ne sais pas", s: "", c: "" },
-      { l: "Auto-évaluation des 10 leviers (chacun noté de 1 à 10)", d: "Guide : 1 = point faible · 10 = maîtrisé. Leviers : Santé financière · Clarté stratégique · Force de l'offre · Différenciation · Acquisition · Autonomie · Croissance & monétisation · Marges & cash · Solidité de l'équipe · Pilotage & exécution", s: "", c: "" },
-      { l: "Où voulez-vous emmener votre entreprise dans les 3 prochaines années ?", d: "→ guide : un chiffre ET une situation. ex : « Passer de 500 K à 2 M€, avec une équipe qui gère sans moi. »", s: "", c: "" },
-      { l: "Qu'est-ce qui vous empêche le plus d'y arriver aujourd'hui ?", d: "→ ex : « Tout repose sur moi, je n'ai pas de flux régulier de clients. »", s: "", c: "" },
-    ] },
-    { tag: "1", title: "Santé financière & performance", desc: "", qs: [
-      { l: "Votre CA sur les 3 dernières années : en croissance, stable, ou en baisse ?", d: "Choix + précision · ex : 2022 : 300K · 2023 : 380K · 2024 : 520K", s: "", c: "" },
-      { l: "Le levier où ça coince le plus", d: "Choix : Stratégie · Offre · Différenciation · Acquisition · Vente · Opérationnel · Rentabilité · Équipe", s: "", c: "" },
-      { l: "Ce que vous devez absolument corriger dans les prochains mois", d: "→ ex : « Arrêter de brader mes prix pour signer. »", s: "", c: "" },
-      { l: "Le chiffre qui vous inquiète le plus aujourd'hui, et pourquoi", d: "→ ex : « Ma trésorerie : je n'ai qu'un mois d'avance. »", s: "", c: "" },
-    ] },
-    { tag: "2", title: "Focus stratégique", desc: "", qs: [
-      { l: "Listez toutes vos priorités actuelles, sans filtre", d: "→ guide : une par ligne.", s: "", c: "" },
-      { l: "Si vous ne pouviez en garder qu'UNE, laquelle change le plus la donne ?", d: "", s: "", c: "" },
-      { l: "Votre priorité n°1 des prochains mois, en une phrase", d: "", s: "", c: "" },
-      { l: "Quelles 2 à 3 choses allez-vous ARRÊTER pour protéger ce cap ?", d: "→ ex : « J'arrête de faire moi-même les devis et le SAV. »", s: "", c: "" },
-    ] },
-    { tag: "3", title: "Offre & positionnement", desc: "", qs: [
-      { l: "Votre offre principale en une phrase, et qui est votre client idéal", d: "", s: "", c: "" },
-      { l: "De 1 à 10, à quel point un prospect se dit « je serais fou de refuser » ?", d: "Note /10", s: "", c: "" },
-      { l: "Pourquoi ce chiffre ?", d: "", s: "", c: "" },
-      { l: "Quel UN changement la rendrait nettement plus irrésistible ?", d: "→ guide : une garantie, un bonus, une reformulation de la promesse.", s: "", c: "" },
-    ] },
-    { tag: "4", title: "Différenciation & avantage concurrentiel", desc: "", qs: [
-      { l: "Quelle est LA douleur n°1 mal résolue de votre marché ?", d: "", s: "", c: "" },
-      { l: "Vos 3 différenciateurs, sans les mots creux", d: "→ guide : ce que vous êtes seul à faire, pas « qualité » ni « sérieux ».", s: "", c: "" },
-      { l: "Si un concurrent vous copie et casse le prix de 20 %, qu'est-ce qui vous reste ?", d: "", s: "", c: "" },
-      { l: "Complétez : « On gagne parce que nous sommes les seuls à… »", d: "", s: "", c: "" },
-    ] },
-    { tag: "5", title: "Acquisition & développement commercial", desc: "", qs: [
-      { l: "Comment vos nouveaux clients vous trouvent-ils aujourd'hui ?", d: "Choix + précision : Bouche-à-oreille · Clients qui reviennent · Prescripteurs · Référencement · Publicité · Prospection · Appels d'offres · Emplacement · Autre", s: "", c: "" },
-      { l: "Votre flux de nouveaux clients est-il régulier, ou en dents de scie ?", d: "Choix : régulier et prévisible · correct mais irrégulier · imprévisible", s: "", c: "" },
-      { l: "Quelle part de vos nouveaux clients vient de votre source principale ?", d: "Choix : <25 % · 25–50 % · 50–75 % · >75 % (mesure la dépendance)", s: "", c: "" },
-      { l: "Votre acquisition dépend-elle surtout de vous, ou d'un système qui tourne sans vous ?", d: "Choix : surtout moi · un mix · un système qui tourne", s: "", c: "" },
-      { l: "Savez-vous ce que vous coûte l'obtention d'un nouveau client (argent ou temps) ?", d: "Choix : oui précisément · approximativement · non", s: "", c: "" },
-      { l: "Si vous vouliez doubler vos nouveaux clients, sauriez-vous comment faire ?", d: "", s: "", c: "" },
-    ] },
-    { tag: "6", title: "Autonomie opérationnelle", desc: "", qs: [
-      { l: "Listez les tâches que vous seul faites encore", d: "→ guide : une par ligne.", s: "", c: "" },
-      { l: "Celle qui vous coûte le plus de temps", d: "", s: "", c: "" },
-      { l: "Documentez-la en 5 étapes (le mode opératoire)", d: "", s: "", c: "" },
-      { l: "À qui la déléguez-vous, et pour quelle échéance ?", d: "", s: "", c: "" },
-    ] },
-    { tag: "7", title: "Croissance & monétisation", desc: "", qs: [
-      { l: "Votre nombre de clients actifs (12 derniers mois)", d: "Nombre · ex : 120", s: "", c: "" },
-      { l: "Votre panier moyen (CA moyen par commande)", d: "Nombre (€) · ex : 2 500", s: "", c: "" },
-      { l: "Votre fréquence d'achat (nb d'achats/an d'un client)", d: "Nombre · ex : 2", s: "", c: "" },
-      { l: "Entre panier moyen et fréquence, lequel est le plus sous-exploité ?", d: "Choix : Panier moyen · Fréquence d'achat", s: "", c: "" },
-      { l: "Une action concrète pour l'augmenter", d: "", s: "", c: "" },
-      { l: "Projetez : +10 % sur ce levier, ça fait combien de CA en plus ?", d: "Nombre (€)", s: "", c: "" },
-    ] },
-    { tag: "8", title: "Rentabilité & cash", desc: "", qs: [
-      { l: "Suivez-vous vos marges et votre trésorerie de près ?", d: "Choix : chaque semaine · de temps en temps · non", s: "", c: "" },
-      { l: "Où est votre plus grosse fuite ?", d: "Choix : Prix · Volume · Coûts directs · Masse salariale · Créances clients · Dettes fournisseurs · Stock", s: "", c: "" },
-      { l: "Une action immédiate", d: "→ guide : concrète, applicable cette semaine.", s: "", c: "" },
-      { l: "Combien de cash cette action pourrait vous libérer sur 12 mois ?", d: "Nombre (€)", s: "", c: "" },
-    ] },
-    { tag: "9", title: "Équipe & structuration", desc: "", qs: [
-      { l: "Quel recrutement vous ferait passer un cap aujourd'hui ?", d: "→ guide : un rôle, pas une tâche.", s: "", c: "" },
-      { l: "Le résultat attendu de ce poste, en une phrase", d: "→ guide : le résultat, pas la liste des tâches.", s: "", c: "" },
-      { l: "Quels 3 accomplissements passés un bon candidat doit-il pouvoir prouver ?", d: "", s: "", c: "" },
-      { l: "Vos 2 valeurs non négociables", d: "", s: "", c: "" },
-      { l: "À défaut de recruter, quel partenariat ou prestataire externe pourrait couvrir ce besoin ?", d: "", s: "", c: "" },
-    ] },
-    { tag: "10", title: "Pilotage & exécution", desc: "", qs: [
-      { l: "En repensant à vos réponses, quels problèmes reviennent le plus souvent ?", d: "", s: "", c: "" },
-      { l: "Vos chantiers prioritaires (n°1, n°2, n°3)", d: "", s: "", c: "" },
-      { l: "Pour chaque chantier : l'action n°1, le responsable, l'échéance", d: "→ guide : action / qui / quand.", s: "", c: "" },
-      { l: "Votre créneau de pilotage hebdomadaire bloqué (jour + heure)", d: "", s: "", c: "" },
-    ] },
-    { tag: "★", title: "Bonus — Vous, le chef d'entreprise", desc: "Hors radar, mais précieux pour le conseil et pour préparer l'appel.", qs: [
-      { l: "Combien d'heures par semaine consacrez-vous à votre entreprise ?", d: "Nombre", s: "", c: "" },
-      { l: "Où part l'essentiel de votre temps aujourd'hui ?", d: "", s: "", c: "" },
-      { l: "Sur 1 à 10, à quel point vous sentez-vous débordé ou seul dans vos décisions ?", d: "Note /10 · 1 = serein et bien entouré · 10 = débordé et seul", s: "", c: "" },
-    ] },
-  ],
-};
+const CA = ["Pas encore d'entreprise", "0 – 30K", "30 – 100K", "100 – 300K", "300K – 1M", "1 – 10M", "+ 10M"];
+const SECT = ["Saas", "Coach / Consultant", "BTP", "Immo", "Dentiste", "Avocat", "Chirurgien", "Business en ligne", "Opticien", "CGP", "Expert-comptable", "Autre"];
+const LEVIERS = ["Santé financière", "Clarté stratégique", "Force de l'offre", "Différenciation", "Acquisition", "Autonomie opérationnelle", "Croissance & monétisation", "Marges & cash", "Solidité de l'équipe", "Pilotage & exécution"];
+
+const SECTIONS: Section[] = [
+  { tag: "A", title: "Qualification", desc: "À l'entrée — crée l'espace et qualifie le lead.", qs: [
+    { l: "Prénom", t: "text", ex: "Julie" },
+    { l: "Email", t: "text", ex: "julie@monentreprise.fr" },
+    { l: "Votre chiffre d'affaires annuel", t: "choice", o: CA },
+    { l: "Votre secteur", t: "choice", o: SECT },
+    { l: "Téléphone", t: "text", ex: "🇫🇷 +33   ·   6 12 34 56 78" },
+  ] },
+  { tag: "B", title: "Diagnostic express", desc: "~5 min — donne le score, le radar et le coût de l'inaction.", qs: [
+    { l: "Décrivez votre activité en une phrase : que vendez-vous, et à qui ?", t: "area", ex: "Je pose des cuisines sur-mesure pour des particuliers haut de gamme autour de Lyon." },
+    { l: "Objectif de CA sur les 12 prochains mois", t: "num", u: "€", ex: "800 000" },
+    { l: "CA réalisé sur les 12 derniers mois", t: "num", u: "€", ex: "520 000" },
+    { l: "Sur 100 € vendus, combien vous reste-t-il une fois toutes les charges payées ?", t: "choice", o: ["+ de 15 €", "8 – 15 €", "– de 8 €", "Je ne sais pas"] },
+    { l: "Si vos ventes s'arrêtaient demain, combien de temps votre trésorerie tiendrait ?", t: "choice", o: ["+ de 3 mois", "1 – 3 mois", "– d'un mois", "Je ne sais pas"] },
+    { l: "Notez vos 10 leviers de 1 à 10", t: "rates", o: LEVIERS, g: "1 = point faible · 10 = parfaitement maîtrisé." },
+    { l: "Où voulez-vous emmener votre entreprise dans les 3 prochaines années ?", t: "area", ex: "Passer de 500 K à 2 M€, avec une équipe qui gère sans moi.", g: "un chiffre ET une situation." },
+    { l: "Qu'est-ce qui vous empêche le plus d'y arriver aujourd'hui ?", t: "area", ex: "Tout repose sur moi, je n'ai pas de flux régulier de clients." },
+  ] },
+  { tag: "1", title: "Santé financière & performance", desc: "", qs: [
+    { l: "Votre CA sur les 3 dernières années : en croissance, stable, ou en baisse ?", t: "choice", o: ["Forte croissance", "Légère croissance", "Stable", "En baisse"], g: "précisez si possible : 2022 : 300K · 2023 : 380K · 2024 : 520K." },
+    { l: "Le levier où ça coince le plus", t: "choice", o: ["Stratégie", "Offre", "Différenciation", "Acquisition", "Vente", "Opérationnel", "Rentabilité", "Équipe"] },
+    { l: "Ce que vous devez absolument corriger dans les prochains mois", t: "area", ex: "Arrêter de brader mes prix pour signer." },
+    { l: "Le chiffre qui vous inquiète le plus aujourd'hui, et pourquoi", t: "area", ex: "Ma trésorerie : je n'ai qu'un mois d'avance." },
+  ] },
+  { tag: "2", title: "Focus stratégique", desc: "", qs: [
+    { l: "Listez toutes vos priorités actuelles, sans filtre", t: "area", ex: "Recruter un commercial · refondre l'offre · structurer la production.", g: "une par ligne." },
+    { l: "Si vous ne pouviez en garder qu'UNE, laquelle change le plus la donne ?", t: "area", ex: "Mettre en place un système d'acquisition régulier." },
+    { l: "Votre priorité n°1 des prochains mois, en une phrase", t: "text", ex: "Je me concentre sur la structuration de mon équipe commerciale." },
+    { l: "Quelles 2 à 3 choses allez-vous ARRÊTER pour protéger ce cap ?", t: "area", ex: "J'arrête de faire moi-même les devis et le SAV." },
+  ] },
+  { tag: "3", title: "Offre & positionnement", desc: "", qs: [
+    { l: "Votre offre principale en une phrase, et qui est votre client idéal", t: "area", ex: "J'accompagne les restaurateurs indépendants à digitaliser leurs réservations. Client idéal : 1 à 3 établissements." },
+    { l: "De 1 à 10, à quel point un prospect se dit « je serais fou de refuser » ?", t: "scale" },
+    { l: "Pourquoi ce chiffre ?", t: "area", ex: "Mon offre ressemble à celle des concurrents, rien ne la rend évidente." },
+    { l: "Quel UN changement la rendrait nettement plus irrésistible ?", t: "area", ex: "Ajouter une garantie résultat sous 90 jours.", g: "une garantie, un bonus, une reformulation de la promesse." },
+  ] },
+  { tag: "4", title: "Différenciation & avantage concurrentiel", desc: "", qs: [
+    { l: "Quelle est LA douleur n°1 mal résolue de votre marché ?", t: "area", ex: "Les clients subissent des délais à rallonge et zéro suivi." },
+    { l: "Vos 3 différenciateurs, sans les mots creux", t: "area", ex: "Intervention sous 24 h garantie · SAV internalisé · 15 ans de références.", g: "ce que vous êtes seul à faire, pas « qualité » ni « sérieux »." },
+    { l: "Si un concurrent vous copie et casse le prix de 20 %, qu'est-ce qui vous reste ?", t: "area", ex: "Ma réputation locale et mes références vérifiables." },
+    { l: "Complétez : « On gagne parce que nous sommes les seuls à… »", t: "area", ex: "…combiner pose et SAV internalisés, sans sous-traitance." },
+  ] },
+  { tag: "5", title: "Acquisition & développement commercial", desc: "", qs: [
+    { l: "Comment vos nouveaux clients vous trouvent-ils aujourd'hui ?", t: "choice", o: ["Bouche-à-oreille", "Clients qui reviennent", "Prescripteurs / partenaires", "Référencement", "Publicité", "Prospection active", "Appels d'offres", "Emplacement / passage", "Autre"] },
+    { l: "Votre flux de nouveaux clients est-il régulier, ou en dents de scie ?", t: "choice", o: ["Régulier et prévisible", "Correct mais irrégulier", "Imprévisible, en dents de scie"] },
+    { l: "Quelle part de vos nouveaux clients vient de votre source principale ?", t: "choice", o: ["< 25 %", "25 – 50 %", "50 – 75 %", "> 75 %"], g: "mesure la dépendance à un seul canal." },
+    { l: "Votre acquisition dépend-elle surtout de vous, ou d'un système qui tourne sans vous ?", t: "choice", o: ["Surtout moi", "Un mix", "Un système qui tourne"] },
+    { l: "Savez-vous ce que vous coûte l'obtention d'un nouveau client (argent ou temps) ?", t: "choice", o: ["Oui, précisément", "Approximativement", "Non"] },
+    { l: "Si vous vouliez doubler vos nouveaux clients, sauriez-vous comment faire ?", t: "area", ex: "Non, je ne saurais pas par où commencer." },
+  ] },
+  { tag: "6", title: "Autonomie opérationnelle", desc: "", qs: [
+    { l: "Listez les tâches que vous seul faites encore", t: "area", ex: "Devis · SAV · planning · relances · compta.", g: "une par ligne." },
+    { l: "Celle qui vous coûte le plus de temps", t: "text", ex: "La production des devis, 8 h par semaine." },
+    { l: "Documentez-la en 5 étapes (le mode opératoire)", t: "area", ex: "1. Recevoir la demande · 2. Métrer · 3. Chiffrer · 4. Rédiger · 5. Envoyer et relancer." },
+    { l: "À qui la déléguez-vous, et pour quelle échéance ?", t: "text", ex: "À Léa, d'ici 30 jours." },
+  ] },
+  { tag: "7", title: "Croissance & monétisation", desc: "", qs: [
+    { l: "Votre nombre de clients actifs (12 derniers mois)", t: "num", u: "#", ex: "120" },
+    { l: "Votre panier moyen (CA moyen par commande)", t: "num", u: "€", ex: "2 500" },
+    { l: "Votre fréquence d'achat (nb d'achats/an d'un client)", t: "num", u: "#", ex: "2" },
+    { l: "Entre panier moyen et fréquence, lequel est le plus sous-exploité ?", t: "choice", o: ["Panier moyen", "Fréquence d'achat"] },
+    { l: "Une action concrète pour l'augmenter", t: "area", ex: "Proposer un contrat d'entretien annuel après chaque installation." },
+    { l: "Projetez : +10 % sur ce levier, ça fait combien de CA en plus ?", t: "num", u: "€", ex: "30 000" },
+  ] },
+  { tag: "8", title: "Rentabilité & cash", desc: "", qs: [
+    { l: "Suivez-vous vos marges et votre trésorerie de près ?", t: "choice", o: ["Chaque semaine", "De temps en temps", "Non"] },
+    { l: "Où est votre plus grosse fuite ?", t: "choice", o: ["Prix", "Volume", "Coûts directs", "Masse salariale", "Créances clients", "Dettes fournisseurs", "Stock"] },
+    { l: "Une action immédiate", t: "area", ex: "Augmenter mes tarifs de 10 % dès le prochain devis.", g: "concrète, applicable cette semaine." },
+    { l: "Combien de cash cette action pourrait vous libérer sur 12 mois ?", t: "num", u: "€", ex: "25 000" },
+  ] },
+  { tag: "9", title: "Équipe & structuration", desc: "", qs: [
+    { l: "Quel recrutement vous ferait passer un cap aujourd'hui ?", t: "text", ex: "Un responsable de production.", g: "un rôle, pas une tâche." },
+    { l: "Le résultat attendu de ce poste, en une phrase", t: "area", ex: "Ce poste réussit s'il génère 20 rendez-vous qualifiés par mois.", g: "le résultat, pas la liste des tâches." },
+    { l: "Quels 3 accomplissements passés un bon candidat doit-il pouvoir prouver ?", t: "area", ex: "A managé une équipe de 5 · a structuré un service SAV · a tenu un objectif commercial." },
+    { l: "Vos 2 valeurs non négociables", t: "text", ex: "Exigence, fiabilité." },
+    { l: "À défaut de recruter, quel partenariat ou prestataire externe pourrait couvrir ce besoin ?", t: "area", ex: "Externaliser la compta à un cabinet, la prospection à une agence." },
+  ] },
+  { tag: "10", title: "Pilotage & exécution", desc: "", qs: [
+    { l: "En repensant à vos réponses, quels problèmes reviennent le plus souvent ?", t: "area", ex: "Tout dépend de moi, et je n'ai pas de suivi de mes chiffres." },
+    { l: "Vos chantiers prioritaires (n°1, n°2, n°3)", t: "area", ex: "1. Structurer l'acquisition · 2. Reprendre la main sur les marges · 3. Déléguer les devis." },
+    { l: "Pour chaque chantier : l'action n°1, le responsable, l'échéance", t: "area", ex: "Chantier 1 : lancer une campagne / moi / avant le 30.", g: "action / qui / quand." },
+    { l: "Votre créneau de pilotage hebdomadaire bloqué (jour + heure)", t: "text", ex: "Vendredi 9 h – 11 h." },
+  ] },
+  { tag: "★", title: "Bonus — Vous, le chef d'entreprise", desc: "Hors radar, mais précieux pour le conseil et pour préparer l'appel.", qs: [
+    { l: "Combien d'heures par semaine consacrez-vous à votre entreprise ?", t: "num", u: "#", ex: "60" },
+    { l: "Où part l'essentiel de votre temps aujourd'hui ?", t: "area", ex: "70 % dans l'opérationnel et les urgences, presque rien sur la stratégie." },
+    { l: "Sur 1 à 10, à quel point vous sentez-vous débordé ou seul dans vos décisions ?", t: "scale", g: "1 = serein et bien entouré · 10 = débordé et seul." },
+  ] },
+];
 
 const CSS = `
 .arvroot{--bg:#f4f7fd;--card:#fff;--tint:#eef3ff;--line:#e2e8f5;--line-soft:#eef1f8;--blue:#0046ff;--blue-soft:#2f6bff;--ink:#0b1b3f;--muted:#5b6488;--muted-2:#8b93ad;--teal:#0b8f80;--amber:#c98200;--red:#e5533c;--shadow:0 2px 10px rgba(12,32,84,.06);--radius:16px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:70px;display:block}
@@ -130,21 +137,35 @@ const CSS = `
 .arvroot .grp-h h2{font-size:19px;font-weight:850;letter-spacing:-.01em;margin:0}
 .arvroot .grp-desc{color:var(--muted-2);font-size:12.5px;margin:2px 0 14px}
 .arvroot .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:4px 18px}
-.arvroot .q{padding:16px 0;border-bottom:1px solid var(--line-soft)}
+.arvroot .q{padding:17px 0;border-bottom:1px solid var(--line-soft)}
 .arvroot .q:last-child{border-bottom:0}
 .arvroot .qtop{display:flex;align-items:flex-start;gap:10px}
 .arvroot .num{font-size:11px;font-weight:800;color:var(--blue-soft);padding-top:5px;min-width:20px}
-.arvroot .lab{flex:1;font-size:15px;font-weight:600;color:#17224a;border-radius:8px;padding:5px 8px;margin:-5px -8px;outline:none;transition:background .12s,box-shadow .12s}
+.arvroot .lab{flex:1;font-size:15px;font-weight:650;color:#17224a;border-radius:8px;padding:5px 8px;margin:-5px -8px;outline:none;transition:background .12s,box-shadow .12s}
 .arvroot .lab:hover{background:#f5f8ff}
 .arvroot .lab:focus{background:#eef4ff;box-shadow:0 0 0 2px #0046ff44}
-.arvroot .detail{font-size:12px;color:var(--muted-2);margin:7px 0 0 30px;line-height:1.45}
-.arvroot .detail.g{font-style:italic}
-.arvroot .row2{display:flex;align-items:center;gap:8px;margin:11px 0 0 30px;flex-wrap:wrap}
+.arvroot .ctrl{margin:11px 0 0 30px}
+.arvroot .fp{border:1px solid var(--line);background:#f7f9ff;border-radius:10px;padding:10px 12px;font-size:13.5px;color:#9aa3c2;display:flex;align-items:center;gap:8px}
+.arvroot .fp.area{min-height:44px;align-items:flex-start}
+.arvroot .fp .ic{color:var(--muted-2);font-size:12px;font-weight:700}
+.arvroot .opts{display:flex;flex-wrap:wrap;gap:7px}
+.arvroot .opt{border:1px solid var(--line);background:#f7f9ff;color:#3a4570;border-radius:99px;padding:6px 12px;font-size:12.5px}
+.arvroot .scale{display:flex;align-items:center;gap:10px}
+.arvroot .scale .track{flex:1;height:6px;border-radius:99px;background:linear-gradient(90deg,#f0c4bb,#dbe3f4 55%,#bfe3dc)}
+.arvroot .scale .lm{font-size:11px;color:var(--muted-2);font-weight:600}
+.arvroot .rates{display:flex;flex-direction:column;gap:10px}
+.arvroot .rline{display:flex;align-items:center;gap:12px}
+.arvroot .rline .rn{font-size:13px;font-weight:600;width:170px;flex:none}
+.arvroot .rline .rt{flex:1;height:6px;border-radius:99px;background:linear-gradient(90deg,#f0c4bb,#dbe3f4 55%,#bfe3dc)}
+.arvroot .rline .rr{font-size:11px;color:var(--muted-2);font-weight:600;flex:none}
+.arvroot .guide{font-size:12px;color:var(--muted-2);margin:8px 0 0 30px;font-style:italic}
+.arvroot .guide b{color:var(--blue-soft);font-style:normal}
+.arvroot .row2{display:flex;align-items:center;gap:8px;margin:12px 0 0 30px;flex-wrap:wrap}
 .arvroot .stbtn{border:1px solid var(--line);background:#f7f9ff;color:#5b6488;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:650;cursor:pointer;transition:.12s}
 .arvroot .stbtn:hover{border-color:#c7d2f0}
 .arvroot .stbtn.ok.on{background:var(--teal);border-color:var(--teal);color:#fff}
 .arvroot .stbtn.rev.on{background:var(--red);border-color:var(--red);color:#fff}
-.arvroot .cmt{width:calc(100% - 30px);margin:10px 0 0 30px;background:#fffdf6;border:1px solid #f0e6cf;border-radius:10px;color:var(--ink);font:inherit;font-size:13px;padding:9px 11px;min-height:38px;resize:vertical;outline:none}
+.arvroot .cmt{width:calc(100% - 30px);margin:10px 0 0 30px;background:#fffdf6;border:1px solid #f0e6cf;border-radius:10px;color:var(--ink);font:inherit;font-size:13px;padding:9px 11px;min-height:36px;resize:vertical;outline:none}
 .arvroot .cmt:focus{border-color:var(--amber);background:#fff}
 .arvroot .cmt::placeholder{color:#b9a97f}
 .arvroot .bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;justify-content:center;padding:11px 18px;font-size:13px;font-weight:600}
@@ -168,39 +189,38 @@ export default function ReviewClient() {
     const root = rootRef.current;
     if (!root) return;
 
-    let state: State = JSON.parse(JSON.stringify(DEFAULT));
+    let edits: Edits = {};
     let saveTimer: ReturnType<typeof setTimeout> | undefined;
     let inflight = false;
 
     const esc = (s: string) =>
       String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const key = (si: number, qi: number) => si + "_" + qi;
+    const ensure = (k: string): Edit => (edits[k] = edits[k] || {});
 
     const counts = () => {
-      let ok = 0, rev = 0, wait = 0;
-      state.sections.forEach((sec) => sec.qs.forEach((q) => { if (q.s === "ok") ok++; else if (q.s === "rev") rev++; else wait++; }));
-      return { ok, rev, wait };
+      let ok = 0, rev = 0, total = 0;
+      SECTIONS.forEach((sec, si) => sec.qs.forEach((_, qi) => {
+        total++; const s = edits[key(si, qi)]?.s; if (s === "ok") ok++; else if (s === "rev") rev++;
+      }));
+      return { ok, rev, wait: total - ok - rev };
     };
 
     const setBar = (cls: string, txt: string) => {
       const bar = root.querySelector<HTMLElement>(".bar");
       if (bar) { bar.className = "bar " + cls; const t = bar.querySelector(".t"); if (t) t.textContent = txt; }
     };
-
     const doSave = async () => {
-      inflight = true;
-      setBar("saving", "Enregistrement…");
+      inflight = true; setBar("saving", "Enregistrement…");
       try {
         const r = await fetch("/api/audit-review", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: "questions", data: state }),
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: "questions", data: { edits } }),
         });
         if (!r.ok) throw new Error("save");
-        inflight = false;
-        setBar("saved", "Enregistré ✓");
+        inflight = false; setBar("saved", "Enregistré ✓");
       } catch {
-        inflight = false;
-        setBar("error", "Échec — nouvelle tentative…");
+        inflight = false; setBar("error", "Échec — nouvelle tentative…");
         saveTimer = setTimeout(doSave, 3000);
       }
     };
@@ -211,84 +231,85 @@ export default function ReviewClient() {
     };
 
     const updateCounts = () => {
-      const c = counts();
-      const el = root.querySelector("#counts");
+      const c = counts(); const el = root.querySelector("#counts");
       if (el) el.innerHTML =
         '<span class="pill ok">✓ ' + c.ok + " validées</span>" +
         '<span class="pill rev">✎ ' + c.rev + " à revoir</span>" +
         '<span class="pill wait">' + c.wait + " en attente</span>";
     };
 
-    const qof = (el: Element): Q | null => {
-      const card = el.closest<HTMLElement>(".q");
-      if (!card) return null;
-      const si = Number(card.getAttribute("data-si"));
-      const qi = Number(card.getAttribute("data-qi"));
-      return state.sections[si]?.qs[qi] ?? null;
+    const control = (q: Q): string => {
+      if (q.t === "choice" && q.o) return '<div class="opts">' + q.o.map((o) => '<span class="opt">' + esc(o) + "</span>").join("") + "</div>";
+      if (q.t === "scale") return '<div class="scale"><span class="lm">1</span><span class="track"></span><span class="lm">10</span></div>';
+      if (q.t === "rates" && q.o) return '<div class="rates">' + q.o.map((o) => '<div class="rline"><span class="rn">' + esc(o) + '</span><span class="rt"></span><span class="rr">1–10</span></div>').join("") + "</div>";
+      if (q.t === "num") return '<div class="fp"><span class="ic">' + esc(q.u || "#") + '</span><span>' + esc(q.ex || "") + "</span></div>";
+      return '<div class="fp area"><span>' + esc(q.ex || "Réponse du chef d’entreprise…") + "</span></div>";
     };
 
     const render = () => {
       let html = '<div class="wrap"><header>' +
-        '<span class="badge">Validation des questions</span>' +
-        "<h1>Le Diagnostic Business — vos questions à valider</h1>" +
-        '<p class="sub">Modifiez le texte d’une question directement, marquez-la « Validée » ou « À revoir », et ajoutez un commentaire. Tout est enregistré automatiquement.</p>' +
-        '<div class="howto"><b>Pour Max :</b> cliquez dans une question pour la <b>réécrire</b>, utilisez <b>✓ Validée</b> / <b>✎ À revoir</b>, et laissez un <b>commentaire</b> si besoin. Aucune action à faire pour enregistrer — c’est automatique.</div>' +
+        '<span class="badge">Aperçu de l’audit · à valider</span>' +
+        "<h1>Le Diagnostic Business — le rendu, à valider</h1>" +
+        '<p class="sub">Voici l’audit tel qu’il sera livré : chaque question avec sa réponse (champs, choix, curseurs). Vous pouvez tout ajuster directement.</p>' +
+        '<div class="howto"><b>Pour Max :</b> cliquez dans le texte d’une question pour la <b>réécrire</b>, marquez-la <b>✓ Validée</b> / <b>✎ À revoir</b>, et laissez un <b>commentaire</b> (ex. pour changer des options de réponse). Enregistrement <b>automatique</b>.</div>' +
         '<div class="counts" id="counts"></div></header>';
-      state.sections.forEach((sec, si) => {
+      SECTIONS.forEach((sec, si) => {
         html += '<section class="grp"><div class="grp-h"><span class="idx">' + esc(sec.tag) + "</span><h2>" + esc(sec.title) + "</h2></div>";
         if (sec.desc) html += '<p class="grp-desc">' + esc(sec.desc) + "</p>";
         html += '<div class="card">';
         sec.qs.forEach((q, qi) => {
-          const g = /^\s*→\s*guide/i.test(q.d) ? " g" : "";
+          const k = key(si, qi); const e = edits[k] || {};
+          const label = e.l != null ? e.l : q.l;
           html += '<div class="q" data-si="' + si + '" data-qi="' + qi + '">' +
             '<div class="qtop"><span class="num">' + (qi + 1) + "</span>" +
-            '<div class="lab" contenteditable="true" data-role="label" spellcheck="false">' + esc(q.l) + "</div></div>";
-          if (q.d) html += '<div class="detail' + g + '">' + esc(q.d) + "</div>";
+            '<div class="lab" contenteditable="true" data-role="label" spellcheck="false">' + esc(label) + "</div></div>" +
+            '<div class="ctrl">' + control(q) + "</div>";
+          if (q.g) html += '<div class="guide"><b>→ ' + (q.t === "rates" || q.l.indexOf("1 à 10") >= 0 ? "guide" : "aide") + " :</b> " + esc(q.g) + "</div>";
           html += '<div class="row2">' +
-            '<button type="button" class="stbtn ok' + (q.s === "ok" ? " on" : "") + '" data-role="st" data-val="ok">✓ Validée</button>' +
-            '<button type="button" class="stbtn rev' + (q.s === "rev" ? " on" : "") + '" data-role="st" data-val="rev">✎ À revoir</button>' +
+            '<button type="button" class="stbtn ok' + (e.s === "ok" ? " on" : "") + '" data-role="st" data-val="ok">✓ Validée</button>' +
+            '<button type="button" class="stbtn rev' + (e.s === "rev" ? " on" : "") + '" data-role="st" data-val="rev">✎ À revoir</button>' +
             "</div>" +
-            '<textarea class="cmt" data-role="cmt" placeholder="Commentaire ou reformulation (facultatif)…">' + esc(q.c) + "</textarea>" +
+            '<textarea class="cmt" data-role="cmt" placeholder="Commentaire ou reformulation (facultatif)…">' + esc(e.c || "") + "</textarea>" +
             "</div>";
         });
         html += "</div></section>";
       });
-      html += '<footer>10 dimensions · ~60 questions. Modifs enregistrées automatiquement et partagées par ce lien.</footer></div>' +
+      html += '<footer>10 dimensions · ~60 questions. Rendu d’aperçu — les réponses affichées sont des exemples. Modifs enregistrées automatiquement et partagées par ce lien.</footer></div>' +
         '<div class="bar saved"><span class="dot"></span><span class="t">Enregistré ✓</span></div>';
       root.innerHTML = html;
       updateCounts();
       wire();
     };
 
+    const kof = (el: Element): string | null => {
+      const card = el.closest<HTMLElement>(".q"); if (!card) return null;
+      return key(Number(card.getAttribute("data-si")), Number(card.getAttribute("data-qi")));
+    };
     const wire = () => {
       root.querySelectorAll<HTMLElement>("[data-role=label]").forEach((el) => {
-        el.addEventListener("input", () => { const q = qof(el); if (q) { q.l = el.textContent || ""; scheduleSave(); } });
+        el.addEventListener("input", () => { const k = kof(el); if (k) { ensure(k).l = el.textContent || ""; scheduleSave(); } });
       });
       root.querySelectorAll<HTMLTextAreaElement>("[data-role=cmt]").forEach((el) => {
-        el.addEventListener("input", () => { const q = qof(el); if (q) { q.c = el.value; scheduleSave(); } });
+        el.addEventListener("input", () => { const k = kof(el); if (k) { ensure(k).c = el.value; scheduleSave(); } });
       });
       root.querySelectorAll<HTMLElement>("[data-role=st]").forEach((el) => {
         el.addEventListener("click", () => {
-          const q = qof(el); if (!q) return;
-          const v = el.getAttribute("data-val") || "";
-          q.s = q.s === v ? "" : v;
-          const card = el.closest(".q");
-          card?.querySelectorAll<HTMLElement>("[data-role=st]").forEach((b) => {
-            b.classList.toggle("on", b.getAttribute("data-val") === q.s);
+          const k = kof(el); if (!k) return;
+          const v = el.getAttribute("data-val") || ""; const e = ensure(k);
+          e.s = e.s === v ? "" : v;
+          el.closest(".q")?.querySelectorAll<HTMLElement>("[data-role=st]").forEach((b) => {
+            b.classList.toggle("on", b.getAttribute("data-val") === e.s);
           });
-          updateCounts();
-          scheduleSave();
+          updateCounts(); scheduleSave();
         });
       });
     };
 
     (async () => {
-      let loaded: State | null = null;
       try {
         const r = await fetch("/api/audit-review?id=questions");
-        if (r.ok) { const j = await r.json(); if (j && j.data && Array.isArray(j.data.sections)) loaded = j.data as State; }
-      } catch { /* hors-ligne : on part du modèle par défaut */ }
-      state = loaded ?? JSON.parse(JSON.stringify(DEFAULT));
+        if (r.ok) { const j = await r.json(); if (j && j.data && j.data.edits) edits = j.data.edits as Edits; }
+      } catch { /* hors-ligne : rendu par défaut */ }
       render();
     })();
 
