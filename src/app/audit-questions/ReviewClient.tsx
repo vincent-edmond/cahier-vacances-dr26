@@ -6,13 +6,11 @@ import { useEffect, useRef } from "react";
  * Relecture/validation des questions du diagnostic — outil interne ISOLÉ.
  *
  * Affiche le RENDU de l'audit tel qu'il sera livré (champs, choix en chips,
- * curseurs 1–10), et permet à Max de réécrire le libellé d'une question,
- * de la marquer « Validée »/« À revoir » et de commenter — directement dessus.
+ * curseurs 1–10), classé par CATÉGORIE (les 9 leviers), et permet à Max de
+ * réécrire un libellé, de le marquer « Validée »/« À revoir » et de commenter.
  *
- * Persistance : seules les modifications (libellé réécrit, statut, commentaire)
- * sont sauvegardées, indexées par question, via /api/audit-review (table dédiée
- * cdv.audit_review). Le rendu (options, curseurs) vient du modèle par défaut.
- *
+ * Persistance : seules les modifications (libellé, statut, commentaire), indexées
+ * par question, via /api/audit-review (table dédiée cdv.audit_review).
  * Autonome : aucun import du SaaS, styles scindés sous « .arvroot ».
  */
 
@@ -24,7 +22,7 @@ type Edits = Record<string, Edit>;
 
 const CA = ["Pas encore d'entreprise", "0 – 30K", "30 – 100K", "100 – 300K", "300K – 1M", "1 – 10M", "+ 10M"];
 const SECT = ["Saas", "Coach / Consultant", "BTP", "Immo", "Dentiste", "Avocat", "Chirurgien", "Business en ligne", "Opticien", "CGP", "Expert-comptable", "Autre"];
-const LEVIERS = ["Santé financière", "Clarté stratégique", "Force de l'offre", "Différenciation", "Acquisition", "Autonomie opérationnelle", "Croissance & monétisation", "Marges & cash", "Solidité de l'équipe", "Pilotage & exécution"];
+const LEVIERS = ["Ciblage", "Acquisition", "Conversion", "Closing", "Offre", "Profit", "Systems", "Leadership", "Croissance"];
 
 const SECTIONS: Section[] = [
   { tag: "A", title: "Qualification", desc: "À l'entrée — crée l'espace et qualifie le lead.", qs: [
@@ -39,77 +37,71 @@ const SECTIONS: Section[] = [
     { l: "Objectif de CA sur les 12 prochains mois", t: "num", u: "€", ex: "800 000" },
     { l: "CA réalisé sur les 12 derniers mois", t: "num", u: "€", ex: "520 000" },
     { l: "Sur 100 € vendus, combien vous reste-t-il une fois toutes les charges payées ?", t: "choice", o: ["+ de 15 €", "8 – 15 €", "– de 8 €", "Je ne sais pas"] },
-    { l: "Si vos ventes s'arrêtaient demain, combien de temps votre trésorerie tiendrait ?", t: "choice", o: ["+ de 3 mois", "1 – 3 mois", "– d'un mois", "Je ne sais pas"] },
-    { l: "Notez vos 10 leviers de 1 à 10", t: "rates", o: LEVIERS, g: "1 = point faible · 10 = parfaitement maîtrisé." },
+    { l: "Si vos ventes s'arrêtaient demain, combien de temps votre trésorerie tiendrait ?", t: "choice", o: ["+ de 3 mois", "1 – 3 mois", "– d'un mois", "Je ne sais pas"], g: "le cash reste un indicateur de santé, mesuré ici (ce n'est pas un des 9 leviers)." },
+    { l: "Notez vos 9 leviers de 1 à 10", t: "rates", o: LEVIERS, g: "1 = point faible · 10 = parfaitement maîtrisé." },
     { l: "Où voulez-vous emmener votre entreprise dans les 3 prochaines années ?", t: "area", ex: "Passer de 500 K à 2 M€, avec une équipe qui gère sans moi.", g: "un chiffre ET une situation." },
     { l: "Qu'est-ce qui vous empêche le plus d'y arriver aujourd'hui ?", t: "area", ex: "Tout repose sur moi, je n'ai pas de flux régulier de clients." },
   ] },
-  { tag: "1", title: "Santé financière & performance", desc: "", qs: [
-    { l: "Votre CA sur les 3 dernières années : en croissance, stable, ou en baisse ?", t: "choice", o: ["Forte croissance", "Légère croissance", "Stable", "En baisse"], g: "précisez si possible : 2022 : 300K · 2023 : 380K · 2024 : 520K." },
-    { l: "Le levier où ça coince le plus", t: "choice", o: ["Stratégie", "Offre", "Différenciation", "Acquisition", "Vente", "Opérationnel", "Rentabilité", "Équipe"] },
-    { l: "Ce que vous devez absolument corriger dans les prochains mois", t: "area", ex: "Arrêter de brader mes prix pour signer." },
-    { l: "Le chiffre qui vous inquiète le plus aujourd'hui, et pourquoi", t: "area", ex: "Ma trésorerie : je n'ai qu'un mois d'avance." },
+
+  { tag: "1", title: "Ciblage", desc: "Le client idéal : celui qui achète plus, plus vite et plus souvent (la règle des 80/20).", qs: [
+    { l: "Qui est votre client idéal — celui qui achète plus, plus vite et plus souvent ?", t: "area", ex: "Les restaurants de 2 à 3 établissements, déjà rentables, qui veulent se digitaliser." },
+    { l: "Quelle part de votre chiffre d'affaires vient de vos meilleurs clients ?", t: "choice", o: ["< 20 %", "20 – 50 %", "50 – 80 %", "> 80 %"], g: "la règle des 80/20 : 20 % des clients font souvent 80 % de la valeur." },
+    { l: "Quels clients, peu rentables ou chronophages, arrêteriez-vous de servir ?", t: "area", ex: "Les petits chantiers ponctuels qui prennent autant de temps qu'un gros." },
+    { l: "Si vous ne deviez cibler qu'UN segment pour les 12 prochains mois, lequel ?", t: "text", ex: "Les PME du bâtiment de 10 à 50 salariés." },
   ] },
-  { tag: "2", title: "Focus stratégique", desc: "", qs: [
-    { l: "Listez toutes vos priorités actuelles, sans filtre", t: "area", ex: "Recruter un commercial · refondre l'offre · structurer la production.", g: "une par ligne." },
-    { l: "Si vous ne pouviez en garder qu'UNE, laquelle change le plus la donne ?", t: "area", ex: "Mettre en place un système d'acquisition régulier." },
-    { l: "Votre priorité n°1 des prochains mois, en une phrase", t: "text", ex: "Je me concentre sur la structuration de mon équipe commerciale." },
-    { l: "Quelles 2 à 3 choses allez-vous ARRÊTER pour protéger ce cap ?", t: "area", ex: "J'arrête de faire moi-même les devis et le SAV." },
-  ] },
-  { tag: "3", title: "Offre & positionnement", desc: "", qs: [
-    { l: "Votre offre principale en une phrase, et qui est votre client idéal", t: "area", ex: "J'accompagne les restaurateurs indépendants à digitaliser leurs réservations. Client idéal : 1 à 3 établissements." },
-    { l: "De 1 à 10, à quel point un prospect se dit « je serais fou de refuser » ?", t: "scale" },
-    { l: "Pourquoi ce chiffre ?", t: "area", ex: "Mon offre ressemble à celle des concurrents, rien ne la rend évidente." },
-    { l: "Quel UN changement la rendrait nettement plus irrésistible ?", t: "area", ex: "Ajouter une garantie résultat sous 90 jours.", g: "une garantie, un bonus, une reformulation de la promesse." },
-  ] },
-  { tag: "4", title: "Différenciation & avantage concurrentiel", desc: "", qs: [
-    { l: "Quelle est LA douleur n°1 mal résolue de votre marché ?", t: "area", ex: "Les clients subissent des délais à rallonge et zéro suivi." },
-    { l: "Vos 3 différenciateurs, sans les mots creux", t: "area", ex: "Intervention sous 24 h garantie · SAV internalisé · 15 ans de références.", g: "ce que vous êtes seul à faire, pas « qualité » ni « sérieux »." },
-    { l: "Si un concurrent vous copie et casse le prix de 20 %, qu'est-ce qui vous reste ?", t: "area", ex: "Ma réputation locale et mes références vérifiables." },
-    { l: "Complétez : « On gagne parce que nous sommes les seuls à… »", t: "area", ex: "…combiner pose et SAV internalisés, sans sous-traitance." },
-  ] },
-  { tag: "5", title: "Acquisition & développement commercial", desc: "", qs: [
+  { tag: "2", title: "Acquisition", desc: "Un flux d'opportunités constant plutôt que des à-coups, canal par canal.", qs: [
     { l: "Comment vos nouveaux clients vous trouvent-ils aujourd'hui ?", t: "choice", o: ["Bouche-à-oreille", "Clients qui reviennent", "Prescripteurs / partenaires", "Référencement", "Publicité", "Prospection active", "Appels d'offres", "Emplacement / passage", "Autre"] },
     { l: "Votre flux de nouveaux clients est-il régulier, ou en dents de scie ?", t: "choice", o: ["Régulier et prévisible", "Correct mais irrégulier", "Imprévisible, en dents de scie"] },
     { l: "Quelle part de vos nouveaux clients vient de votre source principale ?", t: "choice", o: ["< 25 %", "25 – 50 %", "50 – 75 %", "> 75 %"], g: "mesure la dépendance à un seul canal." },
-    { l: "Votre acquisition dépend-elle surtout de vous, ou d'un système qui tourne sans vous ?", t: "choice", o: ["Surtout moi", "Un mix", "Un système qui tourne"] },
     { l: "Savez-vous ce que vous coûte l'obtention d'un nouveau client (argent ou temps) ?", t: "choice", o: ["Oui, précisément", "Approximativement", "Non"] },
-    { l: "Si vous vouliez doubler vos nouveaux clients, sauriez-vous comment faire ?", t: "area", ex: "Non, je ne saurais pas par où commencer." },
   ] },
-  { tag: "6", title: "Autonomie opérationnelle", desc: "", qs: [
-    { l: "Listez les tâches que vous seul faites encore", t: "area", ex: "Devis · SAV · planning · relances · compta.", g: "une par ligne." },
-    { l: "Celle qui vous coûte le plus de temps", t: "text", ex: "La production des devis, 8 h par semaine." },
-    { l: "Documentez-la en 5 étapes (le mode opératoire)", t: "area", ex: "1. Recevoir la demande · 2. Métrer · 3. Chiffrer · 4. Rédiger · 5. Envoyer et relancer." },
-    { l: "À qui la déléguez-vous, et pour quelle échéance ?", t: "text", ex: "À Léa, d'ici 30 jours." },
+  { tag: "3", title: "Conversion", desc: "Transformer l'intérêt en intention d'achat : colmater la fuite entre le premier contact et la décision.", qs: [
+    { l: "Entre un premier contact et l'achat, quelle part d'opportunités se perd en route ?", t: "choice", o: ["Peu (< 25 %)", "Environ la moitié", "Beaucoup (> 50 %)", "Je ne sais pas"], g: "le plus souvent par manque de relance ou de rapidité." },
+    { l: "Relancez-vous les prospects intéressés qui n'ont pas encore acheté ?", t: "choice", o: ["Systématiquement", "Parfois", "Rarement ou jamais"] },
+    { l: "Quel est votre délai de réponse à une demande entrante ?", t: "choice", o: ["Moins d'une heure", "Dans la journée", "Plusieurs jours"] },
+    { l: "Avez-vous un parcours clair entre l'intérêt et la décision d'achat ?", t: "choice", o: ["Oui, structuré", "Informel", "Aucun"] },
   ] },
-  { tag: "7", title: "Croissance & monétisation", desc: "", qs: [
+  { tag: "4", title: "Closing", desc: "Transformer une opportunité en vente — quelle que soit sa forme (devis signé, panier validé, vente au comptoir, RDV conclu).", qs: [
+    { l: "Sur 10 clients potentiels arrivés au moment de décider, combien achètent ?", t: "num", u: "/10", ex: "4" },
+    { l: "Qui conclut la vente aujourd'hui : vous seul, une équipe, un process ?", t: "choice", o: ["Surtout moi", "Une équipe", "Un process / automatisé"] },
+    { l: "Quelle objection revient le plus, et comment y répondez-vous ?", t: "area", ex: "« C'est trop cher » — je justifie par la qualité, mais sans vraiment convaincre." },
+    { l: "Votre proposition rend-elle la décision simple (prix clair, étapes, garantie) ?", t: "choice", o: ["Oui", "À améliorer", "Non"] },
+  ] },
+  { tag: "5", title: "Offre", desc: "L'offre irrésistible : rendre le « oui » évident, par la promesse, la gamme et la différenciation.", qs: [
+    { l: "Votre offre principale en une phrase, et qui est votre client idéal", t: "area", ex: "J'accompagne les restaurateurs indépendants à digitaliser leurs réservations." },
+    { l: "De 1 à 10, à quel point un prospect se dit « je serais fou de refuser » ?", t: "scale" },
+    { l: "Vos différenciateurs, sans les mots creux", t: "area", ex: "Intervention sous 24 h garantie · SAV internalisé · 15 ans de références.", g: "ce que vous êtes seul à faire, pas « qualité » ni « sérieux »." },
+    { l: "Si un concurrent vous copie et casse le prix de 20 %, qu'est-ce qui vous reste ?", t: "area", ex: "Ma réputation locale et mes références vérifiables." },
+    { l: "Quel changement (garantie, bonus, structure de gamme) rendrait votre offre irrésistible ?", t: "area", ex: "Ajouter une garantie résultat sous 90 jours." },
+  ] },
+  { tag: "6", title: "Profit", desc: "La mine d'or cachée dans vos clients actuels : panier moyen, fréquence, marge — transformer le volume en résultat net.", qs: [
     { l: "Votre nombre de clients actifs (12 derniers mois)", t: "num", u: "#", ex: "120" },
     { l: "Votre panier moyen (CA moyen par commande)", t: "num", u: "€", ex: "2 500" },
     { l: "Votre fréquence d'achat (nb d'achats/an d'un client)", t: "num", u: "#", ex: "2" },
     { l: "Entre panier moyen et fréquence, lequel est le plus sous-exploité ?", t: "choice", o: ["Panier moyen", "Fréquence d'achat"] },
-    { l: "Une action concrète pour l'augmenter", t: "area", ex: "Proposer un contrat d'entretien annuel après chaque installation." },
-    { l: "Projetez : +10 % sur ce levier, ça fait combien de CA en plus ?", t: "num", u: "€", ex: "30 000" },
+    { l: "Où est votre plus grosse fuite de marge ?", t: "choice", o: ["Prix", "Coûts directs", "Masse salariale", "Remises", "Créances / impayés", "Stock"] },
   ] },
-  { tag: "8", title: "Rentabilité & cash", desc: "", qs: [
-    { l: "Suivez-vous vos marges et votre trésorerie de près ?", t: "choice", o: ["Chaque semaine", "De temps en temps", "Non"] },
-    { l: "Où est votre plus grosse fuite ?", t: "choice", o: ["Prix", "Volume", "Coûts directs", "Masse salariale", "Créances clients", "Dettes fournisseurs", "Stock"] },
-    { l: "Une action immédiate", t: "area", ex: "Augmenter mes tarifs de 10 % dès le prochain devis.", g: "concrète, applicable cette semaine." },
-    { l: "Combien de cash cette action pourrait vous libérer sur 12 mois ?", t: "num", u: "€", ex: "25 000" },
-  ] },
-  { tag: "9", title: "Équipe & structuration", desc: "", qs: [
-    { l: "Quel recrutement vous ferait passer un cap aujourd'hui ?", t: "text", ex: "Un responsable de production.", g: "un rôle, pas une tâche." },
-    { l: "Le résultat attendu de ce poste, en une phrase", t: "area", ex: "Ce poste réussit s'il génère 20 rendez-vous qualifiés par mois.", g: "le résultat, pas la liste des tâches." },
-    { l: "Quels 3 accomplissements passés un bon candidat doit-il pouvoir prouver ?", t: "area", ex: "A managé une équipe de 5 · a structuré un service SAV · a tenu un objectif commercial." },
-    { l: "Vos 2 valeurs non négociables", t: "text", ex: "Exigence, fiabilité." },
-    { l: "À défaut de recruter, quel partenariat ou prestataire externe pourrait couvrir ce besoin ?", t: "area", ex: "Externaliser la compta à un cabinet, la prospection à une agence." },
-  ] },
-  { tag: "10", title: "Pilotage & exécution", desc: "", qs: [
-    { l: "En repensant à vos réponses, quels problèmes reviennent le plus souvent ?", t: "area", ex: "Tout dépend de moi, et je n'ai pas de suivi de mes chiffres." },
-    { l: "Vos chantiers prioritaires (n°1, n°2, n°3)", t: "area", ex: "1. Structurer l'acquisition · 2. Reprendre la main sur les marges · 3. Déléguer les devis." },
-    { l: "Pour chaque chantier : l'action n°1, le responsable, l'échéance", t: "area", ex: "Chantier 1 : lancer une campagne / moi / avant le 30.", g: "action / qui / quand." },
+  { tag: "7", title: "Systems", desc: "La machine qui tourne sans vous : process documentés, indicateurs pilotés, organisation claire.", qs: [
+    { l: "Listez les tâches que vous seul faites encore", t: "area", ex: "Devis · SAV · planning · relances · compta.", g: "une par ligne." },
+    { l: "Documentez la plus chronophage en 5 étapes (le mode opératoire)", t: "area", ex: "1. Recevoir la demande · 2. Métrer · 3. Chiffrer · 4. Rédiger · 5. Envoyer et relancer." },
+    { l: "À qui la déléguez-vous, et pour quelle échéance ?", t: "text", ex: "À Léa, d'ici 30 jours." },
+    { l: "Suivez-vous vos indicateurs clés de près (marges, trésorerie, pipeline) ?", t: "choice", o: ["Chaque semaine", "De temps en temps", "Non"] },
     { l: "Votre créneau de pilotage hebdomadaire bloqué (jour + heure)", t: "text", ex: "Vendredi 9 h – 11 h." },
   ] },
-  { tag: "★", title: "Bonus — Vous, le chef d'entreprise", desc: "Hors radar, mais précieux pour le conseil et pour préparer l'appel.", qs: [
+  { tag: "8", title: "Leadership", desc: "Le chef d'entreprise qui inspire, priorise et délègue : les bonnes personnes, des résultats plutôt que des tâches.", qs: [
+    { l: "Quel recrutement vous ferait passer un cap aujourd'hui ?", t: "text", ex: "Un responsable de production.", g: "un rôle, pas une tâche." },
+    { l: "Le résultat attendu de ce poste, en une phrase", t: "area", ex: "Ce poste réussit s'il génère 20 rendez-vous qualifiés par mois.", g: "le résultat, pas la liste des tâches." },
+    { l: "Vos 2 valeurs non négociables", t: "text", ex: "Exigence, fiabilité." },
+    { l: "Votre priorité n°1 des prochains mois — et ce que vous allez ARRÊTER pour la protéger", t: "area", ex: "Priorité : structurer l'acquisition. J'arrête de faire moi-même les devis.", g: "le « one thing » + ce que vous arrêtez." },
+  ] },
+  { tag: "9", title: "Croissance", desc: "L'effet multiplicateur final : des clients ambassadeurs, une réputation qui précède l'entreprise, chaque levier qui renforce les huit autres.", qs: [
+    { l: "Quelle part de vos nouveaux clients vient de recommandations ?", t: "choice", o: ["Beaucoup (> 50 %)", "Un peu (20 – 50 %)", "Peu (< 20 %)"] },
+    { l: "Avez-vous un système pour générer avis, recommandations et ambassadeurs ?", t: "choice", o: ["Oui, actif", "Informel", "Aucun"] },
+    { l: "Sur votre marché, votre réputation vous précède-t-elle ?", t: "scale", g: "1 = inconnu · 10 = référence de mon marché." },
+    { l: "Quel levier, renforcé, aurait le plus d'effet d'entraînement sur les autres ?", t: "text", ex: "Le closing : mieux vendre rend rentable tout le reste." },
+  ] },
+
+  { tag: "★", title: "Bonus — Vous, le chef d'entreprise", desc: "Transversal, précieux pour le conseil et pour préparer l'appel.", qs: [
     { l: "Combien d'heures par semaine consacrez-vous à votre entreprise ?", t: "num", u: "#", ex: "60" },
     { l: "Où part l'essentiel de votre temps aujourd'hui ?", t: "area", ex: "70 % dans l'opérationnel et les urgences, presque rien sur la stratégie." },
     { l: "Sur 1 à 10, à quel point vous sentez-vous débordé ou seul dans vos décisions ?", t: "scale", g: "1 = serein et bien entouré · 10 = débordé et seul." },
@@ -155,7 +147,7 @@ const CSS = `
 .arvroot .scale .lm{font-size:11px;color:var(--muted-2);font-weight:600}
 .arvroot .rates{display:flex;flex-direction:column;gap:10px}
 .arvroot .rline{display:flex;align-items:center;gap:12px}
-.arvroot .rline .rn{font-size:13px;font-weight:600;width:170px;flex:none}
+.arvroot .rline .rn{font-size:13px;font-weight:600;width:150px;flex:none}
 .arvroot .rline .rt{flex:1;height:6px;border-radius:99px;background:linear-gradient(90deg,#f0c4bb,#dbe3f4 55%,#bfe3dc)}
 .arvroot .rline .rr{font-size:11px;color:var(--muted-2);font-weight:600;flex:none}
 .arvroot .guide{font-size:12px;color:var(--muted-2);margin:8px 0 0 30px;font-style:italic}
@@ -250,8 +242,8 @@ export default function ReviewClient() {
       let html = '<div class="wrap"><header>' +
         '<span class="badge">Aperçu de l’audit · à valider</span>' +
         "<h1>Le Diagnostic Business — le rendu, à valider</h1>" +
-        '<p class="sub">Voici l’audit tel qu’il sera livré : chaque question avec sa réponse (champs, choix, curseurs). Vous pouvez tout ajuster directement.</p>' +
-        '<div class="howto"><b>Pour Max :</b> cliquez dans le texte d’une question pour la <b>réécrire</b>, marquez-la <b>✓ Validée</b> / <b>✎ À revoir</b>, et laissez un <b>commentaire</b> (ex. pour changer des options de réponse). Enregistrement <b>automatique</b>.</div>' +
+        '<p class="sub">L’audit tel qu’il sera livré, classé par levier : chaque question avec sa réponse (champs, choix, curseurs). Vous pouvez tout ajuster directement.</p>' +
+        '<div class="howto"><b>Pour Max :</b> cliquez dans le texte d’une question pour la <b>réécrire</b>, marquez-la <b>✓ Validée</b> / <b>✎ À revoir</b>, et laissez un <b>commentaire</b> (ex. pour changer des options de réponse). Enregistrement <b>automatique</b>. <br>Structure : opt-in, express (score/radar), puis les <b>9 leviers</b> (~4 questions chacun, optionnels) + bonus.</div>' +
         '<div class="counts" id="counts"></div></header>';
       SECTIONS.forEach((sec, si) => {
         html += '<section class="grp"><div class="grp-h"><span class="idx">' + esc(sec.tag) + "</span><h2>" + esc(sec.title) + "</h2></div>";
@@ -264,7 +256,7 @@ export default function ReviewClient() {
             '<div class="qtop"><span class="num">' + (qi + 1) + "</span>" +
             '<div class="lab" contenteditable="true" data-role="label" spellcheck="false">' + esc(label) + "</div></div>" +
             '<div class="ctrl">' + control(q) + "</div>";
-          if (q.g) html += '<div class="guide"><b>→ ' + (q.t === "rates" || q.l.indexOf("1 à 10") >= 0 ? "guide" : "aide") + " :</b> " + esc(q.g) + "</div>";
+          if (q.g) html += '<div class="guide"><b>→ aide :</b> ' + esc(q.g) + "</div>";
           html += '<div class="row2">' +
             '<button type="button" class="stbtn ok' + (e.s === "ok" ? " on" : "") + '" data-role="st" data-val="ok">✓ Validée</button>' +
             '<button type="button" class="stbtn rev' + (e.s === "rev" ? " on" : "") + '" data-role="st" data-val="rev">✎ À revoir</button>' +
@@ -274,7 +266,7 @@ export default function ReviewClient() {
         });
         html += "</div></section>";
       });
-      html += '<footer>10 dimensions · ~60 questions. Rendu d’aperçu — les réponses affichées sont des exemples. Modifs enregistrées automatiquement et partagées par ce lien.</footer></div>' +
+      html += '<footer>9 leviers · ~55 questions au total (le prospect n’en remplit qu’une quinzaine pour l’express, le reste est optionnel). Rendu d’aperçu — les réponses affichées sont des exemples. Modifs enregistrées automatiquement.</footer></div>' +
         '<div class="bar saved"><span class="dot"></span><span class="t">Enregistré ✓</span></div>';
       root.innerHTML = html;
       updateCounts();
