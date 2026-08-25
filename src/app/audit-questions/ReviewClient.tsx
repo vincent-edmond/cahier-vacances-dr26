@@ -5,9 +5,10 @@ import { useEffect, useRef } from "react";
 /**
  * Relecture/validation des questions du diagnostic — outil interne ISOLÉ.
  *
- * Affiche le RENDU de l'audit tel qu'il sera livré (champs, choix en chips,
- * curseurs 1–10), classé par CATÉGORIE (les 9 leviers), et permet à Max de
- * réécrire un libellé, de le marquer « Validée »/« À revoir » et de commenter.
+ * Rendu premium en accordéon : les 9 leviers (+ opt-in, express, bonus) en cartes
+ * repliables, chacune avec ses questions dessous (rendues comme livrées : champs,
+ * chips, curseurs). Max réécrit un libellé, le marque « Validée »/« À revoir »,
+ * commente. Nav rapide + suivi de validation par levier.
  *
  * Persistance : seules les modifications (libellé, statut, commentaire), indexées
  * par question, via /api/audit-review (table dédiée cdv.audit_review).
@@ -108,67 +109,92 @@ const SECTIONS: Section[] = [
   ] },
 ];
 
+const navLabel = (s: Section) => (s.tag === "A" ? "Qualification" : s.tag === "B" ? "Express" : s.tag === "★" ? "Bonus" : s.title);
+
 const CSS = `
-.arvroot{--bg:#f4f7fd;--card:#fff;--tint:#eef3ff;--line:#e2e8f5;--line-soft:#eef1f8;--blue:#0046ff;--blue-soft:#2f6bff;--ink:#0b1b3f;--muted:#5b6488;--muted-2:#8b93ad;--teal:#0b8f80;--amber:#c98200;--red:#e5533c;--shadow:0 2px 10px rgba(12,32,84,.06);--radius:16px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:70px;display:block}
+.arvroot{--bg:#eef2fb;--card:#fff;--tint:#eef3ff;--line:#e6ebf6;--line-soft:#f0f3fa;--blue:#0046ff;--blue-soft:#2f6bff;--ink:#0b1b3f;--muted:#5b6488;--muted-2:#9098b4;--teal:#0b8f80;--amber:#c98200;--red:#e5533c;--shadow:0 1px 3px rgba(12,32,84,.05);--shadow-md:0 10px 34px rgba(12,32,84,.10);--font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-family:var(--font);color:var(--ink);background:radial-gradient(1100px 560px at 50% -8%,#e6edff 0%,transparent 60%),var(--bg);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:74px;display:block}
 .arvroot *{box-sizing:border-box}
-.arvroot .wrap{max-width:760px;margin:0 auto;padding:0 18px}
-.arvroot header{padding:30px 0 8px}
-.arvroot .badge{display:inline-flex;align-items:center;gap:7px;background:var(--tint);border:1px solid #dbe4fb;border-radius:99px;padding:6px 12px;font-size:11.5px;color:var(--blue);font-weight:700;letter-spacing:.03em;margin-bottom:14px;text-transform:uppercase}
-.arvroot h1{font-size:27px;line-height:1.15;letter-spacing:-.02em;margin:0 0 10px;font-weight:850}
-.arvroot .sub{color:var(--muted);font-size:14.5px;max-width:60ch;margin:0}
-.arvroot .howto{margin-top:14px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--blue);border-radius:12px;padding:13px 15px;font-size:13px;color:var(--muted);box-shadow:var(--shadow)}
+.arvroot .wrap{max-width:820px;margin:0 auto;padding:0 20px}
+
+.arvroot .stick{position:sticky;top:0;z-index:20;background:rgba(238,242,251,.82);-webkit-backdrop-filter:saturate(1.4) blur(12px);backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line)}
+.arvroot .stick .in{max-width:820px;margin:0 auto;padding:11px 20px;display:flex;align-items:center;gap:12px}
+.arvroot .stick .nm{font-weight:800;font-size:13px;letter-spacing:-.01em;margin-right:auto;display:flex;align-items:center;gap:8px}
+.arvroot .stick .nm .d{width:8px;height:8px;border-radius:50%;background:var(--blue)}
+.arvroot .stick .mini{display:flex;gap:11px;font-size:12px;font-weight:750;font-variant-numeric:tabular-nums}
+.arvroot .stick .mini .ok{color:var(--teal)} .arvroot .stick .mini .rev{color:var(--red)} .arvroot .stick .mini .wait{color:var(--muted-2)}
+.arvroot .stick .exp{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 13px;font-size:12px;font-weight:700;color:var(--blue);cursor:pointer;transition:.12s}
+.arvroot .stick .exp:hover{border-color:var(--blue);box-shadow:var(--shadow)}
+
+.arvroot header{padding:32px 0 6px}
+.arvroot .eyebrow{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--blue-soft);font-weight:800;margin:0 0 12px}
+.arvroot h1{font-size:30px;line-height:1.12;letter-spacing:-.025em;margin:0 0 10px;font-weight:850;text-wrap:balance}
+.arvroot .sub{color:var(--muted);font-size:15px;max-width:58ch;margin:0}
+.arvroot .howto{margin-top:16px;background:linear-gradient(180deg,#fff,#fbfcff);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:12.5px;color:var(--muted);box-shadow:var(--shadow);line-height:1.6}
 .arvroot .howto b{color:var(--ink)}
-.arvroot .counts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
-.arvroot .pill{font-size:12px;font-weight:700;border-radius:99px;padding:5px 11px;border:1px solid var(--line)}
-.arvroot .pill.ok{background:#e6f6f3;color:var(--teal);border-color:#c4e9e3}
-.arvroot .pill.rev{background:#fdecea;color:var(--red);border-color:#f6cfc7}
-.arvroot .pill.wait{background:#f7f9ff;color:var(--muted)}
-.arvroot section.grp{margin-top:26px}
-.arvroot .grp-h{display:flex;align-items:baseline;gap:10px;margin:0 0 4px}
-.arvroot .grp-h .idx{font-size:12px;font-weight:800;color:var(--blue);background:var(--tint);border:1px solid #dbe4fb;border-radius:8px;padding:3px 9px}
-.arvroot .grp-h h2{font-size:19px;font-weight:850;letter-spacing:-.01em;margin:0}
-.arvroot .grp-desc{color:var(--muted-2);font-size:12.5px;margin:2px 0 14px}
-.arvroot .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:4px 18px}
+.arvroot .nav{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0 4px}
+.arvroot .nav button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-size:12px;font-weight:750;color:#40507e;cursor:pointer;transition:.14s;display:flex;align-items:center;gap:7px}
+.arvroot .nav button:hover{border-color:#bcccf7;color:var(--blue);transform:translateY(-1px);box-shadow:var(--shadow)}
+.arvroot .nav button .b{font-weight:850;color:var(--blue-soft)}
+
+.arvroot .cat{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);margin-top:12px;overflow:hidden;scroll-margin-top:66px;transition:box-shadow .2s,border-color .2s}
+.arvroot .cat.open{box-shadow:var(--shadow-md);border-color:#dbe3f6}
+.arvroot .cat-h{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:none;border:0;cursor:pointer;padding:17px 18px;font:inherit;color:inherit}
+.arvroot .cat-h:hover{background:#fbfcff}
+.arvroot .cat-idx{flex:none;width:36px;height:36px;border-radius:10px;background:var(--tint);color:var(--blue);font-weight:850;font-size:14.5px;display:flex;align-items:center;justify-content:center;border:1px solid #dbe4fb;transition:.2s}
+.arvroot .cat.open .cat-idx{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 6px 16px rgba(0,70,255,.28)}
+.arvroot .cat-main{flex:1;min-width:0}
+.arvroot .cat-title{display:block;font-size:15.5px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
+.arvroot .cat-desc{display:block;font-size:12.5px;color:var(--muted-2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.arvroot .cat.open .cat-desc{white-space:normal}
+.arvroot .cat-meta{flex:none;display:flex;align-items:center;gap:13px}
+.arvroot .dots{display:flex;gap:4px}
+.arvroot .dots .d{width:7px;height:7px;border-radius:50%;background:#d9e0f0;transition:background .15s}
+.arvroot .dots .d.ok{background:var(--teal)} .arvroot .dots .d.rev{background:var(--red)}
+.arvroot .chev{color:var(--muted-2);font-size:15px;line-height:1;transition:transform .25s ease;font-weight:900}
+.arvroot .cat.open .chev{transform:rotate(90deg);color:var(--blue)}
+.arvroot .cat-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s ease}
+.arvroot .cat-body.open{grid-template-rows:1fr}
+.arvroot .cat-inner{overflow:hidden}
+.arvroot .cat-pad{padding:2px 18px 10px;border-top:1px solid var(--line-soft)}
+
 .arvroot .q{padding:17px 0;border-bottom:1px solid var(--line-soft)}
 .arvroot .q:last-child{border-bottom:0}
 .arvroot .qtop{display:flex;align-items:flex-start;gap:10px}
-.arvroot .num{font-size:11px;font-weight:800;color:var(--blue-soft);padding-top:5px;min-width:20px}
+.arvroot .num{font-size:11px;font-weight:800;color:var(--blue-soft);padding-top:5px;min-width:18px}
 .arvroot .lab{flex:1;font-size:15px;font-weight:650;color:#17224a;border-radius:8px;padding:5px 8px;margin:-5px -8px;outline:none;transition:background .12s,box-shadow .12s}
-.arvroot .lab:hover{background:#f5f8ff}
-.arvroot .lab:focus{background:#eef4ff;box-shadow:0 0 0 2px #0046ff44}
-.arvroot .ctrl{margin:11px 0 0 30px}
-.arvroot .fp{border:1px solid var(--line);background:#f7f9ff;border-radius:10px;padding:10px 12px;font-size:13.5px;color:#9aa3c2;display:flex;align-items:center;gap:8px}
+.arvroot .lab:hover{background:#f4f7ff}
+.arvroot .lab:focus{background:#eef4ff;box-shadow:0 0 0 2px #0046ff40}
+.arvroot .ctrl{margin:11px 0 0 28px}
+.arvroot .fp{border:1px solid var(--line);background:#f7f9ff;border-radius:10px;padding:10px 12px;font-size:13.5px;color:#98a1c0;display:flex;align-items:center;gap:8px}
 .arvroot .fp.area{min-height:44px;align-items:flex-start}
-.arvroot .fp .ic{color:var(--muted-2);font-size:12px;font-weight:700}
+.arvroot .fp .ic{color:var(--muted-2);font-size:12px;font-weight:800}
 .arvroot .opts{display:flex;flex-wrap:wrap;gap:7px}
 .arvroot .opt{border:1px solid var(--line);background:#f7f9ff;color:#3a4570;border-radius:99px;padding:6px 12px;font-size:12.5px}
 .arvroot .scale{display:flex;align-items:center;gap:10px}
 .arvroot .scale .track{flex:1;height:6px;border-radius:99px;background:linear-gradient(90deg,#f0c4bb,#dbe3f4 55%,#bfe3dc)}
-.arvroot .scale .lm{font-size:11px;color:var(--muted-2);font-weight:600}
-.arvroot .rates{display:flex;flex-direction:column;gap:10px}
+.arvroot .scale .lm{font-size:11px;color:var(--muted-2);font-weight:700}
+.arvroot .rates{display:flex;flex-direction:column;gap:9px}
 .arvroot .rline{display:flex;align-items:center;gap:12px}
-.arvroot .rline .rn{font-size:13px;font-weight:600;width:150px;flex:none}
+.arvroot .rline .rn{font-size:13px;font-weight:650;width:150px;flex:none}
 .arvroot .rline .rt{flex:1;height:6px;border-radius:99px;background:linear-gradient(90deg,#f0c4bb,#dbe3f4 55%,#bfe3dc)}
 .arvroot .rline .rr{font-size:11px;color:var(--muted-2);font-weight:600;flex:none}
-.arvroot .guide{font-size:12px;color:var(--muted-2);margin:8px 0 0 30px;font-style:italic}
+.arvroot .guide{font-size:12px;color:var(--muted-2);margin:8px 0 0 28px;font-style:italic}
 .arvroot .guide b{color:var(--blue-soft);font-style:normal}
-.arvroot .row2{display:flex;align-items:center;gap:8px;margin:12px 0 0 30px;flex-wrap:wrap}
-.arvroot .stbtn{border:1px solid var(--line);background:#f7f9ff;color:#5b6488;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:650;cursor:pointer;transition:.12s}
+.arvroot .row2{display:flex;align-items:center;gap:8px;margin:12px 0 0 28px;flex-wrap:wrap}
+.arvroot .stbtn{border:1px solid var(--line);background:#f7f9ff;color:#5b6488;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;transition:.12s}
 .arvroot .stbtn:hover{border-color:#c7d2f0}
 .arvroot .stbtn.ok.on{background:var(--teal);border-color:var(--teal);color:#fff}
 .arvroot .stbtn.rev.on{background:var(--red);border-color:var(--red);color:#fff}
-.arvroot .cmt{width:calc(100% - 30px);margin:10px 0 0 30px;background:#fffdf6;border:1px solid #f0e6cf;border-radius:10px;color:var(--ink);font:inherit;font-size:13px;padding:9px 11px;min-height:36px;resize:vertical;outline:none}
+.arvroot .cmt{width:calc(100% - 28px);margin:10px 0 0 28px;background:#fffdf6;border:1px solid #f0e6cf;border-radius:10px;color:var(--ink);font:inherit;font-size:13px;padding:9px 11px;min-height:36px;resize:vertical;outline:none}
 .arvroot .cmt:focus{border-color:var(--amber);background:#fff}
-.arvroot .cmt::placeholder{color:#b9a97f}
-.arvroot .bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;justify-content:center;padding:11px 18px;font-size:13px;font-weight:600}
+.arvroot .cmt::placeholder{color:#bcae86}
+
+.arvroot .bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;justify-content:center;padding:11px 18px;font-size:13px;font-weight:700}
 .arvroot .bar .dot{width:8px;height:8px;border-radius:50%;background:var(--muted-2)}
-.arvroot .bar.saving .dot{background:var(--amber)}
-.arvroot .bar.saved .dot{background:var(--teal)}
-.arvroot .bar.error .dot{background:var(--red)}
-.arvroot .bar .t{color:var(--muted)}
-.arvroot .bar.saved .t{color:var(--teal)}
-.arvroot .bar.error .t{color:var(--red)}
-.arvroot footer{margin:28px 0 10px;color:var(--muted-2);font-size:12px;line-height:1.6;text-align:center}
+.arvroot .bar.saving .dot{background:var(--amber)} .arvroot .bar.saved .dot{background:var(--teal)} .arvroot .bar.error .dot{background:var(--red)}
+.arvroot .bar .t{color:var(--muted)} .arvroot .bar.saved .t{color:var(--teal)} .arvroot .bar.error .t{color:var(--red)}
+.arvroot footer{margin:26px 0 8px;color:var(--muted-2);font-size:12px;line-height:1.6;text-align:center}
+@media (prefers-reduced-motion:reduce){.arvroot .cat-body{transition:none}.arvroot .chev{transition:none}.arvroot .nav button:hover{transform:none}}
 `;
 
 export default function ReviewClient() {
@@ -184,6 +210,7 @@ export default function ReviewClient() {
     let edits: Edits = {};
     let saveTimer: ReturnType<typeof setTimeout> | undefined;
     let inflight = false;
+    const OPEN_DEFAULT = 2; // Ciblage ouvert par défaut
 
     const esc = (s: string) =>
       String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -197,6 +224,8 @@ export default function ReviewClient() {
       }));
       return { ok, rev, wait: total - ok - rev };
     };
+    const dotsHTML = (si: number) =>
+      SECTIONS[si].qs.map((_, qi) => { const s = edits[key(si, qi)]?.s; return '<span class="d' + (s === "ok" ? " ok" : s === "rev" ? " rev" : "") + '"></span>'; }).join("");
 
     const setBar = (cls: string, txt: string) => {
       const bar = root.querySelector<HTMLElement>(".bar");
@@ -222,13 +251,11 @@ export default function ReviewClient() {
       saveTimer = setTimeout(doSave, 900);
     };
 
-    const updateCounts = () => {
-      const c = counts(); const el = root.querySelector("#counts");
-      if (el) el.innerHTML =
-        '<span class="pill ok">✓ ' + c.ok + " validées</span>" +
-        '<span class="pill rev">✎ ' + c.rev + " à revoir</span>" +
-        '<span class="pill wait">' + c.wait + " en attente</span>";
+    const updateMini = () => {
+      const c = counts(); const el = root.querySelector("#mini");
+      if (el) el.innerHTML = '<span class="ok">✓ ' + c.ok + "</span><span class=\"rev\">✎ " + c.rev + "</span><span class=\"wait\">○ " + c.wait + "</span>";
     };
+    const refreshDots = (si: number) => { const d = root.querySelector('.cat[data-si="' + si + '"] .dots'); if (d) d.innerHTML = dotsHTML(si); };
 
     const control = (q: Q): string => {
       if (q.t === "choice" && q.o) return '<div class="opts">' + q.o.map((o) => '<span class="opt">' + esc(o) + "</span>").join("") + "</div>";
@@ -238,44 +265,60 @@ export default function ReviewClient() {
       return '<div class="fp area"><span>' + esc(q.ex || "Réponse du chef d’entreprise…") + "</span></div>";
     };
 
+    const questionHTML = (q: Q, si: number, qi: number): string => {
+      const k = key(si, qi); const e = edits[k] || {};
+      const label = e.l != null ? e.l : q.l;
+      let h = '<div class="q" data-si="' + si + '" data-qi="' + qi + '">' +
+        '<div class="qtop"><span class="num">' + (qi + 1) + "</span>" +
+        '<div class="lab" contenteditable="true" data-role="label" spellcheck="false">' + esc(label) + "</div></div>" +
+        '<div class="ctrl">' + control(q) + "</div>";
+      if (q.g) h += '<div class="guide"><b>→ aide :</b> ' + esc(q.g) + "</div>";
+      h += '<div class="row2">' +
+        '<button type="button" class="stbtn ok' + (e.s === "ok" ? " on" : "") + '" data-role="st" data-val="ok">✓ Validée</button>' +
+        '<button type="button" class="stbtn rev' + (e.s === "rev" ? " on" : "") + '" data-role="st" data-val="rev">✎ À revoir</button>' +
+        "</div>" +
+        '<textarea class="cmt" data-role="cmt" placeholder="Commentaire ou reformulation (facultatif)…">' + esc(e.c || "") + "</textarea></div>";
+      return h;
+    };
+
     const render = () => {
-      let html = '<div class="wrap"><header>' +
-        '<span class="badge">Aperçu de l’audit · à valider</span>' +
-        "<h1>Le Diagnostic Business — le rendu, à valider</h1>" +
-        '<p class="sub">L’audit tel qu’il sera livré, classé par levier : chaque question avec sa réponse (champs, choix, curseurs). Vous pouvez tout ajuster directement.</p>' +
-        '<div class="howto"><b>Pour Max :</b> cliquez dans le texte d’une question pour la <b>réécrire</b>, marquez-la <b>✓ Validée</b> / <b>✎ À revoir</b>, et laissez un <b>commentaire</b> (ex. pour changer des options de réponse). Enregistrement <b>automatique</b>. <br>Structure : opt-in, express (score/radar), puis les <b>9 leviers</b> (~4 questions chacun, optionnels) + bonus.</div>' +
-        '<div class="counts" id="counts"></div></header>';
+      let html = '<div class="stick"><div class="in"><span class="nm"><span class="d"></span>Diagnostic — relecture</span>' +
+        '<span class="mini" id="mini"></span>' +
+        '<button class="exp" data-role="expand" data-open="0">Tout déplier</button></div></div>';
+      html += '<div class="wrap"><header>' +
+        '<p class="eyebrow">Aperçu de l’audit · à valider</p>' +
+        "<h1>Le Diagnostic Business</h1>" +
+        '<p class="sub">L’audit tel qu’il sera livré, classé par levier. Dépliez un levier pour voir ses questions avec leur réponse (champs, choix, curseurs), les réécrire ou les commenter.</p>' +
+        '<div class="howto"><b>Pour Max :</b> cliquez sur un levier pour l’ouvrir, puis dans le texte d’une question pour la <b>réécrire</b>, marquez-la <b>✓ Validée</b> / <b>✎ À revoir</b>, et laissez un <b>commentaire</b> si besoin. Enregistrement <b>automatique</b>. Les 9 leviers ont ~4 questions chacun (optionnels) ; l’express suffit pour le score.</div>' +
+        '<div class="nav">' +
+        SECTIONS.map((s, si) => '<button data-jump="' + si + '"><span class="b">' + esc(s.tag) + "</span>" + esc(navLabel(s)) + "</button>").join("") +
+        "</div></header>";
       SECTIONS.forEach((sec, si) => {
-        html += '<section class="grp"><div class="grp-h"><span class="idx">' + esc(sec.tag) + "</span><h2>" + esc(sec.title) + "</h2></div>";
-        if (sec.desc) html += '<p class="grp-desc">' + esc(sec.desc) + "</p>";
-        html += '<div class="card">';
-        sec.qs.forEach((q, qi) => {
-          const k = key(si, qi); const e = edits[k] || {};
-          const label = e.l != null ? e.l : q.l;
-          html += '<div class="q" data-si="' + si + '" data-qi="' + qi + '">' +
-            '<div class="qtop"><span class="num">' + (qi + 1) + "</span>" +
-            '<div class="lab" contenteditable="true" data-role="label" spellcheck="false">' + esc(label) + "</div></div>" +
-            '<div class="ctrl">' + control(q) + "</div>";
-          if (q.g) html += '<div class="guide"><b>→ aide :</b> ' + esc(q.g) + "</div>";
-          html += '<div class="row2">' +
-            '<button type="button" class="stbtn ok' + (e.s === "ok" ? " on" : "") + '" data-role="st" data-val="ok">✓ Validée</button>' +
-            '<button type="button" class="stbtn rev' + (e.s === "rev" ? " on" : "") + '" data-role="st" data-val="rev">✎ À revoir</button>' +
-            "</div>" +
-            '<textarea class="cmt" data-role="cmt" placeholder="Commentaire ou reformulation (facultatif)…">' + esc(e.c || "") + "</textarea>" +
-            "</div>";
-        });
-        html += "</div></section>";
+        const op = si === OPEN_DEFAULT;
+        html += '<section class="cat' + (op ? " open" : "") + '" data-si="' + si + '">' +
+          '<button class="cat-h" data-role="toggle" type="button">' +
+          '<span class="cat-idx">' + esc(sec.tag) + "</span>" +
+          '<span class="cat-main"><span class="cat-title">' + esc(sec.title) + '</span><span class="cat-desc">' + esc(sec.desc) + "</span></span>" +
+          '<span class="cat-meta"><span class="dots">' + dotsHTML(si) + '</span><span class="chev">›</span></span>' +
+          "</button>" +
+          '<div class="cat-body' + (op ? " open" : "") + '"><div class="cat-inner"><div class="cat-pad">' +
+          sec.qs.map((q, qi) => questionHTML(q, si, qi)).join("") +
+          "</div></div></div></section>";
       });
-      html += '<footer>9 leviers · ~55 questions au total (le prospect n’en remplit qu’une quinzaine pour l’express, le reste est optionnel). Rendu d’aperçu — les réponses affichées sont des exemples. Modifs enregistrées automatiquement.</footer></div>' +
+      html += '<footer>9 leviers · ~55 questions au total — le prospect n’en remplit qu’une quinzaine pour l’express, le reste est optionnel. Rendu d’aperçu (réponses = exemples). Modifs enregistrées automatiquement.</footer></div>' +
         '<div class="bar saved"><span class="dot"></span><span class="t">Enregistré ✓</span></div>';
       root.innerHTML = html;
-      updateCounts();
+      updateMini();
       wire();
     };
 
     const kof = (el: Element): string | null => {
       const card = el.closest<HTMLElement>(".q"); if (!card) return null;
       return key(Number(card.getAttribute("data-si")), Number(card.getAttribute("data-qi")));
+    };
+    const setOpen = (cat: Element, open: boolean) => {
+      cat.classList.toggle("open", open);
+      cat.querySelector(".cat-body")?.classList.toggle("open", open);
     };
     const wire = () => {
       root.querySelectorAll<HTMLElement>("[data-role=label]").forEach((el) => {
@@ -289,11 +332,27 @@ export default function ReviewClient() {
           const k = kof(el); if (!k) return;
           const v = el.getAttribute("data-val") || ""; const e = ensure(k);
           e.s = e.s === v ? "" : v;
-          el.closest(".q")?.querySelectorAll<HTMLElement>("[data-role=st]").forEach((b) => {
-            b.classList.toggle("on", b.getAttribute("data-val") === e.s);
-          });
-          updateCounts(); scheduleSave();
+          el.closest(".q")?.querySelectorAll<HTMLElement>("[data-role=st]").forEach((b) => b.classList.toggle("on", b.getAttribute("data-val") === e.s));
+          const si = Number(el.closest<HTMLElement>(".cat")?.getAttribute("data-si"));
+          if (!Number.isNaN(si)) refreshDots(si);
+          updateMini(); scheduleSave();
         });
+      });
+      root.querySelectorAll<HTMLElement>("[data-role=toggle]").forEach((el) => {
+        el.addEventListener("click", () => { const cat = el.closest(".cat"); if (cat) setOpen(cat, !cat.classList.contains("open")); });
+      });
+      root.querySelectorAll<HTMLElement>("[data-jump]").forEach((el) => {
+        el.addEventListener("click", () => {
+          const si = el.getAttribute("data-jump"); const cat = root.querySelector('.cat[data-si="' + si + '"]');
+          if (cat) { setOpen(cat, true); cat.scrollIntoView({ behavior: "smooth", block: "start" }); }
+        });
+      });
+      const exp = root.querySelector<HTMLElement>("[data-role=expand]");
+      exp?.addEventListener("click", () => {
+        const open = exp.getAttribute("data-open") !== "1";
+        root.querySelectorAll(".cat").forEach((c) => setOpen(c, open));
+        exp.setAttribute("data-open", open ? "1" : "0");
+        exp.textContent = open ? "Tout replier" : "Tout déplier";
       });
     };
 
