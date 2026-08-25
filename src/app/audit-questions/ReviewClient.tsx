@@ -60,7 +60,7 @@ const SECTIONS: Section[] = [
     { l: "Entre un premier contact et l'achat, quelle part d'opportunités se perd en route ?", t: "choice", o: ["Peu (< 25 %)", "Environ la moitié", "Beaucoup (> 50 %)", "Je ne sais pas"], g: "le plus souvent par manque de relance ou de rapidité." },
     { l: "Relancez-vous les prospects intéressés qui n'ont pas encore acheté ?", t: "choice", o: ["Systématiquement", "Parfois", "Rarement ou jamais"] },
     { l: "Quel est votre délai de réponse à une demande entrante ?", t: "choice", o: ["Moins d'une heure", "Dans la journée", "Plusieurs jours"] },
-    { l: "Avez-vous un parcours clair entre l'intérêt et la décision d'achat ?", t: "choice", o: ["Oui, structuré", "Informel", "Aucun"] },
+    { l: "Avez-vous des étapes précises pour amener un prospect jusqu'à l'achat ?", t: "choice", o: ["Oui, un parcours structuré", "Informel", "Aucun"] },
   ] },
   { tag: "4", title: "Closing", desc: "Transformer une opportunité en vente — quelle que soit sa forme (devis signé, panier validé, vente au comptoir, RDV conclu).", qs: [
     { l: "Sur 10 clients potentiels arrivés au moment de décider, combien achètent ?", t: "num", u: "/10", ex: "4" },
@@ -69,7 +69,7 @@ const SECTIONS: Section[] = [
     { l: "Votre proposition rend-elle la décision simple (prix clair, étapes, garantie) ?", t: "choice", o: ["Oui", "À améliorer", "Non"] },
   ] },
   { tag: "5", title: "Offre", desc: "L'offre irrésistible : rendre le « oui » évident, par la promesse, la gamme et la différenciation.", qs: [
-    { l: "Votre offre principale en une phrase, et qui est votre client idéal", t: "area", ex: "J'accompagne les restaurateurs indépendants à digitaliser leurs réservations." },
+    { l: "Décrivez votre offre principale et sa promesse (le résultat concret que le client obtient)", t: "area", ex: "Des réservations en ligne qui remplissent les tables creuses, sans commission." },
     { l: "De 1 à 10, à quel point un prospect se dit « je serais fou de refuser » ?", t: "scale" },
     { l: "Vos différenciateurs, sans les mots creux", t: "area", ex: "Intervention sous 24 h garantie · SAV internalisé · 15 ans de références.", g: "ce que vous êtes seul à faire, pas « qualité » ni « sérieux »." },
     { l: "Si un concurrent vous copie et casse le prix de 20 %, qu'est-ce qui vous reste ?", t: "area", ex: "Ma réputation locale et mes références vérifiables." },
@@ -86,7 +86,7 @@ const SECTIONS: Section[] = [
     { l: "Listez les tâches que vous seul faites encore", t: "area", ex: "Devis · SAV · planning · relances · compta.", g: "une par ligne." },
     { l: "Documentez la plus chronophage en 5 étapes (le mode opératoire)", t: "area", ex: "1. Recevoir la demande · 2. Métrer · 3. Chiffrer · 4. Rédiger · 5. Envoyer et relancer." },
     { l: "À qui la déléguez-vous, et pour quelle échéance ?", t: "text", ex: "À Léa, d'ici 30 jours." },
-    { l: "Suivez-vous vos indicateurs clés de près (marges, trésorerie, pipeline) ?", t: "choice", o: ["Chaque semaine", "De temps en temps", "Non"] },
+    { l: "Suivez-vous vos indicateurs clés de près (marges, trésorerie, opportunités en cours) ?", t: "choice", o: ["Chaque semaine", "De temps en temps", "Non"] },
     { l: "Votre créneau de pilotage hebdomadaire bloqué (jour + heure)", t: "text", ex: "Vendredi 9 h – 11 h." },
   ] },
   { tag: "8", title: "Leadership", desc: "Le chef d'entreprise qui inspire, priorise et délègue : les bonnes personnes, des résultats plutôt que des tâches.", qs: [
@@ -99,7 +99,7 @@ const SECTIONS: Section[] = [
     { l: "Quelle part de vos nouveaux clients vient de recommandations ?", t: "choice", o: ["Beaucoup (> 50 %)", "Un peu (20 – 50 %)", "Peu (< 20 %)"] },
     { l: "Avez-vous un système pour générer avis, recommandations et ambassadeurs ?", t: "choice", o: ["Oui, actif", "Informel", "Aucun"] },
     { l: "Sur votre marché, votre réputation vous précède-t-elle ?", t: "scale", g: "1 = inconnu · 10 = référence de mon marché." },
-    { l: "Quel levier, renforcé, aurait le plus d'effet d'entraînement sur les autres ?", t: "text", ex: "Le closing : mieux vendre rend rentable tout le reste." },
+    { l: "Si vous ne deviez muscler qu'UN levier pour tirer tous les autres, lequel ?", t: "text", ex: "Le closing : mieux vendre rend rentable tout le reste." },
   ] },
 
   { tag: "★", title: "Bonus — Vous, le chef d'entreprise", desc: "Transversal, précieux pour le conseil et pour préparer l'appel.", qs: [
@@ -131,6 +131,8 @@ const CSS = `
 .arvroot .sub{color:var(--muted);font-size:15px;max-width:58ch;margin:0}
 .arvroot .howto{margin-top:16px;background:linear-gradient(180deg,#fff,#fbfcff);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:12.5px;color:var(--muted);box-shadow:var(--shadow);line-height:1.6}
 .arvroot .howto b{color:var(--ink)}
+.arvroot .howto .hl-ok{color:var(--teal)}
+.arvroot .howto .hl-rev{color:var(--red)}
 .arvroot .nav{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0 4px}
 .arvroot .nav button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-size:12px;font-weight:750;color:#40507e;cursor:pointer;transition:.14s;display:flex;align-items:center;gap:7px}
 .arvroot .nav button:hover{border-color:#bcccf7;color:var(--blue);transform:translateY(-1px);box-shadow:var(--shadow)}
@@ -163,15 +165,15 @@ const CSS = `
 .arvroot .qmain{display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0}
 .arvroot .qact{flex:none;display:flex;gap:7px}
 .arvroot .num{font-size:11px;font-weight:800;color:var(--blue-soft);padding-top:5px;min-width:18px}
-.arvroot .lab{flex:1;font-size:15px;font-weight:650;color:#17224a;border-radius:8px;padding:5px 8px;margin:-5px -8px;outline:none;transition:background .12s,box-shadow .12s}
-.arvroot .lab:hover{background:#f4f7ff}
-.arvroot .lab:focus{background:#eef4ff;box-shadow:0 0 0 2px #0046ff40}
+.arvroot .lab{flex:1;font-size:15px;font-weight:650;color:#17224a;border-radius:8px;padding:5px 9px;margin:-5px -9px;outline:none;cursor:text;border:1px dashed transparent;transition:background .12s,border-color .12s,box-shadow .12s}
+.arvroot .lab:hover{background:#f2f6ff;border-color:#cbd6f2}
+.arvroot .lab:focus{background:#fff;border-style:solid;border-color:var(--blue);box-shadow:0 0 0 3px #0046ff22}
 .arvroot .ctrl{margin:11px 0 0 28px}
 .arvroot .fp{border:1px solid var(--line);background:#f7f9ff;border-radius:10px;padding:10px 12px;font-size:13.5px;color:#98a1c0;display:flex;align-items:center;gap:8px}
 .arvroot .fp.area{min-height:44px;align-items:flex-start}
 .arvroot .fp .ic{color:var(--muted-2);font-size:12px;font-weight:800}
 .arvroot .opts{display:flex;flex-wrap:wrap;gap:7px}
-.arvroot .opt{border:1px solid var(--line);background:#f7f9ff;color:#3a4570;border-radius:99px;padding:6px 12px;font-size:12.5px}
+.arvroot .opt{border:1px solid #e9edf6;background:#f4f6fb;color:#8a92ab;border-radius:99px;padding:6px 12px;font-size:12.5px;cursor:default}
 .arvroot .scale{display:flex;align-items:center;gap:10px}
 .arvroot .scale .track{flex:1;height:6px;border-radius:99px;background:linear-gradient(90deg,#f0c4bb,#dbe3f4 55%,#bfe3dc)}
 .arvroot .scale .lm{font-size:11px;color:var(--muted-2);font-weight:700}
@@ -182,13 +184,16 @@ const CSS = `
 .arvroot .rline .rr{font-size:11px;color:var(--muted-2);font-weight:600;flex:none}
 .arvroot .guide{font-size:12px;color:var(--muted-2);margin:8px 0 0 28px;font-style:italic}
 .arvroot .guide b{color:var(--blue-soft);font-style:normal}
-.arvroot .stbtn{border:1px solid var(--line);background:#f7f9ff;color:#6b7392;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;transition:.12s;white-space:nowrap}
-.arvroot .stbtn:hover{border-color:#c7d2f0;color:#40507e}
-.arvroot .stbtn.ok.on{background:var(--teal);border-color:var(--teal);color:#fff}
-.arvroot .stbtn.rev.on{background:var(--red);border-color:var(--red);color:#fff}
+.arvroot .stbtn{border:1px solid;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:750;cursor:pointer;transition:.12s;white-space:nowrap}
+.arvroot .stbtn.ok{background:#e8f7f3;border-color:#bfe6de;color:#0a8576}
+.arvroot .stbtn.ok:hover{background:#d7f0e9;border-color:#0b8f80}
+.arvroot .stbtn.ok.on{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 3px 9px rgba(11,143,128,.28)}
+.arvroot .stbtn.rev{background:#fdece8;border-color:#f5cabf;color:#cf4028}
+.arvroot .stbtn.rev:hover{background:#fbdfd8;border-color:#e5533c}
+.arvroot .stbtn.rev.on{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 3px 9px rgba(229,83,60,.28)}
 .arvroot .cwrap{margin:12px 0 0 28px}
-.arvroot .addcmt{border:0;background:none;color:var(--blue-soft);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;padding:5px 0;display:inline-flex;align-items:center;gap:6px;transition:color .12s}
-.arvroot .addcmt:hover{color:var(--blue)}
+.arvroot .addcmt{border:1px dashed #cbd6f0;background:#f5f8ff;color:var(--blue-soft);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;padding:6px 12px;border-radius:8px;display:inline-flex;align-items:center;gap:7px;transition:.12s}
+.arvroot .addcmt:hover{border-color:var(--blue);color:var(--blue);background:#eef3ff}
 .arvroot .addcmt .p{font-size:15px;line-height:1;font-weight:800}
 .arvroot .cmt{display:none;width:100%;background:#fffdf6;border:1px solid #f0e6cf;border-radius:10px;color:var(--ink);font:inherit;font-size:13px;padding:9px 11px;min-height:40px;resize:vertical;outline:none}
 .arvroot .cwrap.open .cmt{display:block}
@@ -302,7 +307,7 @@ export default function ReviewClient() {
         '<p class="eyebrow">Aperçu de l’audit · à valider</p>' +
         "<h1>Le Diagnostic Business</h1>" +
         '<p class="sub">L’audit tel qu’il sera livré, classé par levier. Dépliez un levier pour voir ses questions avec leur réponse (champs, choix, curseurs), les réécrire ou les commenter.</p>' +
-        '<div class="howto"><b>Pour Max :</b> cliquez sur un levier pour l’ouvrir, puis dans le texte d’une question pour la <b>réécrire</b>, marquez-la <b>✓ Validée</b> / <b>✎ À revoir</b>, et laissez un <b>commentaire</b> si besoin. Enregistrement <b>automatique</b>. Les 9 leviers ont ~4 questions chacun (optionnels) ; l’express suffit pour le score.</div>' +
+        '<div class="howto"><b>Pour Max :</b> dépliez un levier, puis agissez sur chaque question — <b>réécrivez</b> le texte (encadré au survol), marquez <b class="hl-ok">Validée</b> / <b class="hl-rev">À revoir</b> (à droite), ou <b>ajoutez un commentaire</b>. Les réponses affichées (champs, choix) sont un <b>aperçu non modifiable</b> du rendu. Enregistrement <b>automatique</b>.</div>' +
         '<div class="nav">' +
         SECTIONS.map((s, si) => '<button data-jump="' + si + '"><span class="b">' + esc(s.tag) + "</span>" + esc(navLabel(s)) + "</button>").join("") +
         "</div></header>";
