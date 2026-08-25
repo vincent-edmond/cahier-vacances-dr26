@@ -159,7 +159,9 @@ const CSS = `
 
 .arvroot .q{padding:17px 0;border-bottom:1px solid var(--line-soft)}
 .arvroot .q:last-child{border-bottom:0}
-.arvroot .qtop{display:flex;align-items:flex-start;gap:10px}
+.arvroot .qtop{display:flex;align-items:flex-start;gap:12px;justify-content:space-between}
+.arvroot .qmain{display:flex;align-items:flex-start;gap:10px;flex:1;min-width:0}
+.arvroot .qact{flex:none;display:flex;gap:7px}
 .arvroot .num{font-size:11px;font-weight:800;color:var(--blue-soft);padding-top:5px;min-width:18px}
 .arvroot .lab{flex:1;font-size:15px;font-weight:650;color:#17224a;border-radius:8px;padding:5px 8px;margin:-5px -8px;outline:none;transition:background .12s,box-shadow .12s}
 .arvroot .lab:hover{background:#f4f7ff}
@@ -180,12 +182,17 @@ const CSS = `
 .arvroot .rline .rr{font-size:11px;color:var(--muted-2);font-weight:600;flex:none}
 .arvroot .guide{font-size:12px;color:var(--muted-2);margin:8px 0 0 28px;font-style:italic}
 .arvroot .guide b{color:var(--blue-soft);font-style:normal}
-.arvroot .row2{display:flex;align-items:center;gap:8px;margin:12px 0 0 28px;flex-wrap:wrap}
-.arvroot .stbtn{border:1px solid var(--line);background:#f7f9ff;color:#5b6488;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;transition:.12s}
-.arvroot .stbtn:hover{border-color:#c7d2f0}
+.arvroot .stbtn{border:1px solid var(--line);background:#f7f9ff;color:#6b7392;border-radius:8px;padding:6px 11px;font-size:12px;font-weight:700;cursor:pointer;transition:.12s;white-space:nowrap}
+.arvroot .stbtn:hover{border-color:#c7d2f0;color:#40507e}
 .arvroot .stbtn.ok.on{background:var(--teal);border-color:var(--teal);color:#fff}
 .arvroot .stbtn.rev.on{background:var(--red);border-color:var(--red);color:#fff}
-.arvroot .cmt{width:calc(100% - 28px);margin:10px 0 0 28px;background:#fffdf6;border:1px solid #f0e6cf;border-radius:10px;color:var(--ink);font:inherit;font-size:13px;padding:9px 11px;min-height:36px;resize:vertical;outline:none}
+.arvroot .cwrap{margin:12px 0 0 28px}
+.arvroot .addcmt{border:0;background:none;color:var(--blue-soft);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;padding:5px 0;display:inline-flex;align-items:center;gap:6px;transition:color .12s}
+.arvroot .addcmt:hover{color:var(--blue)}
+.arvroot .addcmt .p{font-size:15px;line-height:1;font-weight:800}
+.arvroot .cmt{display:none;width:100%;background:#fffdf6;border:1px solid #f0e6cf;border-radius:10px;color:var(--ink);font:inherit;font-size:13px;padding:9px 11px;min-height:40px;resize:vertical;outline:none}
+.arvroot .cwrap.open .cmt{display:block}
+.arvroot .cwrap.open .addcmt{display:none}
 .arvroot .cmt:focus{border-color:var(--amber);background:#fff}
 .arvroot .cmt::placeholder{color:#bcae86}
 
@@ -268,16 +275,22 @@ export default function ReviewClient() {
     const questionHTML = (q: Q, si: number, qi: number): string => {
       const k = key(si, qi); const e = edits[k] || {};
       const label = e.l != null ? e.l : q.l;
+      const hasC = !!(e.c && e.c.trim());
       let h = '<div class="q" data-si="' + si + '" data-qi="' + qi + '">' +
-        '<div class="qtop"><span class="num">' + (qi + 1) + "</span>" +
-        '<div class="lab" contenteditable="true" data-role="label" spellcheck="false">' + esc(label) + "</div></div>" +
+        '<div class="qtop">' +
+          '<div class="qmain"><span class="num">' + (qi + 1) + "</span>" +
+          '<div class="lab" contenteditable="true" data-role="label" spellcheck="false">' + esc(label) + "</div></div>" +
+          '<div class="qact">' +
+            '<button type="button" class="stbtn ok' + (e.s === "ok" ? " on" : "") + '" data-role="st" data-val="ok" aria-pressed="' + (e.s === "ok") + '" title="Marquer comme validée">Validée</button>' +
+            '<button type="button" class="stbtn rev' + (e.s === "rev" ? " on" : "") + '" data-role="st" data-val="rev" aria-pressed="' + (e.s === "rev") + '" title="Marquer à revoir">À revoir</button>' +
+          "</div>" +
+        "</div>" +
         '<div class="ctrl">' + control(q) + "</div>";
       if (q.g) h += '<div class="guide"><b>→ aide :</b> ' + esc(q.g) + "</div>";
-      h += '<div class="row2">' +
-        '<button type="button" class="stbtn ok' + (e.s === "ok" ? " on" : "") + '" data-role="st" data-val="ok">✓ Validée</button>' +
-        '<button type="button" class="stbtn rev' + (e.s === "rev" ? " on" : "") + '" data-role="st" data-val="rev">✎ À revoir</button>' +
-        "</div>" +
-        '<textarea class="cmt" data-role="cmt" placeholder="Commentaire ou reformulation (facultatif)…">' + esc(e.c || "") + "</textarea></div>";
+      h += '<div class="cwrap' + (hasC ? " open" : "") + '">' +
+        '<button type="button" class="addcmt" data-role="addcmt"><span class="p">+</span> Ajouter un commentaire</button>' +
+        '<textarea class="cmt" data-role="cmt" placeholder="Votre commentaire ou reformulation…">' + esc(e.c || "") + "</textarea>" +
+        "</div></div>";
       return h;
     };
 
@@ -326,6 +339,14 @@ export default function ReviewClient() {
       });
       root.querySelectorAll<HTMLTextAreaElement>("[data-role=cmt]").forEach((el) => {
         el.addEventListener("input", () => { const k = kof(el); if (k) { ensure(k).c = el.value; scheduleSave(); } });
+        el.addEventListener("blur", () => { if (!el.value.trim()) el.closest(".cwrap")?.classList.remove("open"); });
+      });
+      root.querySelectorAll<HTMLElement>("[data-role=addcmt]").forEach((el) => {
+        el.addEventListener("click", () => {
+          const w = el.closest(".cwrap"); if (!w) return;
+          w.classList.add("open");
+          w.querySelector<HTMLTextAreaElement>("textarea")?.focus();
+        });
       });
       root.querySelectorAll<HTMLElement>("[data-role=st]").forEach((el) => {
         el.addEventListener("click", () => {
