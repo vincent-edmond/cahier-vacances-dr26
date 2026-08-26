@@ -320,6 +320,38 @@ function Field({
     );
   }
 
+  // Note de 1 à 10 : sélecteur visuel de 10 pastilles cliquables (plus clair et plus
+  // rapide qu'un champ à remplir). La valeur enregistrée reste identique (« 1 »…« 10 »),
+  // donc aucun impact sur le retour Max IA, le récap ou la persistance.
+  if (field.type === "number" && field.suffix === "/10") {
+    const current = String(reponses[field.id] ?? "");
+    return (
+      <div>
+        {label}
+        <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5" role="group" aria-label={field.label}>
+          {Array.from({ length: 10 }, (_, i) => String(i + 1)).map((n) => {
+            const active = current === n;
+            return (
+              <button
+                key={n}
+                type="button"
+                onClick={() => onChange(field.id, n)}
+                aria-pressed={active}
+                className={`h-11 w-full rounded-xl border text-sm font-bold transition-all ${
+                  active
+                    ? "bg-[#0046FF] border-[#0046FF] text-white shadow-[0_4px_12px_rgba(0,70,255,0.28)]"
+                    : "bg-white border-[#E2E4EA] text-[#555B6E] hover:border-[#0046FF] hover:text-[#0046FF]"
+                }`}
+              >
+                {n}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   // number | text
   return (
     <div>
