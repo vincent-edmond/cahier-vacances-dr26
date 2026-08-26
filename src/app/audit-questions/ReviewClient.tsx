@@ -112,7 +112,7 @@ const SECTIONS: Section[] = [
 const navLabel = (s: Section) => (s.tag === "A" ? "Qualification" : s.tag === "B" ? "Express" : s.tag === "★" ? "Bonus" : s.title);
 
 const CSS = `
-.arvroot{--bg:#eef2fb;--card:#fff;--tint:#eef3ff;--line:#e6ebf6;--line-soft:#f0f3fa;--blue:#0046ff;--blue-soft:#2f6bff;--ink:#0b1b3f;--muted:#5b6488;--muted-2:#9098b4;--teal:#0b8f80;--amber:#c98200;--red:#e5533c;--shadow:0 1px 3px rgba(12,32,84,.05);--shadow-md:0 10px 34px rgba(12,32,84,.10);--font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-family:var(--font);color:var(--ink);background:radial-gradient(1100px 560px at 50% -8%,#e6edff 0%,transparent 60%),var(--bg);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:74px;display:block}
+.arvroot{--bg:#f5f7fc;--card:#ffffff;--tint:#edf1ff;--line:#E2E4EA;--line-soft:#F0F1F5;--blue:#0046FF;--blue-dark:#0033CC;--blue-soft:#2563FF;--ink:#00194C;--muted:#555B6E;--muted-2:#9096A5;--teal:#0D9488;--amber:#c98200;--red:#e5533c;--shadow:0 1px 3px rgba(0,25,76,.05);--shadow-md:0 12px 34px rgba(0,25,76,.12);font-family:var(--font-inter),system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:radial-gradient(1100px 560px at 50% -8%,#e7edff 0%,transparent 60%),var(--bg);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:74px;display:block}
 .arvroot *{box-sizing:border-box}
 .arvroot .wrap{max-width:820px;margin:0 auto;padding:0 20px}
 
@@ -127,7 +127,7 @@ const CSS = `
 
 .arvroot header{padding:32px 0 6px}
 .arvroot .eyebrow{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--blue-soft);font-weight:800;margin:0 0 12px}
-.arvroot h1{font-size:30px;line-height:1.12;letter-spacing:-.025em;margin:0 0 10px;font-weight:850;text-wrap:balance}
+.arvroot h1{font-family:var(--font-poppins),var(--font-inter),sans-serif;font-size:30px;line-height:1.12;letter-spacing:-.02em;margin:0 0 10px;font-weight:800;text-wrap:balance}
 .arvroot .sub{color:var(--muted);font-size:15px;max-width:58ch;margin:0}
 .arvroot .howto{margin-top:16px;background:linear-gradient(180deg,#fff,#fbfcff);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:12.5px;color:var(--muted);box-shadow:var(--shadow);line-height:1.6}
 .arvroot .howto b{color:var(--ink)}
@@ -140,12 +140,18 @@ const CSS = `
 
 .arvroot .cat{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);margin-top:12px;overflow:hidden;scroll-margin-top:66px;transition:box-shadow .2s,border-color .2s}
 .arvroot .cat.open{box-shadow:var(--shadow-md);border-color:#dbe3f6}
+.arvroot .cat.done{border-color:#bfe6de;background:#f4fbf9}
+.arvroot .cat.done .cat-h{background:#f4fbf9}
+.arvroot .cat.done .cat-h:hover{background:#eaf7f3}
+.arvroot .cat.done .cat-idx{background:var(--teal);border-color:var(--teal);color:#fff;box-shadow:0 6px 16px rgba(13,148,136,.26)}
+.arvroot .cat-badge{display:none;align-items:center;gap:5px;background:var(--teal);color:#fff;border-radius:99px;padding:3px 10px;font-size:11px;font-weight:800;letter-spacing:.02em;white-space:nowrap}
+.arvroot .cat.done .cat-badge{display:inline-flex}
 .arvroot .cat-h{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:none;border:0;cursor:pointer;padding:17px 18px;font:inherit;color:inherit}
 .arvroot .cat-h:hover{background:#fbfcff}
 .arvroot .cat-idx{flex:none;width:36px;height:36px;border-radius:10px;background:var(--tint);color:var(--blue);font-weight:850;font-size:14.5px;display:flex;align-items:center;justify-content:center;border:1px solid #dbe4fb;transition:.2s}
 .arvroot .cat.open .cat-idx{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 6px 16px rgba(0,70,255,.28)}
 .arvroot .cat-main{flex:1;min-width:0}
-.arvroot .cat-title{display:block;font-size:15.5px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
+.arvroot .cat-title{display:block;font-family:var(--font-poppins),var(--font-inter),sans-serif;font-size:15.5px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
 .arvroot .cat-desc{display:block;font-size:12.5px;color:var(--muted-2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .arvroot .cat.open .cat-desc{white-space:normal}
 .arvroot .cat-meta{flex:none;display:flex;align-items:center;gap:13px}
@@ -222,7 +228,7 @@ export default function ReviewClient() {
     let edits: Edits = {};
     let saveTimer: ReturnType<typeof setTimeout> | undefined;
     let inflight = false;
-    const OPEN_DEFAULT = 2; // Ciblage ouvert par défaut
+    const OPEN_DEFAULT = -1; // tout replié au départ
 
     const esc = (s: string) =>
       String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -238,6 +244,9 @@ export default function ReviewClient() {
     };
     const dotsHTML = (si: number) =>
       SECTIONS[si].qs.map((_, qi) => { const s = edits[key(si, qi)]?.s; return '<span class="d' + (s === "ok" ? " ok" : s === "rev" ? " rev" : "") + '"></span>'; }).join("");
+    const sectionDone = (si: number) =>
+      SECTIONS[si].qs.length > 0 && SECTIONS[si].qs.every((_, qi) => edits[key(si, qi)]?.s === "ok");
+    const refreshDone = (si: number) => { const c = root.querySelector('.cat[data-si="' + si + '"]'); if (c) c.classList.toggle("done", sectionDone(si)); };
 
     const setBar = (cls: string, txt: string) => {
       const bar = root.querySelector<HTMLElement>(".bar");
@@ -313,11 +322,12 @@ export default function ReviewClient() {
         "</div></header>";
       SECTIONS.forEach((sec, si) => {
         const op = si === OPEN_DEFAULT;
-        html += '<section class="cat' + (op ? " open" : "") + '" data-si="' + si + '">' +
+        const dn = sectionDone(si);
+        html += '<section class="cat' + (op ? " open" : "") + (dn ? " done" : "") + '" data-si="' + si + '">' +
           '<button class="cat-h" data-role="toggle" type="button">' +
           '<span class="cat-idx">' + esc(sec.tag) + "</span>" +
           '<span class="cat-main"><span class="cat-title">' + esc(sec.title) + '</span><span class="cat-desc">' + esc(sec.desc) + "</span></span>" +
-          '<span class="cat-meta"><span class="dots">' + dotsHTML(si) + '</span><span class="chev">›</span></span>' +
+          '<span class="cat-meta"><span class="cat-badge">✓ Validé</span><span class="dots">' + dotsHTML(si) + '</span><span class="chev">›</span></span>' +
           "</button>" +
           '<div class="cat-body' + (op ? " open" : "") + '"><div class="cat-inner"><div class="cat-pad">' +
           sec.qs.map((q, qi) => questionHTML(q, si, qi)).join("") +
@@ -360,7 +370,7 @@ export default function ReviewClient() {
           e.s = e.s === v ? "" : v;
           el.closest(".q")?.querySelectorAll<HTMLElement>("[data-role=st]").forEach((b) => b.classList.toggle("on", b.getAttribute("data-val") === e.s));
           const si = Number(el.closest<HTMLElement>(".cat")?.getAttribute("data-si"));
-          if (!Number.isNaN(si)) refreshDots(si);
+          if (!Number.isNaN(si)) { refreshDots(si); refreshDone(si); }
           updateMini(); scheduleSave();
         });
       });
