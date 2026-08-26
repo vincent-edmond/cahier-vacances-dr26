@@ -46,6 +46,7 @@ const SECTIONS: Section[] = [
   ] },
   { tag: "E", title: "Offre & clients", desc: "", qs: [
     { l: "Décrivez votre offre principale et sa promesse (le résultat concret que le client obtient)", t: "area", ex: "Des cuisines posées sous 24 h, SAV internalisé, sans sous-traitance." },
+    { l: "Si un concurrent vous copie et casse le prix de 20 %, qu'est-ce qui vous reste ?", t: "area", ex: "Ma réputation locale et mes références vérifiables." },
     { l: "Quelle part de votre CA vient de clients existants ?", t: "choice", o: ["< 10 %", "10 – 25 %", "25 – 50 %", "> 50 %", "Je ne sais pas"], g: "révèle le potentiel de monétisation de votre base clients." },
     { l: "Votre panier moyen (CA moyen par commande)", t: "num", u: "€", ex: "2 500", dk: true },
     { l: "Votre fréquence d'achat (nb d'achats par an et par client)", t: "num", u: "#", ex: "2", dk: true },
