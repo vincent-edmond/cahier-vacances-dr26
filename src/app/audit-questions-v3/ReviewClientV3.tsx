@@ -43,6 +43,8 @@ const SECTIONS: Section[] = [
     { l: "Nombre de nouveaux prospects générés chaque mois", t: "num", u: "#", ex: "80", dk: true },
     { l: "Nombre de nouveaux clients générés chaque mois", t: "num", u: "#", ex: "12", dk: true },
     { l: "Votre taux de conversion (prospects → clients)", t: "num", u: "%", ex: "18", dk: true },
+    { l: "Avez-vous un système de suivi ? Relancez-vous systématiquement les personnes intéressées qui n'ont pas encore acheté ?", t: "choice", o: ["Oui, systématiquement", "Parfois", "Non"] },
+    { l: "Qui conclut la vente aujourd'hui : vous seul, une équipe, ou un système ?", t: "choice", o: ["Surtout moi", "Une équipe", "Un système / automatisé"] },
   ] },
   { tag: "E", title: "Offre & clients", desc: "", qs: [
     { l: "Décrivez votre offre principale et sa promesse (le résultat concret que le client obtient)", t: "area", ex: "Des cuisines posées sous 24 h, SAV internalisé, sans sous-traitance." },
@@ -50,6 +52,7 @@ const SECTIONS: Section[] = [
     { l: "Quelle part de votre CA vient de clients existants ?", t: "choice", o: ["< 10 %", "10 – 25 %", "25 – 50 %", "> 50 %", "Je ne sais pas"], g: "révèle le potentiel de monétisation de votre base clients." },
     { l: "Votre panier moyen (CA moyen par commande)", t: "num", u: "€", ex: "2 500", dk: true },
     { l: "Votre fréquence d'achat (nb d'achats par an et par client)", t: "num", u: "#", ex: "2", dk: true },
+    { l: "Votre taux de rétention (clients qui restent d'une année à l'autre)", t: "num", u: "%", ex: "70", dk: true },
   ] },
   { tag: "F", title: "Organisation", desc: "", qs: [
     { l: "Si vous disparaissiez pendant 90 jours, que se passerait-il ?", t: "choice", o: ["L'entreprise continuerait normalement", "Elle ralentirait", "Des décisions importantes seraient bloquées", "Elle serait sérieusement en difficulté"] },
