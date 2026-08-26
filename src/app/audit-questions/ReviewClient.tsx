@@ -247,6 +247,8 @@ export default function ReviewClient() {
     const sectionDone = (si: number) =>
       SECTIONS[si].qs.length > 0 && SECTIONS[si].qs.every((_, qi) => edits[key(si, qi)]?.s === "ok");
     const refreshDone = (si: number) => { const c = root.querySelector('.cat[data-si="' + si + '"]'); if (c) c.classList.toggle("done", sectionDone(si)); };
+    const sectionComplete = (si: number) =>
+      SECTIONS[si].qs.length > 0 && SECTIONS[si].qs.every((_, qi) => { const s = edits[key(si, qi)]?.s; return s === "ok" || s === "rev"; });
 
     const setBar = (cls: string, txt: string) => {
       const bar = root.querySelector<HTMLElement>(".bar");
@@ -366,12 +368,18 @@ export default function ReviewClient() {
       root.querySelectorAll<HTMLElement>("[data-role=st]").forEach((el) => {
         el.addEventListener("click", () => {
           const k = kof(el); if (!k) return;
+          const catEl = el.closest<HTMLElement>(".cat");
+          const si = Number(catEl?.getAttribute("data-si"));
+          const wasComplete = !Number.isNaN(si) && sectionComplete(si);
           const v = el.getAttribute("data-val") || ""; const e = ensure(k);
           e.s = e.s === v ? "" : v;
           el.closest(".q")?.querySelectorAll<HTMLElement>("[data-role=st]").forEach((b) => b.classList.toggle("on", b.getAttribute("data-val") === e.s));
-          const si = Number(el.closest<HTMLElement>(".cat")?.getAttribute("data-si"));
           if (!Number.isNaN(si)) { refreshDots(si); refreshDone(si); }
           updateMini(); scheduleSave();
+          // La catégorie vient d'être entièrement décidée → repli auto (réouvrable).
+          if (!Number.isNaN(si) && !wasComplete && catEl && sectionComplete(si)) {
+            setTimeout(() => setOpen(catEl, false), 280);
+          }
         });
       });
       root.querySelectorAll<HTMLElement>("[data-role=toggle]").forEach((el) => {
