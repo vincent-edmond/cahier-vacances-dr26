@@ -55,7 +55,7 @@ const SECTIONS: Section[] = [
     { l: "Votre équipe de direction peut-elle prendre les décisions importantes sans vous ?", t: "choice", o: ["Oui", "Partiellement", "Non", "Je n'ai pas d'équipe de direction"] },
     { l: "Disposez-vous d'un tableau de bord de vos indicateurs clés (commercial, marketing, financier) ?", t: "choice", o: ["Oui, mis à jour chaque semaine", "Oui mais irrégulièrement", "Non"] },
   ] },
-  { tag: "G", title: "Dirigeant", desc: "", qs: [
+  { tag: "G", title: "Le chef d’entreprise", desc: "", qs: [
     { l: "Combien d'heures par semaine consacrez-vous à votre entreprise ?", t: "num", u: "#", ex: "58" },
     { l: "Quel % de votre temps passez-vous dans l'opérationnel ?", t: "num", u: "%", ex: "72" },
   ] },
@@ -227,7 +227,7 @@ export default function ReviewClientV3() {
       html += '<div class="wrap"><header>' +
         '<p class="eyebrow">V3 · après retours de Max · à finaliser</p>' +
         "<h1>Le Diagnostic Business — V3</h1>" +
-        '<p class="sub">Version resserrée intégrant tes annotations et ton message : ~24 questions de diagnostic, structure alignée sur le rapport (croissance, rentabilité, machine commerciale, liberté du dirigeant). Cible : 8-10 min.</p>' +
+        '<p class="sub">Version resserrée intégrant tes annotations et ton message : ~24 questions de diagnostic, structure alignée sur le rapport (croissance, rentabilité, machine commerciale, liberté du chef d’entreprise). Cible : 8-10 min.</p>' +
         '<div class="howto"><b>Pour Max :</b> dépliez un bloc, puis sur chaque question — <b>réécrivez</b> le texte, marquez <b class="hl-ok">Validée</b> / <b class="hl-rev">À revoir</b>, ou <b>ajoutez un commentaire</b>. Les réponses affichées sont un <b>aperçu non modifiable</b>. Enregistrement <b>automatique</b>, indépendant des V1/V2.</div>' +
         '<div class="nav">' +
         SECTIONS.map((s, si) => '<button data-jump="' + si + '"><span class="b">' + esc(s.tag) + "</span>" + esc(s.title) + "</button>").join("") +
