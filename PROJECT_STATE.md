@@ -1,7 +1,8 @@
 # Le Cahier de Vacances DR26 — État du projet (référence persistante)
 
-> Mis à jour : 2026-06-15. Ce fichier est la mémoire du projet. À relire au début de chaque session.
+> Mis à jour : 2026-08-26. Ce fichier est la mémoire du projet. À relire au début de chaque session.
 > Nom public du produit : **Summer Business** (domaine prod : `summer-business.maxpiccinini.com`).
+> ⭐ **FOCUS ACTUEL** : pivot vers un **audit/diagnostic evergreen** (voir la section « 🩺 PIVOT EVERGREEN » juste sous la Vue d'ensemble). Le SaaS « cahier de vacances » ci-dessous reste la base technique réutilisée.
 
 ---
 
@@ -19,6 +20,45 @@ de mi-année (C1, mar 04/08) au plan d'action du S2 (C9, mar 25/08). 7 dates de 
 
 Mécanique d'une capsule : **vidéo (embed) → fiche HTML → exercice sauvegardé → feedback IA Claude → CTA DR**.
 > Section commentaires/communauté **retirée** (jugée non pertinente, risque de défocus). Table `cdv.comments` laissée en base (inutilisée).
+
+---
+
+## 🩺 PIVOT EVERGREEN — « Le Diagnostic Business » (audit d'entreprise) — EN COURS
+
+**Contexte / vision** : transformer le dispositif ponctuel (été) en **lead magnet EVERGREEN** = un **audit/diagnostic** de l'entreprise du chef d'entreprise, dispo toute l'année. **Finalité = déclencher la prise de RDV** avec l'équipe qui close les programmes high-ticket (DR + coaching MM/3MD/3MP). Le diagnostic n'est pas une fin : c'est l'aimant + le **brief du closer** (double usage de la donnée : personnaliser le conseil ET armer le commercial).
+
+**Différenciateur** : Max IA branché sur **toute la base de connaissance** (transcripts de formation + Q&R Max/coachs) via **RAG (Pinecone à réactiver)** → « la méthode de Max appliquée à VOS chiffres », non copiable.
+
+**Parcours cible** : Pub/SEO → Landing → **Opt-in en porte d'entrée** (conversion pub tôt, contrainte Meta/Google) → **Diagnostic express** (~5 min) → **Résultats** (score, radar, coût de l'inaction) → **Approfondissements optionnels** (la valeur est délivrée DANS l'outil, jauge de fiabilité qui monte — pas un péage vers le call) → **Prise de RDV**. Cible : chef d'entreprise établi, tous secteurs ; leads quali = CA ≥ 100K.
+
+### Questionnaire — V3 VALIDÉE PAR MAX EN L'ÉTAT (2026-08-26) ✅
+- **8 blocs, 33 questions** (5 profil + **28 de diagnostic**), ~8-10 min. Structure alignée sur le rapport visé.
+- Blocs : A Profil · B Votre entreprise · C Croissance & finances · D Acquisition & ventes · E Offre & clients · F Organisation · G Le chef d'entreprise · H Ambition & freins.
+- Exigences Max intégrées : **« je ne sais pas »** sur les chiffres ; CA actuel en € ; objectifs CA 12 mois/3 ans (1 question, 2 champs) ; **dépenses marketing/mois** (CAC/ROAS) ; **part de CA des clients existants** (monétisation) ; **« quel facteur limite votre croissance ? »** (la question « ce que vous pensez vs ce qu'on trouve ») ; **« 90 jours si vous disparaissez »** ; **« équipe de direction sans vous »** ; **tableau de bord KPI** ; EBE + marge brute + rétention.
+- Contenu figé dans `src/app/audit-questions-v3/ReviewClientV3.tsx` (const `SECTIONS`).
+
+### Outil interne de relecture/validation (ISOLÉ — ne touche pas le SaaS)
+- 3 pages : `/audit-questions` (V1) · `/audit-questions-v2` · `/audit-questions-v3`. Max **annote / réécrit / valide / commente directement** dessus (auto-enregistré, partagé par simple lien `*.netlify.app`, sans compte). `noindex`, non liées depuis le SaaS.
+- **Table dédiée `cdv.audit_review`** (1 ligne par version : ids `questions`, `questions_v2`, `questions_v3`) + RPC `audit_review_get/save` + route `/api/audit-review`. Édits indexés par `si_qi`.
+- ⚠️ **NE JAMAIS vider `cdv.audit_review`** (les annotations de Max/Vincent y vivent — les avoir effacées par des resets de test était la cause des « validations qui disparaissent »). Pour tester : id à part ou neutraliser le POST, jamais `delete`.
+- UI : accordéon premium (tout replié au départ · auto-repli d'un bloc entièrement décidé · carte verte + badge « Validé ») ; statut **Validée (vert) / À revoir (rouge)** à droite ; **commentaire optionnel** (bouton « + Ajouter un commentaire »). **Palette & polices de Max** : navy #00194C, bleu #0046FF / #2563FF, gris #9096A5 / #555B6E, vert #0D9488, **Poppins (titres) + Inter (corps)**.
+- Historique annotations : V1 = 49 · V2 = 34 (round-2 Max) · **V3 = validée en l'état**.
+
+### RAPPORT de résultats — À CONSTRUIRE (Max : « le rapport compte plus que les questions »)
+- En-tête : « Diagnostic de croissance de [Entreprise] » + **potentiel inexploité estimé +X à +Y €/an**.
+- **4 scores seulement** : 🚀 Croissance · 💰 Rentabilité · 📈 Machine commerciale · ⚙️ Liberté du chef d'entreprise (Max a écrit « Liberté du dirigeant » → arbitrer wording).
+- **3 plus gros leviers** chiffrés (ex. conversion 18→25 % = +270 K€/an ; monétisation clients ; dépendance dirigeant : heures × % opérationnel).
+- **1 à 3 recommandations courtes** (en surface, PAS de deep-dive) ; **appuyer sur le manque à gagner**.
+- **Règle d'or** : distinguer **manque à gagner MESURABLE** (calculé sur ses données) du **POTENTIEL d'amélioration** (benchmark, clairement présenté comme estimation). **JAMAIS de faux chiffre** (crédibilité auprès des bons entrepreneurs). Ton **mini due-diligence / board assessment**, pas quiz marketing.
+- CTA : « Réserver mon Diagnostic Stratégique ».
+
+### Règle wording (rappel)
+« dirigeant » **banni** → « chef d'entreprise » / « vous ». Exception : là où Max l'a écrit précisément (ex. le libellé de score du rapport) → à arbitrer avec Vincent.
+
+### Prochaines étapes
+1. **Maquette du RAPPORT de résultats** (prioritaire — proposée à Vincent, en attente de go).
+2. V3 validée → **implémenter le vrai produit evergreen** : décalendariser le SaaS, brancher le questionnaire V3, le scoring 4 axes, le coût de l'inaction mesurable/estimé, le RAG (base Max), la prise de RDV.
+3. Maquettes visuelles existantes = artifacts claude.ai (privés) ; la version éditable de référence = les pages `/audit-questions-*`.
 
 ---
 
